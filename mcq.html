@@ -82,18 +82,24 @@ fileInput.addEventListener('change', e=>{
     skipEmptyLines:true,
     complete:res=>{
       // map CSV rows to question objects
-      baseQuestions=res.data.map((row,idx)=>({
-        id:idx,
-        text:row['Question'],
-        options:[
-          {text:row['Option A'],letter:'A'},
-          {text:row['Option B'],letter:'B'},
-          {text:row['Option C'],letter:'C'},
-          {text:row['Option D'],letter:'D'}
-        ],
-        correctLetter:row['Correct Answer'].trim().toUpperCase(),
-        explanation:row['Explanation']
-      })).filter(q=>q.text && q.options.every(o=>o.text));
+      baseQuestions=res.data.map((row,idx)=>{
+        // Allow multiple correct answers separated by comma, semicolon or space
+        const letters=row['Correct Answer']
+          ? row['Correct Answer'].split(/[;,\s]+/).map(s=>s.trim().toUpperCase()).filter(Boolean)
+          : [];
+        return {
+          id:idx,
+          text:row['Question'],
+          options:[
+            {text:row['Option A'],letter:'A'},
+            {text:row['Option B'],letter:'B'},
+            {text:row['Option C'],letter:'C'},
+            {text:row['Option D'],letter:'D'}
+          ],
+          correctLetters:letters,
+          explanation:row['Explanation']
+        };
+      }).filter(q=>q.text && q.options.every(o=>o.text));
       if(baseQuestions.length===0){
         alert('No questions found in CSV.');
         return;
@@ -108,11 +114,16 @@ fileInput.addEventListener('change', e=>{
 function startQuiz(source){
   quizQuestions=shuffle(source).map(q=>{
     const opts=shuffle(q.options.slice());
+    // Map the shuffled options to correct indices array
+    const indices=opts.reduce((acc,o,idx)=>{
+      if(q.correctLetters.includes(o.letter)) acc.push(idx);
+      return acc;
+    },[]);
     return {
       id:q.id,
       text:q.text,
       options:opts,
-      correctIndex:opts.findIndex(o=>o.letter===q.correctLetter),
+      correctIndices:indices,
       explanation:q.explanation
     };
   });
@@ -150,18 +161,19 @@ function selectOption(i){
   const q=quizQuestions[index];
   const btns=optionsEl.querySelectorAll('.option');
   btns.forEach(b=>b.disabled=true);
-  const correct=i===q.correctIndex;
+  // Determine correctness by checking if chosen index is in the list of correct indices
+  const correct=q.correctIndices.includes(i);
   if(correct){
     score++;
-    btns[i].classList.add('correct');
     feedbackEl.textContent='Correct!';
   }else{
     btns[i].classList.add('incorrect');
-    btns[q.correctIndex].classList.add('correct');
     feedbackEl.textContent='Incorrect!';
     const base=baseQuestions.find(b=>b.id===q.id);
     if(base) incorrectBase.push(base);
   }
+  // Highlight all correct options
+  q.correctIndices.forEach(ci=>btns[ci].classList.add('correct'));
   explanationEl.textContent=q.explanation;
   explanationEl.classList.remove('hidden');
   scoreEl.textContent=`Score: ${score} / ${quizQuestions.length}`;
