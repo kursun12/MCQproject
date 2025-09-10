@@ -12,7 +12,7 @@
   header button,header select,header input{font-size:.9rem;padding:.3rem .5rem;}
   #progress{flex:1;margin-left:.5rem;height:8px;background:#ccc;border-radius:4px;overflow:hidden;}
   #progress div{height:100%;width:0;background:#0078d4;}
-  #timer,#score{margin-left:.5rem;}
+  #timer,#score,#progressText{margin-left:.5rem;}
   main{flex:1;padding:1rem;display:flex;flex-direction:column;}
   .question{font-size:1.1rem;margin-bottom:1rem;}
   .options{display:flex;flex-direction:column;gap:.5rem;}
@@ -42,15 +42,16 @@
     <option value="test">Test</option>
     <option value="cram">Cram</option>
   </select>
-  <label>Shuffle Qs<input type="checkbox" id="shuffleQuestions"/></label>
-  <label>Shuffle Opts<input type="checkbox" id="shuffleOptions"/></label>
+  <label>Shuffle Qs<input type="checkbox" id="shuffleQuestions" checked/></label>
+  <label>Shuffle Opts<input type="checkbox" id="shuffleOptions" checked/></label>
   <label>Range <input type="number" id="rangeStart" min="1" style="width:4rem;">-<input type="number" id="rangeEnd" min="1" style="width:4rem;"></label>
   <input type="text" id="keyword" placeholder="keyword"/>
   <label><input type="checkbox" id="onlyUnanswered">Unanswered</label>
   <label><input type="checkbox" id="onlyIncorrect">Incorrect</label>
+  <div id="progressText"></div>
+  <div id="progress"><div></div></div>
   <div id="timer">00:00</div>
   <div id="score"></div>
-  <div id="progress"><div></div></div>
 </header>
 <main aria-live="polite">
   <div id="quiz"></div>
@@ -82,13 +83,14 @@
 <div class="modal" id="resultsModal" role="dialog" aria-modal="true">
   <div class="box">
     <h2>Results</h2>
-    <div id="resultSummary"></div>
-    <div id="breakdown"></div>
-    <button id="restartBtn">Restart quiz</button>
-    <button id="reviewIncorrectBtn">Review incorrect</button>
-    <button class="close">Close</button>
+      <div id="resultSummary"></div>
+      <div id="breakdown"></div>
+      <button id="restartBtn">Restart quiz</button>
+      <button id="retryIncorrectBtn">Retry incorrect</button>
+      <button id="reviewIncorrectBtn">Review incorrect</button>
+      <button class="close">Close</button>
+    </div>
   </div>
-</div>
 
 <!-- Review modal -->
 <div class="modal" id="reviewModal" role="dialog" aria-modal="true">
@@ -124,41 +126,37 @@
     });
   }
 
-  function validateRows(res){
-    const required=['QuestionNumber','Question','Option A','Option B','Option C','Option D','Shown Answer','Correct Answer','Explanation'];
-    if(JSON.stringify(res.meta.fields)!==JSON.stringify(required)){
-      throw new Error('CSV columns mismatch. Expect header: '+required.join(', '));
+    // Validate CSV rows and normalize them into our internal structure
+    function validateRows(res){
+      const required=['Question','Option A','Option B','Option C','Option D','Correct Answer','Explanation'];
+      if(JSON.stringify(res.meta.fields)!==JSON.stringify(required)){
+        throw new Error('CSV columns mismatch. Expect header: '+required.join(', '));
+      }
+      const valid=[],skipped=[];
+      res.data.forEach((row,i)=>{
+        const opts=['Option A','Option B','Option C','Option D'].map(k=>row[k]);
+        const filled=opts.filter(o=>o!==undefined && o!==null && o!=='');
+        if(filled.length<2){skipped.push({row:i+2,reason:'<2 options'});return;}
+        const correct=(row['Correct Answer']||'').trim().toUpperCase();
+        const letters=['A','B','C','D'];
+        const correctIdx=letters.indexOf(correct);
+        if(correctIdx===-1||!opts[correctIdx]){skipped.push({row:i+2,reason:'Invalid Correct Answer'});return;}
+        valid.push(normalizeQuestion(i+1,row,opts,correctIdx));
+      });
+      return {valid,skipped};
     }
-    const seen=new Set();
-    const valid=[],skipped=[];
-    res.data.forEach((row,i)=>{
-      const num=row['QuestionNumber'];
-      if(seen.has(num)){skipped.push({row:i+2,reason:'Duplicate QuestionNumber'});return;}
-      seen.add(num);
-      const opts=['Option A','Option B','Option C','Option D'].map(k=>row[k]);
-      const filled=opts.filter(o=>o!==undefined && o!==null && o!=='' );
-      if(filled.length<2){skipped.push({row:i+2,reason:'<2 options'});return;}
-      const correct=(row['Correct Answer']||'').trim().toUpperCase();
-      const letters=['A','B','C','D'];
-      const correctIdx=letters.indexOf(correct);
-      if(correctIdx===-1||!opts[correctIdx]){skipped.push({row:i+2,reason:'Invalid Correct Answer'});return;}
-      valid.push(normalizeQuestion(row,opts,correctIdx));
-    });
-    return {valid,skipped};
-  }
 
-  function normalizeQuestion(row,opts,correctIdx){
-    return {
-      num:row['QuestionNumber'],
-      text:row['Question'],
-      options:opts.map((t,i)=>({text:t,letter:['A','B','C','D'][i]})),
-      correctIndex:correctIdx,
-      explanation:row['Explanation']||'',
-      shownAnswer:row['Shown Answer']||'',
-      chosen:null,
-      bookmarked:false
-    };
-  }
+    function normalizeQuestion(num,row,opts,correctIdx){
+      return {
+        num,
+        text:row['Question'],
+        options:opts.map((t,i)=>({text:t,letter:['A','B','C','D'][i]})),
+        correctIndex:correctIdx,
+        explanation:row['Explanation']||'',
+        chosen:null,
+        bookmarked:false
+      };
+    }
 
   function saveState(){localStorage.setItem(deckKey,JSON.stringify(allQuestions));}
   function loadState(){const d=localStorage.getItem(deckKey);if(d){allQuestions=JSON.parse(d);} }
@@ -174,9 +172,8 @@
     if(kw) qs=qs.filter(q=>q.text.toLowerCase().includes(kw)||q.explanation.toLowerCase().includes(kw));
     if(document.getElementById('onlyUnanswered').checked) qs=qs.filter(q=>q.chosen==null);
     if(document.getElementById('onlyIncorrect').checked) qs=qs.filter(q=>q.chosen!=null && q.chosen!==q.correctIndex);
-    if(document.getElementById('shuffleQuestions').checked) shuffle(qs);
-    return qs;
-  }
+      return qs;
+    }
 
   function shuffleOptions(q){
     const arr=q.options;
@@ -185,12 +182,21 @@
     q.correctIndex=arr.findIndex(o=>o.text===correctText);
   }
 
-  function startQuiz(m){
-    mode=m;results=[];index=0;quizQuestions=applyFilters().map(q=>({...q}));
-    if(document.getElementById('shuffleOptions').checked) quizQuestions.forEach(shuffleOptions);
-    startTime=Date.now();timerEl.textContent='00:00';clearInterval(timer);timer=setInterval(()=>{const s=Math.floor((Date.now()-startTime)/1000);timerEl.textContent=('0'+Math.floor(s/60)).slice(-2)+':'+('0'+s%60).slice(-2);},1000);
-    renderQuestion();updateScore();
-  }
+    // Initialize a quiz session. Optional customQuestions allows retrying subsets.
+    function startQuiz(m,customQuestions){
+      mode=m;results=[];index=0;selected=-1;
+      const source=customQuestions?customQuestions:applyFilters();
+      // clone questions and reset chosen state
+      quizQuestions=source.map(q=>({...q,chosen:null}));
+      if(document.getElementById('shuffleQuestions').checked) shuffle(quizQuestions);
+      if(document.getElementById('shuffleOptions').checked) quizQuestions.forEach(shuffleOptions);
+      startTime=Date.now();timerEl.textContent='00:00';clearInterval(timer);
+      timer=setInterval(()=>{
+        const s=Math.floor((Date.now()-startTime)/1000);
+        timerEl.textContent=('0'+Math.floor(s/60)).slice(-2)+':'+('0'+s%60).slice(-2);
+      },1000);
+      renderQuestion();updateScore();
+    }
 
   function renderQuestion(){
     if(index>=quizQuestions.length){finishQuiz();return;}
@@ -243,14 +249,44 @@
   function next(){selected=-1;index++;renderQuestion();}
   function prev(){if(index>0){index--;selected=-1;renderQuestion();}}
 
-  function updateProgress(){progressBar.style.width=((index)/quizQuestions.length*100)+'%';document.querySelector('header').setAttribute('aria-label','Question '+(index+1)+' of '+quizQuestions.length);}
-  function updateScore(){if(mode==='study'||mode==='cram'){const ans=results.filter(r=>r.IsCorrect).length;scoreEl.textContent=ans+'/'+quizQuestions.length;}};
+    function updateProgress(){
+      progressBar.style.width=((index)/quizQuestions.length*100)+'%';
+      document.getElementById('progressText').textContent='Question '+(index+1)+' of '+quizQuestions.length;
+    }
+    function updateScore(){
+      const ans=results.filter(r=>r.IsCorrect).length;
+      scoreEl.textContent=ans+'/'+quizQuestions.length;
+    }
 
-  function finishQuiz(){clearInterval(timer);progressBar.style.width='100%';let correct=results.filter(r=>r.IsCorrect).length;const total=quizQuestions.length;const time=timerEl.textContent;document.getElementById('resultSummary').innerHTML=`Score ${correct}/${total} in ${time}`;const breakdown={A:0,B:0,C:0,D:0};results.forEach(r=>{breakdown[r.ChosenAnswer]++});let bd='';for(const k in breakdown){bd+=k+': '+breakdown[k]+'<br>';};document.getElementById('breakdown').innerHTML=bd;document.getElementById('resultsModal').style.display='flex';}
+    function finishQuiz(){
+      clearInterval(timer);
+      progressBar.style.width='100%';
+      document.getElementById('progressText').textContent='Question '+quizQuestions.length+' of '+quizQuestions.length;
+      const correct=results.filter(r=>r.IsCorrect).length;
+      const total=quizQuestions.length;
+      const time=timerEl.textContent;
+      document.getElementById('resultSummary').innerHTML=`Score ${correct}/${total} in ${time}`;
+      const breakdown={A:0,B:0,C:0,D:0};
+      results.forEach(r=>{breakdown[r.ChosenAnswer]++});
+      let bd='';
+      for(const k in breakdown){bd+=k+': '+breakdown[k]+'<br>';}
+      document.getElementById('breakdown').innerHTML=bd;
+      const incorrect=total-correct;
+      document.getElementById('retryIncorrectBtn').style.display=incorrect? 'inline-block':'none';
+      document.getElementById('resultsModal').style.display='flex';
+    }
 
-  function exportResultsCsv(){if(results.length===0)return;let csv='QuestionNumber,ChosenAnswer,CorrectAnswer,IsCorrect,Mode,Timestamp\n';results.forEach(r=>{csv+=`${r.QuestionNumber},${r.ChosenAnswer},${r.CorrectAnswer},${r.IsCorrect},${r.Mode},${r.Timestamp}\n`;});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='results.csv';a.click();}
+    function exportResultsCsv(){if(results.length===0)return;let csv='QuestionNumber,ChosenAnswer,CorrectAnswer,IsCorrect,Mode,Timestamp\n';results.forEach(r=>{csv+=`${r.QuestionNumber},${r.ChosenAnswer},${r.CorrectAnswer},${r.IsCorrect},${r.Mode},${r.Timestamp}\n`;});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='results.csv';a.click();}
 
-  function renderReview(filter){const qs=allQuestions.filter(q=>filter==='incorrect'?q.chosen!==null&&q.chosen!==q.correctIndex:q.bookmarked);let html='';qs.forEach(q=>{html+=`<div><strong>${q.num}. ${q.text}</strong><br>`;q.options.forEach((o,i)=>{const cls=i===q.correctIndex?'correct':(i===q.chosen?'incorrect':'');html+=`<div class="option ${cls}">${String.fromCharCode(65+i)}. ${o.text}</div>`;});html+=`<div>${q.explanation}</div><hr></div>`;});document.getElementById('reviewContainer').innerHTML=html||'None';document.getElementById('reviewModal').style.display='flex';}
+    // Start a new session with only the questions answered incorrectly
+    function retryIncorrect(){
+      const incorrect=quizQuestions.filter(q=>q.chosen!==q.correctIndex);
+      if(!incorrect.length){document.getElementById('resultsModal').style.display='none';return;}
+      document.getElementById('resultsModal').style.display='none';
+      startQuiz(mode,incorrect);
+    }
+
+    function renderReview(filter){const qs=allQuestions.filter(q=>filter==='incorrect'?q.chosen!==null&&q.chosen!==q.correctIndex:q.bookmarked);let html='';qs.forEach(q=>{html+=`<div><strong>${q.num}. ${q.text}</strong><br>`;q.options.forEach((o,i)=>{const cls=i===q.correctIndex?'correct':(i===q.chosen?'incorrect':'');html+=`<div class="option ${cls}">${String.fromCharCode(65+i)}. ${o.text}</div>`;});html+=`<div>${q.explanation}</div><hr></div>`;});document.getElementById('reviewContainer').innerHTML=html||'None';document.getElementById('reviewModal').style.display='flex';}
 
   /* Event bindings */
   document.getElementById('importBtn').onclick=()=>document.getElementById('fileInput').click();
@@ -267,21 +303,23 @@
   document.getElementById('resetSessionBtn').onclick=()=>{if(confirm('Clear progress?')){resetSession();}};
   document.getElementById('resetAllBtn').onclick=()=>{if(confirm('Clear all data?'))resetAll();};
   document.getElementById('exportBtn').onclick=exportResultsCsv;
-  document.getElementById('restartBtn').onclick=()=>{document.getElementById('resultsModal').style.display='none';startQuiz(mode);};
-  document.getElementById('reviewIncorrectBtn').onclick=()=>{document.getElementById('resultsModal').style.display='none';renderReview('incorrect');};
+    document.getElementById('restartBtn').onclick=()=>{document.getElementById('resultsModal').style.display='none';startQuiz(mode);};
+    document.getElementById('retryIncorrectBtn').onclick=retryIncorrect;
+    document.getElementById('reviewIncorrectBtn').onclick=()=>{document.getElementById('resultsModal').style.display='none';renderReview('incorrect');};
 
   document.getElementById('reviewModal').querySelector('.close').onclick=()=>document.getElementById('reviewModal').style.display='none';
 
   loadState();if(allQuestions.length)startQuiz('study');
 
-  /* Acceptance tests (manual):
-    1. Import provided sample CSV. Expect preview first 3 questions and summary.
-    2. Toggle shuffle options and ensure correct answers remain valid.
-    3. Answer 5 questions in Test mode; finish and see results with explanations.
-    4. Filter by keyword 'Key Vault' to show only matching questions.
-    5. Bookmark two questions and open Review (bookmarked) via renderReview('bookmarked').
-    6. Export results CSV and check headers/rows.
-  */
+    /* Acceptance tests (manual):
+      1. Import provided sample CSV. Expect preview first 3 questions and summary.
+      2. Toggle shuffle options and ensure correct answers remain valid.
+      3. Answer 5 questions in Test mode; finish and see results with explanations.
+      4. Filter by keyword 'Key Vault' to show only matching questions.
+      5. Bookmark two questions and open Review (bookmarked) via renderReview('bookmarked').
+      6. Export results CSV and check headers/rows.
+      7. After completing a quiz with incorrect answers, use Retry incorrect to reattempt only missed questions.
+    */
 })();
 </script>
 </body>
