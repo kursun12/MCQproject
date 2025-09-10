@@ -1,7 +1,17 @@
 import { useState } from 'react';
-import questions from './questions';
+import defaultQuestions from './questions';
 
 function Quiz() {
+  const [questions] = useState(() => {
+    try {
+      const stored = localStorage.getItem('questions');
+      const parsed = stored ? JSON.parse(stored) : null;
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      // ignore parse errors and fall back to defaults
+    }
+    return defaultQuestions;
+  });
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState(null);
   const [score, setScore] = useState(0);
