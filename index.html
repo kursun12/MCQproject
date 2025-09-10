@@ -30,6 +30,11 @@ Session Persistence
 Exporting Results/State
 - After finishing the quiz you can export the results as CSV.
 - The full application state (questions, answers, settings) can be exported and later imported to resume on another machine.
+
+Timer & Utilities
+- Optional overall timer: set a limit (minutes) before starting; progress auto-stops at time limit.
+- Bookmark questions with the ☆ button and review them later.
+- Use the search box to jump to a question containing specific text.
 -->
 <style>
 :root{
@@ -78,7 +83,10 @@ main{flex:1;padding:1rem;display:flex;flex-direction:column;}
 .hidden{display:none;}
 footer{padding:.5rem;background:#eee;display:flex;align-items:center;gap:1rem;}
 footer button{padding:.4rem .8rem;}
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);} 
+#timer{font-weight:bold;margin:0 .5rem;}
+#flagBtn{background:var(--bg);color:var(--fg);border:1px solid #999;border-radius:4px;cursor:pointer;}
+#flagBtn.flagged{color:var(--accent);}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);}
 .modal .box{background:var(--bg);color:var(--fg);padding:1rem;border-radius:8px;max-width:90%;max-height:90%;overflow:auto;}
 @media(max-width:600px){header{flex-direction:column;align-items:flex-start;}#progressBar{width:100%;order:99;}}
 </style>
@@ -90,6 +98,9 @@ footer button{padding:.4rem .8rem;}
   <button id="loadBtn">Load Questions</button>
   <label>Shuffle Qs <input type="checkbox" id="shuffleQ" checked /></label>
   <label>Shuffle Opts <input type="checkbox" id="shuffleO" checked /></label>
+  <label>Time (min) <input type="number" id="timeLimit" min="0" style="width:4rem" /></label>
+  <div id="timer">00:00</div>
+  <input type="search" id="searchBox" placeholder="Search..." />
   <button id="darkToggle" aria-label="Toggle dark mode">Dark</button>
   <div id="progressText"></div>
   <div id="progressBar"><div></div></div>
@@ -98,7 +109,10 @@ footer button{padding:.4rem .8rem;}
 </header>
 <main aria-live="polite">
   <div id="quiz">
-    <div id="question" class="question"></div>
+    <div id="questionRow" style="display:flex;align-items:center;gap:.5rem;">
+      <div id="question" class="question" style="flex:1"></div>
+      <button id="flagBtn" title="Bookmark question">☆</button>
+    </div>
     <ul id="options" class="options"></ul>
     <div id="feedback"></div>
     <div id="explanation" class="hidden"></div>
@@ -119,6 +133,7 @@ footer button{padding:.4rem .8rem;}
     <h2>Results</h2>
     <div id="resultSummary"></div>
     <button id="retryBtn">Retry Incorrect</button>
+    <button id="flaggedBtn">Review Flagged</button>
     <button id="closeResult">Close</button>
   </div>
 </div>
@@ -133,12 +148,13 @@ const STORAGE_KEY='mcq-state';
 let questions=[]; // current deck
 let current=0; // index
 let score=0; // number correct
-let settings={shuffleQ:true,shuffleO:true,dark:false};
+let settings={shuffleQ:true,shuffleO:true,dark:false,timeLimit:0};
 let results=[]; // {index, correct}
+let startTime=0,elapsed=0,timerInterval=null;
 
 /* ---------- Utility Functions ---------- */
 function saveState(){
-  const state={questions,current,score,results,settings};
+  const state={questions,current,score,results,settings,elapsed};
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
 }
 function loadState(){
@@ -150,10 +166,14 @@ function loadState(){
     current=state.current||0;
     score=state.score||0;
     results=state.results||[];
+    questions.forEach(q=>{if(q.flagged===undefined) q.flagged=false;});
     settings=Object.assign(settings,state.settings||{});
     document.getElementById('shuffleQ').checked=settings.shuffleQ;
     document.getElementById('shuffleO').checked=settings.shuffleO;
+    document.getElementById('timeLimit').value=settings.timeLimit||'';
     if(settings.dark) document.body.classList.add('dark');
+    elapsed=state.elapsed||0;
+    startTime=Date.now()-elapsed*1000;
     return questions.length>0;
   }catch(e){
     console.error('Failed to load state',e);
@@ -162,7 +182,7 @@ function loadState(){
 }
 function resetState(){
   localStorage.removeItem(STORAGE_KEY);
-  questions=[];current=0;score=0;results=[];
+  questions=[];current=0;score=0;results=[];elapsed=0;clearInterval(timerInterval);
 }
 
 function shuffle(arr){
@@ -222,11 +242,41 @@ function download(text,filename){
   a.href=URL.createObjectURL(blob);a.download=filename;a.click();
 }
 
+function formatTime(sec){
+  const m=Math.floor(sec/60).toString().padStart(2,'0');
+  const s=(sec%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+function startTimer(){
+  clearInterval(timerInterval);
+  startTime=Date.now()-elapsed*1000;
+  const timerEl=document.getElementById('timer');
+  const tick=()=>{
+    elapsed=Math.floor((Date.now()-startTime)/1000);
+    const limit=settings.timeLimit*60;
+    if(limit>0){
+      const remaining=limit-elapsed;
+      timerEl.textContent=formatTime(Math.max(0,remaining));
+      if(remaining<=0){clearInterval(timerInterval);finish();return;}
+    }else{
+      timerEl.textContent=formatTime(elapsed);
+    }
+    saveState();
+  };
+  tick();
+  timerInterval=setInterval(tick,1000);
+}
+
 /* ---------- Rendering ---------- */
 function render(){
   if(!questions.length) return;
   const q=questions[current];
   document.getElementById('question').innerHTML=(current+1)+'. '+q.question;
+  const flag=document.getElementById('flagBtn');
+  flag.textContent=q.flagged?'★':'☆';
+  flag.classList.toggle('flagged',q.flagged);
+  flag.setAttribute('aria-pressed',q.flagged);
   const list=document.getElementById('options');
   list.innerHTML='';
   const multi=q.answer.length>1;
@@ -306,16 +356,32 @@ function next(){
 }
 function finish(){
   const correct=results.filter(r=>r.correct).length;
-  document.getElementById('resultSummary').textContent=`Score ${correct} / ${questions.length}`;
+  const flagged=questions.filter(q=>q.flagged).length;
+  clearInterval(timerInterval);
+  document.getElementById('resultSummary').textContent=`Score ${correct} / ${questions.length} in ${formatTime(elapsed)}. Flagged ${flagged}`;
   document.getElementById('resultModal').style.display='flex';
 }
 function retryIncorrect(){
   const incorrect=questions.filter((q,i)=>!results[i].correct);
   if(!incorrect.length){document.getElementById('resultModal').style.display='none';return;}
   questions=incorrect;
-  current=0;results=[];score=0;
+  current=0;results=[];score=0;elapsed=0;
   questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
   document.getElementById('resultModal').style.display='none';
+  startTime=Date.now();
+  startTimer();
+  render();saveState();
+}
+
+function reviewFlagged(){
+  const flagged=questions.filter(q=>q.flagged);
+  if(!flagged.length){document.getElementById('resultModal').style.display='none';return;}
+  questions=flagged;
+  current=0;results=[];score=0;elapsed=0;
+  questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
+  document.getElementById('resultModal').style.display='none';
+  startTime=Date.now();
+  startTimer();
   render();saveState();
 }
 
@@ -328,12 +394,15 @@ async function handleFile(file){
   }catch(err){alert('Import error: '+err.message);}
 }
 function startQuiz(qs){
-  questions=qs.map(q=>Object.assign({},q));
+  questions=qs.map(q=>Object.assign({flagged:false},q));
   if(document.getElementById('shuffleQ').checked) shuffle(questions);
-  current=0;results=[];score=0;
+  current=0;results=[];score=0;elapsed=0;
   questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
   settings.shuffleQ=document.getElementById('shuffleQ').checked;
   settings.shuffleO=document.getElementById('shuffleO').checked;
+  settings.timeLimit=parseInt(document.getElementById('timeLimit').value)||0;
+  startTime=Date.now();
+  startTimer();
   saveState();
   render();
 }
@@ -365,6 +434,7 @@ function importStateFile(file){
 /* ---------- Event Bindings ---------- */
 document.getElementById('loadBtn').onclick=()=>document.getElementById('fileInput').click();
 window.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT') return;
   const opts=[...document.querySelectorAll('#options input')];
   const num=parseInt(e.key,10);
   if(num>=1&&num<=opts.length){opts[num-1].click();}
@@ -378,10 +448,14 @@ document.getElementById('restartBtn').onclick=()=>{if(confirm('Clear progress?')
 document.getElementById('exportBtn').onclick=exportResults;
 document.getElementById('darkToggle').onclick=()=>{document.body.classList.toggle('dark');settings.dark=document.body.classList.contains('dark');saveState();};
 document.getElementById('retryBtn').onclick=retryIncorrect;
+document.getElementById('flaggedBtn').onclick=reviewFlagged;
 document.getElementById('closeResult').onclick=()=>document.getElementById('resultModal').style.display='none';
 document.getElementById('exportStateBtn').onclick=exportState;
 document.getElementById('importStateBtn').onclick=()=>document.getElementById('importState').click();
 document.getElementById('importState').addEventListener('change',e=>{const f=e.target.files[0];if(f)importStateFile(f);});
+document.getElementById('flagBtn').onclick=()=>{const q=questions[current];q.flagged=!q.flagged;render();saveState();};
+document.getElementById('searchBox').addEventListener('keydown',e=>{if(e.key==='Enter'){const term=e.target.value.trim().toLowerCase();if(!term)return;const i=questions.findIndex(q=>q.question.toLowerCase().includes(term));if(i>=0){current=i;render();saveState();}else alert('No match');}});
+document.getElementById('timeLimit').addEventListener('change',e=>{settings.timeLimit=parseInt(e.target.value)||0;saveState();});
 
 document.getElementById('shuffleQ').addEventListener('change',e=>{settings.shuffleQ=e.target.checked;saveState();});
 document.getElementById('shuffleO').addEventListener('change',e=>{settings.shuffleO=e.target.checked;saveState();});
@@ -399,6 +473,7 @@ if(!loadState()){
   loadSample();
 }else{
   render();
+  if(results.length<questions.length) startTimer(); else document.getElementById('timer').textContent=formatTime(elapsed);
 }
 // prepare downloadable sample CSV
 const sampleCsv=document.getElementById('sample-csv').textContent;
