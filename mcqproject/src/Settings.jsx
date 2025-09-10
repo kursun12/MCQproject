@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 
 function Settings() {
-  const [numQuestions, setNumQuestions] = useState(3);
+  const [numQuestions, setNumQuestions] = useState(() => {
+    const stored = parseInt(localStorage.getItem('numQuestions'), 10);
+    return Number.isFinite(stored) ? stored : 3;
+  });
   const [shuffleQs, setShuffleQs] = useState(() => localStorage.getItem('shuffleQs') === 'true');
   const [shuffleOpts, setShuffleOpts] = useState(() => localStorage.getItem('shuffleOpts') === 'true');
 
@@ -12,6 +15,10 @@ function Settings() {
   useEffect(() => {
     localStorage.setItem('shuffleOpts', shuffleOpts);
   }, [shuffleOpts]);
+
+  useEffect(() => {
+    localStorage.setItem('numQuestions', numQuestions);
+  }, [numQuestions]);
 
   const count = (() => {
     try {

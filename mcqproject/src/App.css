@@ -195,3 +195,43 @@ body.dark .nav {
 .question-item button {
   margin-right: 0.5rem;
 }
+
+.scoreboard {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.achievement {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  text-align: center;
+  border-radius: 4px;
+  background: rgba(255, 215, 0, 0.2);
+}
+
+.timer {
+  text-align: right;
+  font-size: 0.9rem;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.bookmark {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #ccc;
+}
+
+.bookmark.active {
+  color: var(--accent-color);
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
