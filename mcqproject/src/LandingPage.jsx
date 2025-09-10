@@ -7,7 +7,7 @@ function LandingPage() {
       <div className="landing-buttons">
         <Link to="/quiz"><button>Start Quiz</button></Link>
         <Link to="/settings"><button>Settings</button></Link>
-        <Link to="/import"><button>Import</button></Link>
+        <Link to="/import"><button>Questions</button></Link>
       </div>
     </div>
   );

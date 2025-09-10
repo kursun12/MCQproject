@@ -32,7 +32,7 @@ function App() {
             </NavLink>
             <NavLink to="/quiz">Quiz</NavLink>
             <NavLink to="/settings">Settings</NavLink>
-            <NavLink to="/import">Import</NavLink>
+            <NavLink to="/import">Questions</NavLink>
           </div>
           <button className="theme-toggle" onClick={toggleTheme}>
             {theme === 'light' ? 'Dark' : 'Light'} Mode
