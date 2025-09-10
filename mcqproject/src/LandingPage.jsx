@@ -1,0 +1,16 @@
+import { Link } from 'react-router-dom';
+
+function LandingPage() {
+  return (
+    <div className="card landing">
+      <p>Practice multiple choice questions.</p>
+      <div className="landing-buttons">
+        <Link to="/quiz"><button>Start Quiz</button></Link>
+        <Link to="/settings"><button>Settings</button></Link>
+        <Link to="/import"><button>Import</button></Link>
+      </div>
+    </div>
+  );
+}
+
+export default LandingPage;
