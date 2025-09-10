@@ -11,16 +11,16 @@ This is a client-side Multiple Choice Question (MCQ) practice tool.
 
 Loading Questions
 - Click "Load Questions" and choose a CSV or JSON file.
-- CSV format columns: Question, Option A, Option B, Option C, Option D, Correct Answer, Explanation.
-  - Correct Answer may be a letter ("B") or multiple letters separated by comma, semicolon or pipe ("B;D").
-- JSON format: array of objects with keys {id?, question, options, answer, explanation}.
-  - answer can be a number or an array of numbers (0-based indices).
+  - CSV format columns can appear in any order: Question, Option A..Z, Correct Answer, Explanation.
+    - Correct Answer may be letters or numbers separated by comma, semicolon, pipe, slash or whitespace ("B;D", "2 4").
+  - JSON format: array of objects with keys {id?, question, options, answer, explanation}.
+    - answer can be a number or an array of indices (0-based or 1-based).
 - A small demo dataset is included (see bottom of file) and is loaded automatically if no file is provided.
 
 Multi-Answer Detection
-- Answers are normalized to arrays of option indices.
-- If an answer array contains more than one index, the question is treated as multi-select and rendered with checkboxes.
-- Single-answer questions use radio buttons.
+  - Answers are normalized to sorted arrays of 0-based option indices.
+  - If an answer array contains more than one index, the question is treated as multi-select and rendered with checkboxes and a "Select all that apply" notice.
+  - Single-answer questions use radio buttons.
 
 Session Persistence
 - Progress, selected answers, and settings are stored in localStorage under the key "mcq-state".
@@ -75,12 +75,16 @@ header button,header label,header select{font-size:.9rem;}
 #progressBar div{height:100%;width:0;background:#fff;}
 main{flex:1;padding:1rem;display:flex;flex-direction:column;}
 .question{font-size:1.1rem;margin-bottom:1rem;}
+.hidden{display:none;}
+#multiNotice{margin:.5rem 0;font-weight:bold;color:var(--accent);}
 .options{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.5rem;}
-.option{padding:.6rem;border:1px solid #999;border-radius:6px;cursor:pointer;background:var(--bg);color:var(--fg);} 
+.option{padding:.6rem;border:1px solid #999;border-radius:6px;cursor:pointer;background:var(--bg);color:var(--fg);}
 .option input{margin-right:.5rem;}
 .option.correct{border-color:var(--correct);background:#e6ffe6;}
 .option.incorrect{border-color:var(--incorrect);background:#ffe6e6;}
-.hidden{display:none;}
+#resultList{margin-top:1rem;}
+#resultList li.correct{color:var(--correct);}
+#resultList li.incorrect{color:var(--incorrect);}
 footer{padding:.5rem;background:#eee;display:flex;align-items:center;gap:1rem;}
 footer button{padding:.4rem .8rem;}
 #timer{font-weight:bold;margin:0 .5rem;}
@@ -98,6 +102,7 @@ footer button{padding:.4rem .8rem;}
   <button id="loadBtn">Load Questions</button>
   <label>Shuffle Qs <input type="checkbox" id="shuffleQ" checked /></label>
   <label>Shuffle Opts <input type="checkbox" id="shuffleO" checked /></label>
+  <label>Auto Submit <input type="checkbox" id="autoSubmit" /></label>
   <label>Time (min) <input type="number" id="timeLimit" min="0" style="width:4rem" /></label>
   <div id="timer">00:00</div>
   <input type="search" id="searchBox" placeholder="Search..." />
@@ -113,6 +118,7 @@ footer button{padding:.4rem .8rem;}
       <div id="question" class="question" style="flex:1"></div>
       <button id="flagBtn" title="Bookmark question">☆</button>
     </div>
+    <div id="multiNotice" class="hidden"></div>
     <ul id="options" class="options"></ul>
     <div id="feedback"></div>
     <div id="explanation" class="hidden"></div>
@@ -132,6 +138,7 @@ footer button{padding:.4rem .8rem;}
   <div class="box">
     <h2>Results</h2>
     <div id="resultSummary"></div>
+    <ol id="resultList"></ol>
     <button id="retryBtn">Retry Incorrect</button>
     <button id="flaggedBtn">Review Flagged</button>
     <button id="closeResult">Close</button>
@@ -148,8 +155,8 @@ const STORAGE_KEY='mcq-state';
 let questions=[]; // current deck
 let current=0; // index
 let score=0; // number correct
-let settings={shuffleQ:true,shuffleO:true,dark:false,timeLimit:0};
-let results=[]; // {index, correct}
+ let settings={shuffleQ:true,shuffleO:true,dark:false,timeLimit:0,autoSubmit:false};
+ let results=[]; // {index, selected:number[], isCorrect:boolean}
 let startTime=0,elapsed=0,timerInterval=null;
 
 /* ---------- Utility Functions ---------- */
@@ -162,15 +169,16 @@ function loadState(){
   if(!data) return false;
   try{
     const state=JSON.parse(data);
-    questions=state.questions||[];
-    current=state.current||0;
-    score=state.score||0;
-    results=state.results||[];
-    questions.forEach(q=>{if(q.flagged===undefined) q.flagged=false;});
+      questions=state.questions||[];
+      current=state.current||0;
+      score=state.score||0;
+      results=(state.results||[]).map(r=>({index:r.index,selected:r.selected||[],isCorrect:r.isCorrect!==undefined?r.isCorrect:r.correct||false}));
+      questions.forEach(q=>{if(q.flagged===undefined) q.flagged=false;if(q.correct===undefined&&q.answer!==undefined) q.correct=q.answer;});
     settings=Object.assign(settings,state.settings||{});
-    document.getElementById('shuffleQ').checked=settings.shuffleQ;
-    document.getElementById('shuffleO').checked=settings.shuffleO;
-    document.getElementById('timeLimit').value=settings.timeLimit||'';
+      document.getElementById('shuffleQ').checked=settings.shuffleQ;
+      document.getElementById('shuffleO').checked=settings.shuffleO;
+      document.getElementById('autoSubmit').checked=settings.autoSubmit;
+      document.getElementById('timeLimit').value=settings.timeLimit||'';
     if(settings.dark) document.body.classList.add('dark');
     elapsed=state.elapsed||0;
     startTime=Date.now()-elapsed*1000;
@@ -192,49 +200,100 @@ function shuffle(arr){
   }
 }
 
-function normalizeCSVRow(row,idx){
-  const q=row['Question'];
-  if(!q) return null;
-  const options=[row['Option A'],row['Option B'],row['Option C'],row['Option D']].filter(v=>v!==undefined);
-  let ans=row['Correct Answer'];
-  if(typeof ans==='string') ans=ans.replace(/\s/g,'').split(/[;,|]/);
-  else ans=[ans];
-  const indices=ans.map(a=>typeof a==='string'?a.toUpperCase().charCodeAt(0)-65:parseInt(a)).filter(n=>!isNaN(n));
-  if(!indices.length) return null;
-  return{ id:idx+1, question:q, options, answer:indices.sort((a,b)=>a-b), explanation:row['Explanation']||'' };
-}
+  function normalizeAnswers(raw,optLen,assumeIndex=false){
+    if(raw===undefined||raw===null||raw==='') return null;
+    let tokens=[];
+    if(Array.isArray(raw)) tokens=raw.map(String);
+    else tokens=String(raw).toUpperCase().split(/[\s,;|\/]+/);
+    const letters=[],numbers=[];
+    tokens.forEach(t=>{
+      if(!t) return;
+      t=t.trim().toUpperCase();
+      if(/^[A-Z]$/.test(t)) letters.push(t.charCodeAt(0)-65);
+      else if(/^-?\d+$/.test(t)) numbers.push(parseInt(t,10));
+    });
+    let indices=[];
+    if(assumeIndex){
+      indices=numbers;
+    }else if(numbers.length){
+      const oneBased=numbers.every(n=>n>=1 && n<=optLen) && !numbers.includes(0);
+      indices=numbers.map(n=>oneBased?n-1:n);
+    }
+    indices=indices.concat(letters);
+    indices=indices.filter(n=>n>=0 && n<optLen);
+    indices=[...new Set(indices)].sort((a,b)=>a-b);
+    return indices.length?indices:null;
+  }
 
-function parseCSV(file){
-  return new Promise((resolve,reject)=>{
-    Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>{
-      const qs=res.data.map((row,i)=>normalizeCSVRow(row,i)).filter(Boolean);
-      if(!qs.length) return reject(new Error('No valid rows'));
-      resolve(qs);
-    },error:err=>reject(err)});
-  });
-}
-function parseJSON(file){
-  return new Promise((resolve,reject)=>{
-    const reader=new FileReader();
-    reader.onload=e=>{
-      try{
-        const data=JSON.parse(e.target.result);
-        if(!Array.isArray(data)) throw new Error('JSON must be an array');
-        const qs=data.map((obj,i)=>({
-          id:obj.id||i+1,
-          question:obj.question,
-          options:obj.options,
-          answer:Array.isArray(obj.answer)?obj.answer.map(n=>parseInt(n)).sort((a,b)=>a-b):[parseInt(obj.answer)],
-          explanation:obj.explanation||''
-        })).filter(q=>q.question && q.options && q.answer.every(n=>!isNaN(n)));
-        if(!qs.length) throw new Error('No valid questions');
+  function normalizeCSVRow(row,idx){
+    const map={};
+    Object.keys(row).forEach(k=>{map[k.trim().toLowerCase()]=row[k];});
+    const q=map['question'];
+    if(!q) throw new Error('Missing Question');
+    const options=[];
+    Object.keys(map).forEach(k=>{
+      const m=k.match(/^option\s+([a-z])/);
+      if(m){
+        const pos=m[1].toUpperCase().charCodeAt(0)-65;
+        options[pos]=map[k];
+      }
+    });
+    const opts=options.filter(o=>o!==undefined && o!=='');
+    const rawAns=map['correct answer'];
+    const corr=normalizeAnswers(rawAns,opts.length);
+    if(!corr) throw new Error('Invalid Correct Answer');
+    return{ id:idx+1, question:q, options:opts, correct:corr, explanation:map['explanation']||'', rawAnswer:rawAns };
+  }
+
+  function parseCSV(file){
+    return new Promise((resolve,reject)=>{
+      Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>{
+        const qs=[];const errors=[];
+        res.data.forEach((row,i)=>{
+          try{qs.push(normalizeCSVRow(row,i));}
+          catch(err){errors.push(`Row ${i+2}: ${err.message}`);}
+        });
+        if(errors.length) alert(errors.join('\n'));
+        if(!qs.length) return reject(new Error('No valid rows'));
         resolve(qs);
-      }catch(err){reject(err);}
-    };
-    reader.onerror=()=>reject(reader.error);
-    reader.readAsText(file);
-  });
-}
+      },error:err=>reject(err)});
+    });
+  }
+  function parseJSON(file){
+    return new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=e=>{
+        try{
+          const data=JSON.parse(e.target.result);
+          if(!Array.isArray(data)) throw new Error('JSON must be an array');
+          const qs=[];const errors=[];
+          data.forEach((obj,i)=>{
+            try{
+              if(!obj.question||!Array.isArray(obj.options)) throw new Error('Missing fields');
+              const rawAns=obj.answer;
+              const corr=normalizeAnswers(rawAns,obj.options.length,true);
+              if(!corr) throw new Error('Invalid answer');
+              qs.push({id:obj.id||i+1,question:obj.question,options:obj.options,correct:corr,explanation:obj.explanation||'', rawAnswer:rawAns});
+            }catch(err){errors.push(`Item ${i+1}: ${err.message}`);}
+          });
+          if(errors.length) alert(errors.join('\n'));
+          if(!qs.length) throw new Error('No valid questions');
+          resolve(qs);
+        }catch(err){reject(err);}
+      };
+      reader.onerror=()=>reject(reader.error);
+      reader.readAsText(file);
+    });
+  }
+
+  // Basic tests for normalizeAnswers
+  console.assert(JSON.stringify(normalizeAnswers('B;D',4))==='[1,3]','B;D');
+  console.assert(JSON.stringify(normalizeAnswers('A d',4))==='[0,3]','A d');
+  console.assert(JSON.stringify(normalizeAnswers('2,4',4))==='[1,3]','2,4');
+  console.assert(JSON.stringify(normalizeAnswers('0|3',4))==='[0,3]','0|3');
+  console.assert(JSON.stringify(normalizeAnswers('C',4))==='[2]','C');
+  console.assert(JSON.stringify(normalizeAnswers(2,4,true))==='[2]','JSON number');
+  console.assert(JSON.stringify(normalizeAnswers([1,3],4,true))==='[1,3]','JSON array');
 
 function download(text,filename){
   const blob=new Blob([text],{type:'text/plain'});
@@ -277,12 +336,15 @@ function render(){
   flag.textContent=q.flagged?'★':'☆';
   flag.classList.toggle('flagged',q.flagged);
   flag.setAttribute('aria-pressed',q.flagged);
-  const list=document.getElementById('options');
-  list.innerHTML='';
-  const multi=q.answer.length>1;
+    const list=document.getElementById('options');
+    list.innerHTML='';
+    const notice=document.getElementById('multiNotice');
+    if(multi){notice.textContent=`Select all that apply (Choose ${q.correct.length})`;notice.classList.remove('hidden');}
+    else{notice.classList.add('hidden');}
+    const multi=q.correct.length>1;
   q.shuffledOptions=q.shuffledOptions||q.options.map((o,i)=>({text:o,index:i}));
   if(settings.shuffleO && !q.optionsShuffled){shuffle(q.shuffledOptions);q.optionsShuffled=true;}
-  q.shuffledOptions.forEach((o,pos)=>{
+    q.shuffledOptions.forEach((o,pos)=>{
     const li=document.createElement('li');
     li.className='option';
     const input=document.createElement('input');
@@ -301,17 +363,18 @@ function render(){
     li.addEventListener('click',()=>{input.click();});
     input.addEventListener('change',()=>{
       const sel=q.selected||[];
-      if(multi){
-        if(input.checked) sel.push(o.index); else sel.splice(sel.indexOf(o.index),1);
-      }else{
+        if(multi){
+          if(input.checked){if(!sel.includes(o.index)) sel.push(o.index);} else {const p=sel.indexOf(o.index); if(p>-1) sel.splice(p,1);}
+        }else{
         sel.length=0;if(input.checked) sel.push(o.index);
         document.querySelectorAll('input[name="option"]').forEach(r=>{if(r!==input) r.checked=false;});
       }
-      q.selected=sel;li.setAttribute('aria-checked',input.checked);
-    });
+        q.selected=sel;li.setAttribute('aria-checked',input.checked);saveState();if(settings.autoSubmit && !multi) submit();
+      });
     list.appendChild(li);
   });
-  document.getElementById('feedback').textContent='';
+    list.querySelector('li')?.focus();
+    document.getElementById('feedback').textContent='';
   document.getElementById('explanation').classList.add('hidden');
   updateProgress();
   updateScore();
@@ -324,8 +387,9 @@ function updateProgress(){
   document.getElementById('progressText').textContent=`Question ${current+1} of ${questions.length}`;
 }
 function updateScore(){
-  score=results.filter(r=>r.correct).length;
-  document.getElementById('score').textContent=`${score}/${questions.length}`;
+  score=results.filter(r=>r.isCorrect).length;
+  const pct=questions.length?Math.round(score/questions.length*100):0;
+  document.getElementById('score').textContent=`${score}/${questions.length} (${pct}%)`;
 }
 
 function submit(){
@@ -333,15 +397,15 @@ function submit(){
   if(q.answered) return;
   const sel=q.selected||[];
   sel.sort((a,b)=>a-b);
-  const correct=JSON.stringify(sel)===JSON.stringify(q.answer);
+  const correct=JSON.stringify(sel)===JSON.stringify(q.correct);
   q.answered=true;
-  results[current]={index:current,correct};
+  results[current]={index:current,selected:[...sel],isCorrect:correct};
   document.getElementById('feedback').textContent=correct?'Correct':'Incorrect';
   const options=document.querySelectorAll('#options .option');
   options.forEach(opt=>{
     const val=parseInt(opt.querySelector('input').value);
-    if(q.answer.includes(val)) opt.classList.add('correct');
-    if(sel.includes(val)&&!q.answer.includes(val)) opt.classList.add('incorrect');
+    if(q.correct.includes(val)) opt.classList.add('correct');
+    if(sel.includes(val)&&!q.correct.includes(val)) opt.classList.add('incorrect');
   });
   const exp=document.getElementById('explanation');
   exp.textContent=q.explanation||'';exp.classList.remove('hidden');
@@ -354,15 +418,27 @@ function next(){
   if(current<questions.length-1){current++;render();saveState();}
   else finish();
 }
-function finish(){
-  const correct=results.filter(r=>r.correct).length;
-  const flagged=questions.filter(q=>q.flagged).length;
-  clearInterval(timerInterval);
-  document.getElementById('resultSummary').textContent=`Score ${correct} / ${questions.length} in ${formatTime(elapsed)}. Flagged ${flagged}`;
-  document.getElementById('resultModal').style.display='flex';
-}
-function retryIncorrect(){
-  const incorrect=questions.filter((q,i)=>!results[i].correct);
+  function finish(){
+    const correctCount=results.filter(r=>r.isCorrect).length;
+    const flagged=questions.filter(q=>q.flagged).length;
+    clearInterval(timerInterval);
+    document.getElementById('resultSummary').textContent=`Score ${correctCount} / ${questions.length} in ${formatTime(elapsed)}. Flagged ${flagged}`;
+    const list=document.getElementById('resultList');
+    list.innerHTML='';
+    questions.forEach((q,i)=>{
+      const li=document.createElement('li');
+      const sel=(results[i]?.selected||[]).map(n=>String.fromCharCode(65+n)).join('')||'—';
+      const ans=q.correct.map(n=>String.fromCharCode(65+n)).join('');
+      const raw=Array.isArray(q.rawAnswer)?q.rawAnswer.join(' '): (q.rawAnswer||'');
+      li.textContent=`${q.question} — Your: ${sel} | Correct: ${ans}${raw?` (Orig: ${raw})`:''}`;
+      li.className=results[i]?.isCorrect?'correct':'incorrect';
+      list.appendChild(li);
+    });
+    document.getElementById('resultModal').style.display='flex';
+    saveState();
+  }
+  function retryIncorrect(){
+    const incorrect=questions.filter((q,i)=>!results[i]||!results[i].isCorrect);
   if(!incorrect.length){document.getElementById('resultModal').style.display='none';return;}
   questions=incorrect;
   current=0;results=[];score=0;elapsed=0;
@@ -373,8 +449,8 @@ function retryIncorrect(){
   render();saveState();
 }
 
-function reviewFlagged(){
-  const flagged=questions.filter(q=>q.flagged);
+  function reviewFlagged(){
+    const flagged=questions.filter(q=>q.flagged);
   if(!flagged.length){document.getElementById('resultModal').style.display='none';return;}
   questions=flagged;
   current=0;results=[];score=0;elapsed=0;
@@ -400,6 +476,7 @@ function startQuiz(qs){
   questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
   settings.shuffleQ=document.getElementById('shuffleQ').checked;
   settings.shuffleO=document.getElementById('shuffleO').checked;
+  settings.autoSubmit=document.getElementById('autoSubmit').checked;
   settings.timeLimit=parseInt(document.getElementById('timeLimit').value)||0;
   startTime=Date.now();
   startTimer();
@@ -413,7 +490,7 @@ function exportResults(){
   let csv='Question,YourAnswer,Correct,Explanation\n';
   questions.forEach((q,i)=>{
     const sel=(q.selected||[]).map(n=>String.fromCharCode(65+n)).join('');
-    const ans=q.answer.map(n=>String.fromCharCode(65+n)).join('');
+      const ans=q.correct.map(n=>String.fromCharCode(65+n)).join('');
     csv+=`"${q.question.replace(/"/g,'""')}",${sel},${ans},"${(q.explanation||'').replace(/"/g,'""')}"\n`;
   });
   download(csv,'results.csv');
@@ -459,11 +536,20 @@ document.getElementById('timeLimit').addEventListener('change',e=>{settings.time
 
 document.getElementById('shuffleQ').addEventListener('change',e=>{settings.shuffleQ=e.target.checked;saveState();});
 document.getElementById('shuffleO').addEventListener('change',e=>{settings.shuffleO=e.target.checked;saveState();});
+document.getElementById('autoSubmit').addEventListener('change',e=>{settings.autoSubmit=e.target.checked;saveState();});
 
 /* ---------- Sample Data ---------- */
 function loadSample(){
   const sampleJSON=document.getElementById('sample-json').textContent;
-  const qs=JSON.parse(sampleJSON);
+  const raw=JSON.parse(sampleJSON);
+  const qs=raw.map((o,i)=>({
+    id:o.id||i+1,
+    question:o.question,
+    options:o.options,
+    correct:normalizeAnswers(o.answer,o.options.length,true),
+    explanation:o.explanation||'',
+    rawAnswer:o.answer
+  }));
   startQuiz(qs);
 }
 
