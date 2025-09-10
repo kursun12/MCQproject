@@ -1,57 +1,22 @@
+import { useState, useRef } from 'react';
 import defaultQuestions from './questions';
-import prepareQuestions from './utils/prepareQuestions';
-import exportCsv from './utils/exportCsv';
-import { loadState, saveState } from './utils/progress';
 
 function Quiz() {
-  const baseQuestions = (() => {
+  const [questions] = useState(() => {
     try {
       const stored = localStorage.getItem('questions');
       const parsed = stored ? JSON.parse(stored) : null;
       if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     } catch {
-      /* ignore */
+      // ignore parse errors and fall back to defaults
     }
     return defaultQuestions;
-  })();
-
-  const settings = {
-    shuffleQs: localStorage.getItem('shuffleQs') === 'true',
-    shuffleOpts: localStorage.getItem('shuffleOpts') === 'true',
-    numQuestions: parseInt(localStorage.getItem('numQuestions'), 10),
-  };
-
-  const [bookmarks, setBookmarks] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('bookmarks')) || [];
-    } catch {
-      return [];
-    }
   });
-
-  const [showBookmarked, setShowBookmarked] = useState(false);
-
-  const initQuestions = prepareQuestions(
-    showBookmarked ? baseQuestions.filter((q) => bookmarks.includes(q.id)) : baseQuestions,
-    settings.numQuestions,
-    settings.shuffleQs,
-    settings.shuffleOpts
-  );
-
-  const saved = loadState();
-  const [questions, setQuestions] = useState(initQuestions);
-  const [current, setCurrent] = useState(saved.current || 0);
+  const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState(null);
-  const [score, setScore] = useState(() => {
-    if (saved.answers) {
-      return saved.answers.reduce(
-        (acc, a, idx) => acc + (initQuestions[idx] && a === initQuestions[idx].answer ? 1 : 0),
-        0
-      );
-    }
-    return 0;
-  });
+  const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [answers, setAnswers] = useState([]);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(() => {
     const stored = parseInt(localStorage.getItem('maxStreak'), 10);
@@ -59,6 +24,9 @@ function Quiz() {
   });
   const [achievement, setAchievement] = useState('');
   const audioCtxRef = useRef(null);
+
+  const question = questions[current];
+
   const playTone = (freq) => {
     try {
       if (!audioCtxRef.current) {
@@ -103,30 +71,16 @@ function Quiz() {
       setStreak(0);
       playTone(440);
     }
-    const nextAnswers = [...answers, selected];
-    setAnswers(nextAnswers);
+    setAnswers([...answers, selected]);
     setSelected(null);
     if (current + 1 < questions.length) {
       setCurrent(current + 1);
     } else {
       setFinished(true);
-      clearInterval(timerRef.current);
     }
   };
 
-  const restart = (retry = false, useBookmarked = showBookmarked) => {
-    const src = retry
-      ? questions.filter((q, i) => answers[i] !== q.answer)
-      : useBookmarked
-      ? baseQuestions.filter((q) => bookmarks.includes(q.id))
-      : baseQuestions;
-    const prepared = prepareQuestions(
-      src,
-      settings.numQuestions,
-      settings.shuffleQs,
-      settings.shuffleOpts
-    );
-    setQuestions(prepared);
+  const restart = () => {
     setCurrent(0);
     setSelected(null);
     setScore(0);
@@ -160,7 +114,7 @@ function Quiz() {
             <li key={q.id} className="review-question">
               <p>{q.question}</p>
               <p>
-                Your answer{' '}
+                Your answer:{' '}
                 <span
                   className={
                     answers[idx] === q.answer ? 'correct' : 'incorrect'
@@ -178,6 +132,7 @@ function Quiz() {
           ))}
         </ul>
         <button onClick={restart}>Restart</button>
+        <button onClick={share}>Share</button>
       </div>
     );
   }
@@ -197,19 +152,7 @@ function Quiz() {
       </div>
       {achievement && <div className="achievement">🏆 {achievement}</div>}
       <h2>
-        Question {current + 1} of {questions.length}{' '}
-        <button
-          className={bookmarks.includes(question.id) ? 'bookmark active' : 'bookmark'}
-          onClick={() =>
-            setBookmarks((b) =>
-              b.includes(question.id)
-                ? b.filter((id) => id !== question.id)
-                : [...b, question.id]
-            )
-          }
-        >
-          ★
-        </button>
+        Question {current + 1} of {questions.length}
       </h2>
       <p className="question">{question.question}</p>
       <ul className="options">
@@ -231,18 +174,8 @@ function Quiz() {
       {selected !== null && (
         <p className="explanation">{question.explanation}</p>
       )}
-      <div className="hint">Use 1-4 keys and Enter</div>
       <button className="next" onClick={handleNext} disabled={selected === null}>
         {current + 1 === questions.length ? 'Finish' : 'Next'}
-      </button>
-      <button
-        onClick={() => {
-          const next = !showBookmarked;
-          setShowBookmarked(next);
-          restart(false, next);
-        }}
-      >
-        {showBookmarked ? 'All Questions' : 'Bookmarked Only'}
       </button>
     </div>
   );
