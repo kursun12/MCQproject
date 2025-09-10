@@ -35,6 +35,8 @@ Timer & Utilities
 - Optional overall timer: set a limit (minutes) before starting; progress auto-stops at time limit.
 - Bookmark questions with the ☆ button and review them later.
 - Use the search box to jump to a question containing specific text.
+- Questions may include optional tags. Use the tag dropdown to filter the deck or the 🏷️ button to add your own tags.
+- End screen shows basic analytics: average time per question, accuracy by tag and hardest questions.
 -->
 <style>
 :root{
@@ -71,6 +73,7 @@ header{
 }
 header h1{font-size:1.2rem;margin-right:auto;}
 header button,header label,header select{font-size:.9rem;}
+#tagFilter{max-width:10rem;}
 #progressBar{flex:1;height:8px;background:#ccc;border-radius:4px;overflow:hidden;}
 #progressBar div{height:100%;width:0;background:#fff;}
 main{flex:1;padding:1rem;display:flex;flex-direction:column;}
@@ -106,6 +109,7 @@ footer button{padding:.4rem .8rem;}
   <label>Time (min) <input type="number" id="timeLimit" min="0" style="width:4rem" /></label>
   <div id="timer">00:00</div>
   <input type="search" id="searchBox" placeholder="Search..." />
+  <select id="tagFilter" class="hidden" title="Filter by tag"><option value="">All Tags</option></select>
   <button id="darkToggle" aria-label="Toggle dark mode">Dark</button>
   <div id="progressText"></div>
   <div id="progressBar"><div></div></div>
@@ -116,9 +120,11 @@ footer button{padding:.4rem .8rem;}
   <div id="quiz">
     <div id="questionRow" style="display:flex;align-items:center;gap:.5rem;">
       <div id="question" class="question" style="flex:1"></div>
+      <button id="tagEditBtn" title="Edit tags">🏷️</button>
       <button id="flagBtn" title="Bookmark question">☆</button>
     </div>
     <div id="multiNotice" class="hidden"></div>
+    <div id="tagInfo" style="font-size:.9rem;color:var(--accent);"></div>
     <ul id="options" class="options"></ul>
     <div id="feedback"></div>
     <div id="explanation" class="hidden"></div>
@@ -138,6 +144,7 @@ footer button{padding:.4rem .8rem;}
   <div class="box">
     <h2>Results</h2>
     <div id="resultSummary"></div>
+    <div id="analytics"></div>
     <ol id="resultList"></ol>
     <button id="retryBtn">Retry Incorrect</button>
     <button id="flaggedBtn">Review Flagged</button>
@@ -152,16 +159,17 @@ footer button{padding:.4rem .8rem;}
 
 /* ---------- Data and State ---------- */
 const STORAGE_KEY='mcq-state';
-let questions=[]; // current deck
+let allQuestions=[]; // full deck
+let questions=[]; // current filtered deck
 let current=0; // index
 let score=0; // number correct
- let settings={shuffleQ:true,shuffleO:true,dark:false,timeLimit:0,autoSubmit:false};
+let settings={shuffleQ:true,shuffleO:true,dark:false,timeLimit:0,autoSubmit:false,tag:''};
  let results=[]; // {index, selected:number[], isCorrect:boolean}
 let startTime=0,elapsed=0,timerInterval=null;
 
 /* ---------- Utility Functions ---------- */
 function saveState(){
-  const state={questions,current,score,results,settings,elapsed};
+  const state={questions,allQuestions,current,score,results,settings,elapsed};
   localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
 }
 function loadState(){
@@ -170,6 +178,7 @@ function loadState(){
   try{
     const state=JSON.parse(data);
       questions=state.questions||[];
+      allQuestions=state.allQuestions||questions.slice();
       current=state.current||0;
       score=state.score||0;
       results=(state.results||[]).map(r=>({index:r.index,selected:r.selected||[],isCorrect:r.isCorrect!==undefined?r.isCorrect:r.correct||false}));
@@ -182,6 +191,9 @@ function loadState(){
     if(settings.dark) document.body.classList.add('dark');
     elapsed=state.elapsed||0;
     startTime=Date.now()-elapsed*1000;
+    if(allQuestions.length && !questions.length) questions=allQuestions.slice();
+    updateTagOptions();
+    document.getElementById('tagFilter').value=settings.tag||'';
     return questions.length>0;
   }catch(e){
     console.error('Failed to load state',e);
@@ -198,6 +210,48 @@ function shuffle(arr){
     const j=Math.floor(Math.random()* (i+1));
     [arr[i],arr[j]]=[arr[j],arr[i]];
   }
+}
+
+function updateTagOptions(){
+  const sel=document.getElementById('tagFilter');
+  const prev=sel.value;
+  const tags=new Set();
+  allQuestions.forEach(q=>{(q.tags||[]).forEach(t=>tags.add(t));});
+  sel.innerHTML='<option value="">All Tags</option>';
+  tags.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;sel.appendChild(o);});
+  if(tags.has(prev)) sel.value=prev; else sel.value='';
+  sel.classList.toggle('hidden',tags.size===0);
+}
+
+function applyTagFilter(){
+  const tag=document.getElementById('tagFilter').value;
+  settings.tag=tag;
+  questions=allQuestions.filter(q=>!tag||(q.tags||[]).includes(tag));
+  if(document.getElementById('shuffleQ').checked) shuffle(questions);
+  current=0;results=[];score=0;elapsed=0;
+  questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
+  settings.shuffleQ=document.getElementById('shuffleQ').checked;
+  settings.shuffleO=document.getElementById('shuffleO').checked;
+  settings.autoSubmit=document.getElementById('autoSubmit').checked;
+  settings.timeLimit=parseInt(document.getElementById('timeLimit').value)||0;
+  startTime=Date.now();
+  startTimer();
+  saveState();
+  render();
+}
+
+function editTags(){
+  const q=questions[current];
+  const existing=(q.tags||[]).join(', ');
+  const input=prompt('Enter tags separated by commas',existing);
+  if(input===null) return;
+  q.tags=input.split(/[;,]/).map(s=>s.trim()).filter(Boolean);
+  // update master copy
+  const master=allQuestions.find(m=>m.id===q.id);
+  if(master) master.tags=q.tags;
+  updateTagOptions();
+  render();
+  saveState();
 }
 
   function normalizeAnswers(raw,optLen,assumeIndex=false){
@@ -242,7 +296,9 @@ function shuffle(arr){
     const rawAns=map['correct answer'];
     const corr=normalizeAnswers(rawAns,opts.length);
     if(!corr) throw new Error('Invalid Correct Answer');
-    return{ id:idx+1, question:q, options:opts, correct:corr, explanation:map['explanation']||'', rawAnswer:rawAns };
+    const tagStr=map['tags']||map['tag']||map['topic']||'';
+    const tags=tagStr?tagStr.split(/[;,|]/).map(s=>s.trim()).filter(Boolean):[];
+    return{ id:idx+1, question:q, options:opts, correct:corr, explanation:map['explanation']||'', rawAnswer:rawAns, tags };
   }
 
   function parseCSV(file){
@@ -273,7 +329,8 @@ function shuffle(arr){
               const rawAns=obj.answer;
               const corr=normalizeAnswers(rawAns,obj.options.length,true);
               if(!corr) throw new Error('Invalid answer');
-              qs.push({id:obj.id||i+1,question:obj.question,options:obj.options,correct:corr,explanation:obj.explanation||'', rawAnswer:rawAns});
+              const tags=Array.isArray(obj.tags)?obj.tags:(obj.tags?String(obj.tags).split(/[;,|]/).map(s=>s.trim()).filter(Boolean):[]);
+              qs.push({id:obj.id||i+1,question:obj.question,options:obj.options,correct:corr,explanation:obj.explanation||'', rawAnswer:rawAns, tags});
             }catch(err){errors.push(`Item ${i+1}: ${err.message}`);}
           });
           if(errors.length) alert(errors.join('\n'));
@@ -336,15 +393,17 @@ function render(){
   flag.textContent=q.flagged?'★':'☆';
   flag.classList.toggle('flagged',q.flagged);
   flag.setAttribute('aria-pressed',q.flagged);
-    const list=document.getElementById('options');
-    list.innerHTML='';
-    const notice=document.getElementById('multiNotice');
-    if(multi){notice.textContent=`Select all that apply (Choose ${q.correct.length})`;notice.classList.remove('hidden');}
-    else{notice.classList.add('hidden');}
-    const multi=q.correct.length>1;
+  document.getElementById('tagInfo').textContent=(q.tags&&q.tags.length)?'Tags: '+q.tags.join(', '):'';
+  q.timeStart=Date.now();
+  const list=document.getElementById('options');
+  list.innerHTML='';
+  const multi=q.correct.length>1;
+  const notice=document.getElementById('multiNotice');
+  if(multi){notice.textContent=`Select all that apply (Choose ${q.correct.length})`;notice.classList.remove('hidden');}
+  else{notice.classList.add('hidden');}
   q.shuffledOptions=q.shuffledOptions||q.options.map((o,i)=>({text:o,index:i}));
   if(settings.shuffleO && !q.optionsShuffled){shuffle(q.shuffledOptions);q.optionsShuffled=true;}
-    q.shuffledOptions.forEach((o,pos)=>{
+  q.shuffledOptions.forEach((o,pos)=>{
     const li=document.createElement('li');
     li.className='option';
     const input=document.createElement('input');
@@ -399,6 +458,7 @@ function submit(){
   sel.sort((a,b)=>a-b);
   const correct=JSON.stringify(sel)===JSON.stringify(q.correct);
   q.answered=true;
+  q.timeTaken=(q.timeTaken||0)+((Date.now()-q.timeStart)/1000);
   results[current]={index:current,selected:[...sel],isCorrect:correct};
   document.getElementById('feedback').textContent=correct?'Correct':'Incorrect';
   const options=document.querySelectorAll('#options .option');
@@ -429,37 +489,70 @@ function next(){
       const li=document.createElement('li');
       const sel=(results[i]?.selected||[]).map(n=>String.fromCharCode(65+n)).join('')||'—';
       const ans=q.correct.map(n=>String.fromCharCode(65+n)).join('');
-      const raw=Array.isArray(q.rawAnswer)?q.rawAnswer.join(' '): (q.rawAnswer||'');
+      const raw=Array.isArray(q.rawAnswer)?q.rawAnswer.join(' '):(q.rawAnswer||'');
       li.textContent=`${q.question} — Your: ${sel} | Correct: ${ans}${raw?` (Orig: ${raw})`:''}`;
       li.className=results[i]?.isCorrect?'correct':'incorrect';
       list.appendChild(li);
     });
+    // ----- Analytics -----
+    const analytics=document.getElementById('analytics');
+    analytics.innerHTML='';
+    const avg=questions.reduce((s,q)=>s+(q.timeTaken||0),0)/questions.length;
+    const avgP=document.createElement('p');
+    avgP.textContent=`Average time/question: ${avg.toFixed(1)}s`;
+    analytics.appendChild(avgP);
+    const tagStats={};
+    questions.forEach((q,i)=>{
+      const tg=(q.tags&&q.tags.length)?q.tags:['(none)'];
+      tg.forEach(t=>{
+        if(!tagStats[t]) tagStats[t]={total:0,correct:0};
+        tagStats[t].total++;
+        if(results[i]?.isCorrect) tagStats[t].correct++;
+      });
+    });
+    if(Object.keys(tagStats).length){
+      const ul=document.createElement('ul');
+      ul.innerHTML='<strong>Accuracy by tag</strong>';
+      Object.entries(tagStats).forEach(([tag,stat])=>{
+        const li=document.createElement('li');
+        li.textContent=`${tag}: ${Math.round(stat.correct/stat.total*100)}% (${stat.correct}/${stat.total})`;
+        ul.appendChild(li);
+      });
+      analytics.appendChild(ul);
+    }
+    const diff=questions.map((q,i)=>({text:q.question,time:q.timeTaken||0,correct:results[i]?.isCorrect}));
+    diff.sort((a,b)=>{
+      if(a.correct===b.correct) return b.time-a.time;
+      return a.correct?1:-1;
+    });
+    if(diff.length){
+      const ol=document.createElement('ol');
+      const title=document.createElement('strong');
+      title.textContent='Hardest questions';
+      analytics.appendChild(title);
+      diff.slice(0,3).forEach(d=>{
+        const li=document.createElement('li');
+        li.textContent=`${d.text} (${d.correct?'correct':'incorrect'}, ${d.time.toFixed(1)}s)`;
+        ol.appendChild(li);
+      });
+      analytics.appendChild(ol);
+    }
     document.getElementById('resultModal').style.display='flex';
     saveState();
   }
   function retryIncorrect(){
     const incorrect=questions.filter((q,i)=>!results[i]||!results[i].isCorrect);
-  if(!incorrect.length){document.getElementById('resultModal').style.display='none';return;}
-  questions=incorrect;
-  current=0;results=[];score=0;elapsed=0;
-  questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
-  document.getElementById('resultModal').style.display='none';
-  startTime=Date.now();
-  startTimer();
-  render();saveState();
-}
+    if(!incorrect.length){document.getElementById('resultModal').style.display='none';return;}
+    document.getElementById('resultModal').style.display='none';
+    startQuiz(incorrect);
+  }
 
   function reviewFlagged(){
     const flagged=questions.filter(q=>q.flagged);
-  if(!flagged.length){document.getElementById('resultModal').style.display='none';return;}
-  questions=flagged;
-  current=0;results=[];score=0;elapsed=0;
-  questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
-  document.getElementById('resultModal').style.display='none';
-  startTime=Date.now();
-  startTimer();
-  render();saveState();
-}
+    if(!flagged.length){document.getElementById('resultModal').style.display='none';return;}
+    document.getElementById('resultModal').style.display='none';
+    startQuiz(flagged);
+  }
 
 /* ---------- File Handling ---------- */
 async function handleFile(file){
@@ -470,28 +563,22 @@ async function handleFile(file){
   }catch(err){alert('Import error: '+err.message);}
 }
 function startQuiz(qs){
-  questions=qs.map(q=>Object.assign({flagged:false},q));
-  if(document.getElementById('shuffleQ').checked) shuffle(questions);
-  current=0;results=[];score=0;elapsed=0;
-  questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
-  settings.shuffleQ=document.getElementById('shuffleQ').checked;
-  settings.shuffleO=document.getElementById('shuffleO').checked;
-  settings.autoSubmit=document.getElementById('autoSubmit').checked;
-  settings.timeLimit=parseInt(document.getElementById('timeLimit').value)||0;
-  startTime=Date.now();
-  startTimer();
-  saveState();
-  render();
+  allQuestions=qs.map(q=>Object.assign({flagged:false},q));
+  settings.tag='';
+  document.getElementById('tagFilter').value='';
+  updateTagOptions();
+  applyTagFilter();
 }
 
 /* ---------- Export / Import State ---------- */
 function exportResults(){
   if(!results.length) return;
-  let csv='Question,YourAnswer,Correct,Explanation\n';
+  let csv='Question,YourAnswer,Correct,Explanation,Tags\n';
   questions.forEach((q,i)=>{
     const sel=(q.selected||[]).map(n=>String.fromCharCode(65+n)).join('');
-      const ans=q.correct.map(n=>String.fromCharCode(65+n)).join('');
-    csv+=`"${q.question.replace(/"/g,'""')}",${sel},${ans},"${(q.explanation||'').replace(/"/g,'""')}"\n`;
+    const ans=q.correct.map(n=>String.fromCharCode(65+n)).join('');
+    const tags=(q.tags||[]).join('|');
+    csv+=`"${q.question.replace(/"/g,'""')}",${sel},${ans},"${(q.explanation||'').replace(/"/g,'""')}","${tags}"\n`;
   });
   download(csv,'results.csv');
 }
@@ -531,6 +618,8 @@ document.getElementById('exportStateBtn').onclick=exportState;
 document.getElementById('importStateBtn').onclick=()=>document.getElementById('importState').click();
 document.getElementById('importState').addEventListener('change',e=>{const f=e.target.files[0];if(f)importStateFile(f);});
 document.getElementById('flagBtn').onclick=()=>{const q=questions[current];q.flagged=!q.flagged;render();saveState();};
+document.getElementById('tagEditBtn').onclick=editTags;
+document.getElementById('tagFilter').addEventListener('change',applyTagFilter);
 document.getElementById('searchBox').addEventListener('keydown',e=>{if(e.key==='Enter'){const term=e.target.value.trim().toLowerCase();if(!term)return;const i=questions.findIndex(q=>q.question.toLowerCase().includes(term));if(i>=0){current=i;render();saveState();}else alert('No match');}});
 document.getElementById('timeLimit').addEventListener('change',e=>{settings.timeLimit=parseInt(e.target.value)||0;saveState();});
 
@@ -548,7 +637,8 @@ function loadSample(){
     options:o.options,
     correct:normalizeAnswers(o.answer,o.options.length,true),
     explanation:o.explanation||'',
-    rawAnswer:o.answer
+    rawAnswer:o.answer,
+    tags:o.tags||[]
   }));
   startQuiz(qs);
 }
@@ -576,26 +666,30 @@ link.classList.remove('hidden');
     "question":"What is the capital of France?",
     "options":["Paris","London","Berlin","Madrid"],
     "answer":0,
-    "explanation":"Paris is the capital of France."
+    "explanation":"Paris is the capital of France.",
+    "tags":["geography"]
   },
   {
     "question":"Which planet is known as the Red Planet?",
     "options":["Earth","Venus","Mars","Jupiter"],
     "answer":2,
-    "explanation":"The iron oxide on Mars gives it a reddish appearance."
+    "explanation":"The iron oxide on Mars gives it a reddish appearance.",
+    "tags":["space"]
   },
   {
     "question":"Which of the following are prime numbers?",
     "options":["2","3","4","5"],
     "answer":[0,1,3],
-    "explanation":"2, 3 and 5 are prime numbers."
+    "explanation":"2, 3 and 5 are prime numbers.",
+    "tags":["math"]
   }
 ]</script>
+</script>
 
-<script id="sample-csv" type="text/plain">Question,Option A,Option B,Option C,Option D,Correct Answer,Explanation
-What is the capital of France?,Paris,London,Berlin,Madrid,A,Paris is the capital of France.
-Which planet is known as the Red Planet?,Earth,Venus,Mars,Jupiter,C,The iron oxide on Mars gives it a reddish appearance.
-Which of the following are prime numbers?,2,3,4,5,A;B;D,2, 3 and 5 are prime numbers.
+<script id="sample-csv" type="text/plain">Question,Option A,Option B,Option C,Option D,Correct Answer,Explanation,Tags
+What is the capital of France?,Paris,London,Berlin,Madrid,A,Paris is the capital of France.,geography
+Which planet is known as the Red Planet?,Earth,Venus,Mars,Jupiter,C,The iron oxide on Mars gives it a reddish appearance.,space
+Which of the following are prime numbers?,2,3,4,5,A;B;D,2, 3 and 5 are prime numbers.,math
 </script>
 
 </body>
