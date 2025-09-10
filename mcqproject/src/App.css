@@ -60,3 +60,36 @@ h1 {
 .result {
   text-align: center;
 }
+
+.progress {
+  height: 8px;
+  background: #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #646cff;
+  width: 0;
+  transition: width 0.3s;
+}
+
+.review {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.review-question + .review-question {
+  margin-top: 1rem;
+}
+
+.correct {
+  color: #0a0;
+}
+
+.incorrect {
+  color: #cc0000;
+}
