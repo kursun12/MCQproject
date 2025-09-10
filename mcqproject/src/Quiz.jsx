@@ -108,6 +108,9 @@ function Quiz() {
           </li>
         ))}
       </ul>
+      {selected !== null && (
+        <p className="explanation">{question.explanation}</p>
+      )}
       <button className="next" onClick={handleNext} disabled={selected === null}>
         {current + 1 === questions.length ? 'Finish' : 'Next'}
       </button>
