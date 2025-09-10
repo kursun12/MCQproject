@@ -1,20 +1,42 @@
 import './App.css';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Quiz from './Quiz.jsx';
 import LandingPage from './LandingPage.jsx';
 import Settings from './Settings.jsx';
 import ImportQuestions from './Import.jsx';
 
 function App() {
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem('theme') || 'light'
+  );
+
+  useEffect(() => {
+    document.body.classList.remove('light', 'dark');
+    document.body.classList.add(theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((t) => (t === 'light' ? 'dark' : 'light'));
+  };
+
   return (
     <BrowserRouter>
       <div className="app">
         <h1>MCQ Practice</h1>
         <nav className="nav">
-          <Link to="/">Home</Link>
-          <Link to="/quiz">Quiz</Link>
-          <Link to="/settings">Settings</Link>
-          <Link to="/import">Import</Link>
+          <div className="nav-links">
+            <NavLink to="/" end>
+              Home
+            </NavLink>
+            <NavLink to="/quiz">Quiz</NavLink>
+            <NavLink to="/settings">Settings</NavLink>
+            <NavLink to="/import">Import</NavLink>
+          </div>
+          <button className="theme-toggle" onClick={toggleTheme}>
+            {theme === 'light' ? 'Dark' : 'Light'} Mode
+          </button>
         </nav>
         <Routes>
           <Route path="/" element={<LandingPage />} />
