@@ -1,7 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function Settings() {
   const [numQuestions, setNumQuestions] = useState(3);
+  const [shuffleQs, setShuffleQs] = useState(() => localStorage.getItem('shuffleQs') === 'true');
+  const [shuffleOpts, setShuffleOpts] = useState(() => localStorage.getItem('shuffleOpts') === 'true');
+
+  useEffect(() => {
+    localStorage.setItem('shuffleQs', shuffleQs);
+  }, [shuffleQs]);
+
+  useEffect(() => {
+    localStorage.setItem('shuffleOpts', shuffleOpts);
+  }, [shuffleOpts]);
+
+  const count = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('questions') || '[]').length;
+    } catch {
+      return 0;
+    }
+  })();
+
+  const clearQuestions = () => {
+    if (window.confirm('Delete all questions?')) {
+      localStorage.removeItem('questions');
+      window.location.reload();
+    }
+  };
 
   return (
     <div className="card">
@@ -15,6 +40,24 @@ function Settings() {
           onChange={(e) => setNumQuestions(e.target.value)}
         />
       </label>
+      <label>
+        <input
+          type="checkbox"
+          checked={shuffleQs}
+          onChange={(e) => setShuffleQs(e.target.checked)}
+        />
+        Shuffle questions
+      </label>
+      <label>
+        <input
+          type="checkbox"
+          checked={shuffleOpts}
+          onChange={(e) => setShuffleOpts(e.target.checked)}
+        />
+        Shuffle options
+      </label>
+      <p>Loaded questions: {count}</p>
+      {count > 0 && <button onClick={clearQuestions}>Clear All</button>}
     </div>
   );
 }

@@ -128,3 +128,17 @@ h1 {
   align-items: center;
   margin-top: 1rem;
 }
+
+.question-list {
+  list-style: none;
+  padding: 0;
+}
+
+.question-item {
+  border-bottom: 1px solid #ccc;
+  padding: 0.5rem 0;
+}
+
+.question-item button {
+  margin-right: 0.5rem;
+}
