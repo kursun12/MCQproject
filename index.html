@@ -251,6 +251,7 @@
     if(!state.bookmarks) state.bookmarks={};
     if(!state.settings) state.settings={dark:false, showHints:false, shuffleQuestions:false, shuffleChoices:false};
     if(!state.sets) state.sets={};
+    if(!state.incorrect) state.incorrect={};
     AppStorage.save(state);
 
     function getQuestions(){return state.questions;}
@@ -263,8 +264,14 @@
     function updateSettings(s){ state.settings=Object.assign(state.settings,s); AppStorage.save(state); }
     function saveSet(name,ids){ state.sets[name]=ids; AppStorage.save(state); }
     function getSets(){ return state.sets; }
+    function markQuestion(id,isCorrect){
+      if(isCorrect) delete state.incorrect[id];
+      else state.incorrect[id]=true;
+      AppStorage.save(state);
+    }
+    function getIncorrect(){ return state.incorrect; }
     function reset(){ localStorage.removeItem(AppStorage.KEY); location.reload(); }
-    window.Data={getQuestions,setQuestions,addQuestions,toggleBookmark,isBookmarked,saveResult,getSettings,updateSettings,saveSet,getSets,reset,state};
+    window.Data={getQuestions,setQuestions,addQuestions,toggleBookmark,isBookmarked,saveResult,getSettings,updateSettings,saveSet,getSets,markQuestion,getIncorrect,reset,state};
   })();
 
   (()=>{ // Parsing Module
@@ -343,6 +350,7 @@
         if(tagFilter.length && !tagFilter.every(t=>q.tags.includes(t))) return false;
         if(diff && q.difficulty!==diff) return false;
         if(search && !q.question.toLowerCase().includes(search)) return false;
+        if(mode==='review' && !Data.getIncorrect()[q.id]) return false;
         return true;
       });
       if(document.getElementById('keepOrder').checked){} else if(document.getElementById('shuffleBtn').dataset.active==='1'||Data.getSettings().shuffleQuestions) questions=shuffleArray([...questions]);
@@ -380,7 +388,8 @@
       if(!sel){alert('Select an option');return;}
       const q=questions[index];
       answered=true;
-      if(parseInt(sel.value)===q.answerIndex){
+      const isCorrect=parseInt(sel.value)===q.answerIndex;
+      if(isCorrect){
         feedbackEl.textContent='Correct! '+(q.explanation||'');
         feedbackEl.className='correct';
         correct++;}
@@ -388,6 +397,8 @@
         feedbackEl.textContent='Incorrect. '+(q.explanation||'');
         feedbackEl.className='incorrect';
       }
+      Data.markQuestion(q.id,isCorrect);
+      if(mode==='review' && isCorrect){questions.splice(index,1);index--;}
       document.getElementById('confirmBtn').classList.add('hidden');
       document.getElementById('nextBtn').classList.remove('hidden');
       progressBar.style.width=((index+1)/questions.length*100)+'%';
@@ -437,11 +448,11 @@
       if(e.key==='Enter'){ answered?next():confirm(); }
       if(e.key==='b'||e.key==='B') document.getElementById('bookmarkBtn').click();
       if(e.key==='s'||e.key==='S'){document.getElementById('shuffleBtn').click();}
-      if(e.key==='r'||e.key==='R'){document.getElementById('modeSelect').value='review';mode='review';applyFilters();renderQuestion();}
-      if(e.key==='e'||e.key==='E'){document.getElementById('modeSelect').value='exam';mode='exam';}
+      if(e.key==='r'||e.key==='R'){document.getElementById('modeSelect').value='review';mode='review';stopTimer();applyFilters();renderQuestion();}
+      if(e.key==='e'||e.key==='E'){document.getElementById('modeSelect').value='exam';mode='exam';applyFilters();renderQuestion();startTimer();}
     });
 
-    document.getElementById('modeSelect').addEventListener('change',e=>{mode=e.target.value;index=0;correct=0;renderQuestion();if(mode==='exam'){startTimer();}else{stopTimer();}});
+    document.getElementById('modeSelect').addEventListener('change',e=>{mode=e.target.value;index=0;correct=0;applyFilters();renderQuestion();if(mode==='exam'){startTimer();}else{stopTimer();}});
 
     function startTimer(){startTime=Date.now();timerEl.classList.remove('hidden');timerInterval=setInterval(()=>{const s=Math.floor((Date.now()-startTime)/1000);timerEl.textContent=('0'+Math.floor(s/60)).slice(-2)+':'+('0'+(s%60)).slice(-2);},1000);}
     function stopTimer(){timerEl.classList.add('hidden');clearInterval(timerInterval);}
