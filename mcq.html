@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCQ Practice</title>
+<style>
+  body{font-family:Arial,sans-serif;margin:0;padding:20px;display:flex;flex-direction:column;align-items:center;}
+  #quiz{max-width:600px;width:100%;}
+  #question{font-size:1.2rem;margin-bottom:1rem;}
+  .option{border:1px solid #ccc;border-radius:4px;padding:10px;margin:5px 0;cursor:pointer;}
+  .option:hover{background:#f0f0f0;}
+  .option.correct{background:#c8e6c9;border-color:#2e7d32;}
+  .option.incorrect{background:#ffcdd2;border-color:#c62828;}
+  #progressBar{width:100%;background:#eee;border-radius:5px;overflow:hidden;height:8px;margin-top:10px;}
+  #progressBar div{height:100%;width:0;background:#76c7c0;}
+  #explanation{margin-top:10px;}
+  #controls{margin-top:15px;display:flex;gap:10px;}
+  #result{text-align:center;}
+  .hidden{display:none;}
+  @media(max-width:600px){body{padding:10px;}}
+</style>
+</head>
+<body>
+<h1>MCQ Practice</h1>
+<input type="file" id="fileInput" accept=".csv">
+<div id="quiz" class="hidden">
+  <div id="progressText"></div>
+  <div id="progressBar"><div></div></div>
+  <div id="score"></div>
+  <div id="question"></div>
+  <div id="options"></div>
+  <div id="feedback"></div>
+  <div id="explanation" class="hidden"></div>
+  <div id="controls">
+    <button id="nextBtn" disabled>Next</button>
+  </div>
+</div>
+<div id="result" class="hidden">
+  <h2 id="summary"></h2>
+  <button id="restartBtn">Restart</button>
+  <button id="retryBtn">Retry Incorrect</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script>
+// Utility: Fisher-Yates shuffle
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+let baseQuestions=[];      // original questions from CSV
+let quizQuestions=[];      // questions for current run
+let incorrectBase=[];      // base questions answered incorrectly
+let index=0;
+let score=0;
+
+const fileInput=document.getElementById('fileInput');
+const quizEl=document.getElementById('quiz');
+const questionEl=document.getElementById('question');
+const optionsEl=document.getElementById('options');
+const feedbackEl=document.getElementById('feedback');
+const explanationEl=document.getElementById('explanation');
+const progressText=document.getElementById('progressText');
+const progressBar=document.querySelector('#progressBar div');
+const scoreEl=document.getElementById('score');
+const nextBtn=document.getElementById('nextBtn');
+const resultEl=document.getElementById('result');
+const summaryEl=document.getElementById('summary');
+const restartBtn=document.getElementById('restartBtn');
+const retryBtn=document.getElementById('retryBtn');
+
+// Parse CSV when a file is chosen
+fileInput.addEventListener('change', e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+  Papa.parse(file,{
+    header:true,
+    skipEmptyLines:true,
+    complete:res=>{
+      // Map CSV rows to question objects
+      baseQuestions=res.data.map((row,idx)=>({
+        id:idx,
+        text:row["Question"],
+        options:[
+          {text:row["Option A"],letter:"A"},
+          {text:row["Option B"],letter:"B"},
+          {text:row["Option C"],letter:"C"},
+          {text:row["Option D"],letter:"D"}
+        ],
+        correctLetter:row["Correct Answer"].trim().toUpperCase(),
+        explanation:row["Explanation"]
+      })).filter(q=>q.text && q.options.every(o=>o.text));
+      if(baseQuestions.length===0){
+        alert("No questions found in CSV.");
+        return;
+      }
+      resultEl.classList.add('hidden');
+      startQuiz(baseQuestions); // begin quiz
+    }
+  });
+});
+
+// Start quiz using a set of base questions
+function startQuiz(source){
+  quizQuestions=shuffle(source).map(q=>{
+    const opts=shuffle(q.options.slice());
+    return {
+      id:q.id,
+      text:q.text,
+      options:opts,
+      correctIndex:opts.findIndex(o=>o.letter===q.correctLetter),
+      explanation:q.explanation
+    };
+  });
+  index=0;
+  score=0;
+  incorrectBase=[];
+  quizEl.classList.remove('hidden');
+  fileInput.classList.add('hidden');
+  showQuestion();
+}
+
+// Render current question
+function showQuestion(){
+  const q=quizQuestions[index];
+  progressText.textContent=`Question ${index+1} of ${quizQuestions.length}`;
+  progressBar.style.width=((index)/quizQuestions.length*100)+"%";
+  scoreEl.textContent=`Score: ${score} / ${quizQuestions.length}`;
+  questionEl.textContent=q.text;
+  optionsEl.innerHTML='';
+  feedbackEl.textContent='';
+  explanationEl.classList.add('hidden');
+  q.options.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='option';
+    btn.textContent=opt.text;
+    btn.onclick=()=>selectOption(i);
+    optionsEl.appendChild(btn);
+  });
+  nextBtn.disabled=true;
+  nextBtn.textContent=index===quizQuestions.length-1?'Finish':'Next';
+}
+
+// Handle answer selection
+function selectOption(i){
+  const q=quizQuestions[index];
+  const btns=optionsEl.querySelectorAll('.option');
+  btns.forEach(b=>b.disabled=true);
+  const correct=i===q.correctIndex;
+  if(correct){
+    score++;
+    btns[i].classList.add('correct');
+    feedbackEl.textContent='Correct!';
+  }else{
+    btns[i].classList.add('incorrect');
+    btns[q.correctIndex].classList.add('correct');
+    feedbackEl.textContent='Incorrect!';
+    const base=baseQuestions.find(b=>b.id===q.id);
+    if(base) incorrectBase.push(base);
+  }
+  explanationEl.textContent=q.explanation;
+  explanationEl.classList.remove('hidden');
+  scoreEl.textContent=`Score: ${score} / ${quizQuestions.length}`;
+  nextBtn.disabled=false;
+}
+
+// Advance to next question or show results
+nextBtn.addEventListener('click', ()=>{
+  if(index<quizQuestions.length-1){
+    index++;
+    showQuestion();
+  }else{
+    finishQuiz();
+  }
+});
+
+function finishQuiz(){
+  progressBar.style.width='100%';
+  quizEl.classList.add('hidden');
+  resultEl.classList.remove('hidden');
+  summaryEl.textContent=`You answered ${score} of ${quizQuestions.length} correctly.`;
+  retryBtn.style.display=incorrectBase.length?'inline-block':'none';
+}
+
+// Restart with all questions
+restartBtn.addEventListener('click',()=>{
+  resultEl.classList.add('hidden');
+  startQuiz(baseQuestions);
+});
+
+// Retry only incorrect questions
+retryBtn.addEventListener('click',()=>{
+  if(incorrectBase.length){
+    resultEl.classList.add('hidden');
+    startQuiz(incorrectBase);
+  }
+});
+</script>
+</body>
+</html>
