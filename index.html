@@ -402,7 +402,6 @@
       }
       Data.markQuestion(q.id,isCorrect);
       if(mode==='review' && isCorrect){questions.splice(index,1);index--;}
-      updateReviewBtn();
       document.getElementById('confirmBtn').classList.add('hidden');
       document.getElementById('nextBtn').classList.remove('hidden');
       progressBar.style.width=((index+1)/questions.length*100)+'%';
@@ -456,8 +455,6 @@
       if(e.key==='r'||e.key==='R'){document.getElementById('modeSelect').value='review';mode='review';stopTimer();applyFilters();renderQuestion();}
       if(e.key==='e'||e.key==='E'){document.getElementById('modeSelect').value='exam';mode='exam';applyFilters();renderQuestion();startTimer();}
     });
-
-    document.getElementById('modeSelect').addEventListener('change',e=>{mode=e.target.value;index=0;correct=0;applyFilters();renderQuestion();if(mode==='exam'){startTimer();}else{stopTimer();}updateReviewBtn();});
 
     function startTimer(){startTime=Date.now();timerEl.classList.remove('hidden');timerInterval=setInterval(()=>{const s=Math.floor((Date.now()-startTime)/1000);timerEl.textContent=('0'+Math.floor(s/60)).slice(-2)+':'+('0'+(s%60)).slice(-2);},1000);}
     function stopTimer(){timerEl.classList.add('hidden');clearInterval(timerInterval);}
