@@ -1,326 +1,441 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SC-200 Practice</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MCQ Practice</title>
+<!--
+README
+------
+This is a client-side Multiple Choice Question (MCQ) practice tool.
+
+Loading Questions
+- Click "Load Questions" and choose a CSV or JSON file.
+- CSV format columns: Question, Option A, Option B, Option C, Option D, Correct Answer, Explanation.
+  - Correct Answer may be a letter ("B") or multiple letters separated by comma, semicolon or pipe ("B;D").
+- JSON format: array of objects with keys {id?, question, options, answer, explanation}.
+  - answer can be a number or an array of numbers (0-based indices).
+- A small demo dataset is included (see bottom of file) and is loaded automatically if no file is provided.
+
+Multi-Answer Detection
+- Answers are normalized to arrays of option indices.
+- If an answer array contains more than one index, the question is treated as multi-select and rendered with checkboxes.
+- Single-answer questions use radio buttons.
+
+Session Persistence
+- Progress, selected answers, and settings are stored in localStorage under the key "mcq-state".
+- On page load the app attempts to resume the previous session.
+- Use the "Reset" button to clear stored data.
+
+Exporting Results/State
+- After finishing the quiz you can export the results as CSV.
+- The full application state (questions, answers, settings) can be exported and later imported to resume on another machine.
+-->
 <style>
-  /* Basic layout */
-  body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f7f7f7;color:#222;display:flex;flex-direction:column;min-height:100vh;}
-  header{background:#004578;color:#fff;padding:.5rem;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;}
-  header h1{font-size:1.2rem;margin-right:auto;}
-  header button,header select,header input{font-size:.9rem;padding:.3rem .5rem;}
-  #progress{flex:1;margin-left:.5rem;height:8px;background:#ccc;border-radius:4px;overflow:hidden;}
-  #progress div{height:100%;width:0;background:#0078d4;}
-  #timer,#score,#progressText{margin-left:.5rem;}
-  main{flex:1;padding:1rem;display:flex;flex-direction:column;}
-  .question{font-size:1.1rem;margin-bottom:1rem;}
-  .options{display:flex;flex-direction:column;gap:.5rem;}
-  .option{padding:.6rem;border:1px solid #999;border-radius:6px;background:#fff;cursor:pointer;text-align:left;}
-  .option[aria-checked="true"],.option:focus{outline:2px solid #0078d4;}
-  .option.correct{border-color:#0a0;background:#e6ffe6;}
-  .option.incorrect{border-color:#c00;background:#ffe6e6;}
-  .hidden{display:none;}
-  #explanation{margin-top:1rem;border-top:1px solid #ddd;padding-top:.5rem;}
-  footer{padding:.5rem;background:#eee;display:flex;align-items:center;gap:1rem;}
-  footer button{padding:.4rem .8rem;}
-  .modal{position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);}
-  .modal .box{background:#fff;color:#222;padding:1rem;border-radius:8px;max-width:90%;max-height:90%;overflow:auto;}
-  table{border-collapse:collapse;width:100%;}
-  th,td{border:1px solid #ccc;padding:.3rem;text-align:left;}
-  @media(max-width:600px){header{flex-direction:column;align-items:flex-start;}#progress{width:100%;margin:0.5rem 0;}}
-  @media print{header,footer,.modal{display:none;}body{background:#fff;color:#000;}}
+:root{
+  --bg:#ffffff;
+  --fg:#222222;
+  --accent:#1976d2;
+  --correct:#188038;
+  --incorrect:#c62828;
+}
+body.dark{
+  --bg:#1e1e1e;
+  --fg:#dddddd;
+  --accent:#90caf9;
+  --correct:#00e676;
+  --incorrect:#ef5350;
+}
+body{
+  background:var(--bg);
+  color:var(--fg);
+  font-family:Arial,Helvetica,sans-serif;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+header{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:.5rem;
+  padding:.5rem 1rem;
+  background:var(--accent);
+  color:#fff;
+}
+header h1{font-size:1.2rem;margin-right:auto;}
+header button,header label,header select{font-size:.9rem;}
+#progressBar{flex:1;height:8px;background:#ccc;border-radius:4px;overflow:hidden;}
+#progressBar div{height:100%;width:0;background:#fff;}
+main{flex:1;padding:1rem;display:flex;flex-direction:column;}
+.question{font-size:1.1rem;margin-bottom:1rem;}
+.options{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.5rem;}
+.option{padding:.6rem;border:1px solid #999;border-radius:6px;cursor:pointer;background:var(--bg);color:var(--fg);} 
+.option input{margin-right:.5rem;}
+.option.correct{border-color:var(--correct);background:#e6ffe6;}
+.option.incorrect{border-color:var(--incorrect);background:#ffe6e6;}
+.hidden{display:none;}
+footer{padding:.5rem;background:#eee;display:flex;align-items:center;gap:1rem;}
+footer button{padding:.4rem .8rem;}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);} 
+.modal .box{background:var(--bg);color:var(--fg);padding:1rem;border-radius:8px;max-width:90%;max-height:90%;overflow:auto;}
+@media(max-width:600px){header{flex-direction:column;align-items:flex-start;}#progressBar{width:100%;order:99;}}
 </style>
 </head>
 <body>
 <header>
-  <h1>SC-200 Practice</h1>
-  <input type="file" id="fileInput" accept=".csv" class="hidden" />
-  <button id="importBtn">Import CSV</button>
-  <select id="modeSelect">
-    <option value="study">Study</option>
-    <option value="test">Test</option>
-    <option value="cram">Cram</option>
-  </select>
-  <label>Shuffle Qs<input type="checkbox" id="shuffleQuestions" checked/></label>
-  <label>Shuffle Opts<input type="checkbox" id="shuffleOptions" checked/></label>
-  <label>Range <input type="number" id="rangeStart" min="1" style="width:4rem;">-<input type="number" id="rangeEnd" min="1" style="width:4rem;"></label>
-  <input type="text" id="keyword" placeholder="keyword"/>
-  <label><input type="checkbox" id="onlyUnanswered">Unanswered</label>
-  <label><input type="checkbox" id="onlyIncorrect">Incorrect</label>
+  <h1>MCQ Practice</h1>
+  <input type="file" id="fileInput" accept=".csv,.json" class="hidden" />
+  <button id="loadBtn">Load Questions</button>
+  <label>Shuffle Qs <input type="checkbox" id="shuffleQ" checked /></label>
+  <label>Shuffle Opts <input type="checkbox" id="shuffleO" checked /></label>
+  <button id="darkToggle" aria-label="Toggle dark mode">Dark</button>
   <div id="progressText"></div>
-  <div id="progress"><div></div></div>
-  <div id="timer">00:00</div>
+  <div id="progressBar"><div></div></div>
   <div id="score"></div>
+  <a id="sampleCsvLink" download="sample.csv" class="hidden"></a>
 </header>
 <main aria-live="polite">
-  <div id="quiz"></div>
+  <div id="quiz">
+    <div id="question" class="question"></div>
+    <ul id="options" class="options"></ul>
+    <div id="feedback"></div>
+    <div id="explanation" class="hidden"></div>
+  </div>
 </main>
 <footer>
-  <button id="prevBtn">Previous</button>
-  <button id="nextBtn">Next</button>
-  <button id="bookmarkBtn">Bookmark</button>
-  <button id="resetSessionBtn">Reset session</button>
-  <button id="resetAllBtn">Reset all</button>
-  <button id="exportBtn">Export results CSV</button>
+  <button id="submitBtn">Submit</button>
+  <button id="nextBtn" class="hidden">Next</button>
+  <button id="restartBtn">Restart</button>
+  <button id="exportBtn">Export CSV</button>
+  <button id="exportStateBtn">Export State</button>
+  <input type="file" id="importState" class="hidden" />
+  <button id="importStateBtn">Import State</button>
 </footer>
 
-<!-- Import summary modal -->
-<div class="modal" id="importModal" role="dialog" aria-modal="true">
-  <div class="box">
-    <h2>Import Summary</h2>
-    <div id="importSummary"></div>
-    <h3>Preview</h3>
-    <table id="previewTable"></table>
-    <h3>Skipped Rows</h3>
-    <div id="skippedList"></div>
-    <button id="useDataBtn">Use Questions</button>
-    <button class="close">Close</button>
-  </div>
-</div>
-
-<!-- Results modal -->
-<div class="modal" id="resultsModal" role="dialog" aria-modal="true">
+<div id="resultModal" class="modal" role="dialog" aria-modal="true">
   <div class="box">
     <h2>Results</h2>
-      <div id="resultSummary"></div>
-      <div id="breakdown"></div>
-      <button id="restartBtn">Restart quiz</button>
-      <button id="retryIncorrectBtn">Retry incorrect</button>
-      <button id="reviewIncorrectBtn">Review incorrect</button>
-      <button class="close">Close</button>
-    </div>
-  </div>
-
-<!-- Review modal -->
-<div class="modal" id="reviewModal" role="dialog" aria-modal="true">
-  <div class="box">
-    <h2>Review</h2>
-    <div id="reviewContainer"></div>
-    <button class="close">Close</button>
+    <div id="resultSummary"></div>
+    <button id="retryBtn">Retry Incorrect</button>
+    <button id="closeResult">Close</button>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha512-rLAFH3b0x0Ygn+GJPD7W82dManIeZDV4SSQdlqzTeWY5Avzkdxl3pNGdisz8Iky3Uczdlz7YT1Do1B4ezwIJ1Q==" crossorigin="anonymous"></script>
 <script>
 (function(){
-  const deckKey='mcqDeck';
-  let allQuestions=[]; // full dataset with state
-  let quizQuestions=[]; // current filtered set
-  let index=0; // current question index
-  let mode='study';
-  let timer=null,startTime=0;
-  let results=[]; // for export
+'use strict';
 
-  const quizEl=document.getElementById('quiz');
-  const progressBar=document.querySelector('#progress div');
-  const timerEl=document.getElementById('timer');
-  const scoreEl=document.getElementById('score');
+/* ---------- Data and State ---------- */
+const STORAGE_KEY='mcq-state';
+let questions=[]; // current deck
+let current=0; // index
+let score=0; // number correct
+let settings={shuffleQ:true,shuffleO:true,dark:false};
+let results=[]; // {index, correct}
 
-  /* Utility */
-  function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()* (i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
-
-  function parseCsv(file){
-    return new Promise((resolve,reject)=>{
-      Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>resolve(res),error:err=>reject(err)});
-    });
+/* ---------- Utility Functions ---------- */
+function saveState(){
+  const state={questions,current,score,results,settings};
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+}
+function loadState(){
+  const data=localStorage.getItem(STORAGE_KEY);
+  if(!data) return false;
+  try{
+    const state=JSON.parse(data);
+    questions=state.questions||[];
+    current=state.current||0;
+    score=state.score||0;
+    results=state.results||[];
+    settings=Object.assign(settings,state.settings||{});
+    document.getElementById('shuffleQ').checked=settings.shuffleQ;
+    document.getElementById('shuffleO').checked=settings.shuffleO;
+    if(settings.dark) document.body.classList.add('dark');
+    return questions.length>0;
+  }catch(e){
+    console.error('Failed to load state',e);
+    return false;
   }
+}
+function resetState(){
+  localStorage.removeItem(STORAGE_KEY);
+  questions=[];current=0;score=0;results=[];
+}
 
-    // Validate CSV rows and normalize them into our internal structure
-    function validateRows(res){
-      const required=['Question','Option A','Option B','Option C','Option D','Correct Answer','Explanation'];
-      if(JSON.stringify(res.meta.fields)!==JSON.stringify(required)){
-        throw new Error('CSV columns mismatch. Expect header: '+required.join(', '));
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()* (i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+}
+
+function normalizeCSVRow(row,idx){
+  const q=row['Question'];
+  if(!q) return null;
+  const options=[row['Option A'],row['Option B'],row['Option C'],row['Option D']].filter(v=>v!==undefined);
+  let ans=row['Correct Answer'];
+  if(typeof ans==='string') ans=ans.replace(/\s/g,'').split(/[;,|]/);
+  else ans=[ans];
+  const indices=ans.map(a=>typeof a==='string'?a.toUpperCase().charCodeAt(0)-65:parseInt(a)).filter(n=>!isNaN(n));
+  if(!indices.length) return null;
+  return{ id:idx+1, question:q, options, answer:indices.sort((a,b)=>a-b), explanation:row['Explanation']||'' };
+}
+
+function parseCSV(file){
+  return new Promise((resolve,reject)=>{
+    Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>{
+      const qs=res.data.map((row,i)=>normalizeCSVRow(row,i)).filter(Boolean);
+      if(!qs.length) return reject(new Error('No valid rows'));
+      resolve(qs);
+    },error:err=>reject(err)});
+  });
+}
+function parseJSON(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const data=JSON.parse(e.target.result);
+        if(!Array.isArray(data)) throw new Error('JSON must be an array');
+        const qs=data.map((obj,i)=>({
+          id:obj.id||i+1,
+          question:obj.question,
+          options:obj.options,
+          answer:Array.isArray(obj.answer)?obj.answer.map(n=>parseInt(n)).sort((a,b)=>a-b):[parseInt(obj.answer)],
+          explanation:obj.explanation||''
+        })).filter(q=>q.question && q.options && q.answer.every(n=>!isNaN(n)));
+        if(!qs.length) throw new Error('No valid questions');
+        resolve(qs);
+      }catch(err){reject(err);}
+    };
+    reader.onerror=()=>reject(reader.error);
+    reader.readAsText(file);
+  });
+}
+
+function download(text,filename){
+  const blob=new Blob([text],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+}
+
+/* ---------- Rendering ---------- */
+function render(){
+  if(!questions.length) return;
+  const q=questions[current];
+  document.getElementById('question').innerHTML=(current+1)+'. '+q.question;
+  const list=document.getElementById('options');
+  list.innerHTML='';
+  const multi=q.answer.length>1;
+  q.shuffledOptions=q.shuffledOptions||q.options.map((o,i)=>({text:o,index:i}));
+  if(settings.shuffleO && !q.optionsShuffled){shuffle(q.shuffledOptions);q.optionsShuffled=true;}
+  q.shuffledOptions.forEach((o,pos)=>{
+    const li=document.createElement('li');
+    li.className='option';
+    const input=document.createElement('input');
+    input.type=multi?'checkbox':'radio';
+    input.name='option';
+    input.value=o.index;
+    input.id='opt'+pos;
+    input.checked=(q.selected||[]).includes(o.index);
+    const label=document.createElement('label');
+    label.setAttribute('for','opt'+pos);
+    label.textContent=o.text;
+    li.appendChild(input);li.appendChild(label);
+    li.setAttribute('tabindex','0');
+    li.setAttribute('role',multi?'checkbox':'radio');
+    li.setAttribute('aria-checked',input.checked);
+    li.addEventListener('click',()=>{input.click();});
+    input.addEventListener('change',()=>{
+      const sel=q.selected||[];
+      if(multi){
+        if(input.checked) sel.push(o.index); else sel.splice(sel.indexOf(o.index),1);
+      }else{
+        sel.length=0;if(input.checked) sel.push(o.index);
+        document.querySelectorAll('input[name="option"]').forEach(r=>{if(r!==input) r.checked=false;});
       }
-      const valid=[],skipped=[];
-      res.data.forEach((row,i)=>{
-        const opts=['Option A','Option B','Option C','Option D'].map(k=>row[k]);
-        const filled=opts.filter(o=>o!==undefined && o!==null && o!=='');
-        if(filled.length<2){skipped.push({row:i+2,reason:'<2 options'});return;}
-        const correct=(row['Correct Answer']||'').trim().toUpperCase();
-        const letters=['A','B','C','D'];
-        const correctIdx=letters.indexOf(correct);
-        if(correctIdx===-1||!opts[correctIdx]){skipped.push({row:i+2,reason:'Invalid Correct Answer'});return;}
-        valid.push(normalizeQuestion(i+1,row,opts,correctIdx));
-      });
-      return {valid,skipped};
-    }
+      q.selected=sel;li.setAttribute('aria-checked',input.checked);
+    });
+    list.appendChild(li);
+  });
+  document.getElementById('feedback').textContent='';
+  document.getElementById('explanation').classList.add('hidden');
+  updateProgress();
+  updateScore();
+  document.getElementById('submitBtn').disabled=!!q.answered;
+  document.getElementById('nextBtn').classList.toggle('hidden',!q.answered);
+}
+function updateProgress(){
+  const pct=(current)/questions.length*100;
+  document.querySelector('#progressBar div').style.width=pct+'%';
+  document.getElementById('progressText').textContent=`Question ${current+1} of ${questions.length}`;
+}
+function updateScore(){
+  score=results.filter(r=>r.correct).length;
+  document.getElementById('score').textContent=`${score}/${questions.length}`;
+}
 
-    function normalizeQuestion(num,row,opts,correctIdx){
-      return {
-        num,
-        text:row['Question'],
-        options:opts.map((t,i)=>({text:t,letter:['A','B','C','D'][i]})),
-        correctIndex:correctIdx,
-        explanation:row['Explanation']||'',
-        chosen:null,
-        bookmarked:false
-      };
-    }
+function submit(){
+  const q=questions[current];
+  if(q.answered) return;
+  const sel=q.selected||[];
+  sel.sort((a,b)=>a-b);
+  const correct=JSON.stringify(sel)===JSON.stringify(q.answer);
+  q.answered=true;
+  results[current]={index:current,correct};
+  document.getElementById('feedback').textContent=correct?'Correct':'Incorrect';
+  const options=document.querySelectorAll('#options .option');
+  options.forEach(opt=>{
+    const val=parseInt(opt.querySelector('input').value);
+    if(q.answer.includes(val)) opt.classList.add('correct');
+    if(sel.includes(val)&&!q.answer.includes(val)) opt.classList.add('incorrect');
+  });
+  const exp=document.getElementById('explanation');
+  exp.textContent=q.explanation||'';exp.classList.remove('hidden');
+  document.getElementById('submitBtn').disabled=true;
+  document.getElementById('nextBtn').classList.remove('hidden');
+  updateScore();
+  saveState();
+}
+function next(){
+  if(current<questions.length-1){current++;render();saveState();}
+  else finish();
+}
+function finish(){
+  const correct=results.filter(r=>r.correct).length;
+  document.getElementById('resultSummary').textContent=`Score ${correct} / ${questions.length}`;
+  document.getElementById('resultModal').style.display='flex';
+}
+function retryIncorrect(){
+  const incorrect=questions.filter((q,i)=>!results[i].correct);
+  if(!incorrect.length){document.getElementById('resultModal').style.display='none';return;}
+  questions=incorrect;
+  current=0;results=[];score=0;
+  questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
+  document.getElementById('resultModal').style.display='none';
+  render();saveState();
+}
 
-  function saveState(){localStorage.setItem(deckKey,JSON.stringify(allQuestions));}
-  function loadState(){const d=localStorage.getItem(deckKey);if(d){allQuestions=JSON.parse(d);} }
-  function resetSession(){allQuestions.forEach(q=>{q.chosen=null;q.bookmarked=false;});saveState();}
-  function resetAll(){localStorage.clear();location.reload();}
+/* ---------- File Handling ---------- */
+async function handleFile(file){
+  try{
+    const ext=file.name.split('.').pop().toLowerCase();
+    const qs=ext==='csv'?await parseCSV(file):await parseJSON(file);
+    startQuiz(qs);
+  }catch(err){alert('Import error: '+err.message);}
+}
+function startQuiz(qs){
+  questions=qs.map(q=>Object.assign({},q));
+  if(document.getElementById('shuffleQ').checked) shuffle(questions);
+  current=0;results=[];score=0;
+  questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
+  settings.shuffleQ=document.getElementById('shuffleQ').checked;
+  settings.shuffleO=document.getElementById('shuffleO').checked;
+  saveState();
+  render();
+}
 
-  function applyFilters(){
-    let qs=[...allQuestions];
-    const start=parseInt(document.getElementById('rangeStart').value)||-Infinity;
-    const end=parseInt(document.getElementById('rangeEnd').value)||Infinity;
-    qs=qs.filter(q=>q.num>=start && q.num<=end);
-    const kw=document.getElementById('keyword').value.toLowerCase();
-    if(kw) qs=qs.filter(q=>q.text.toLowerCase().includes(kw)||q.explanation.toLowerCase().includes(kw));
-    if(document.getElementById('onlyUnanswered').checked) qs=qs.filter(q=>q.chosen==null);
-    if(document.getElementById('onlyIncorrect').checked) qs=qs.filter(q=>q.chosen!=null && q.chosen!==q.correctIndex);
-      return qs;
-    }
+/* ---------- Export / Import State ---------- */
+function exportResults(){
+  if(!results.length) return;
+  let csv='Question,YourAnswer,Correct,Explanation\n';
+  questions.forEach((q,i)=>{
+    const sel=(q.selected||[]).map(n=>String.fromCharCode(65+n)).join('');
+    const ans=q.answer.map(n=>String.fromCharCode(65+n)).join('');
+    csv+=`"${q.question.replace(/"/g,'""')}",${sel},${ans},"${(q.explanation||'').replace(/"/g,'""')}"\n`;
+  });
+  download(csv,'results.csv');
+}
+function exportState(){
+  saveState();
+  download(localStorage.getItem(STORAGE_KEY)||'','mcq-state.json');
+}
+function importStateFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{localStorage.setItem(STORAGE_KEY,e.target.result);loadState();render();}
+    catch(err){alert('Invalid state file');}
+  };
+  reader.readAsText(file);
+}
 
-  function shuffleOptions(q){
-    const arr=q.options;
-    const correctText=arr[q.correctIndex].text;
-    shuffle(arr);
-    q.correctIndex=arr.findIndex(o=>o.text===correctText);
-  }
+/* ---------- Event Bindings ---------- */
+document.getElementById('loadBtn').onclick=()=>document.getElementById('fileInput').click();
+window.addEventListener('keydown',e=>{
+  const opts=[...document.querySelectorAll('#options input')];
+  const num=parseInt(e.key,10);
+  if(num>=1&&num<=opts.length){opts[num-1].click();}
+  if(e.key==='Enter'){ if(!questions[current].answered) submit(); else next(); }
+});
+document.getElementById('fileInput').addEventListener('change',e=>{const file=e.target.files[0];if(file)handleFile(file);});
 
-    // Initialize a quiz session. Optional customQuestions allows retrying subsets.
-    function startQuiz(m,customQuestions){
-      mode=m;results=[];index=0;selected=-1;
-      const source=customQuestions?customQuestions:applyFilters();
-      // clone questions and reset chosen state
-      quizQuestions=source.map(q=>({...q,chosen:null}));
-      if(document.getElementById('shuffleQuestions').checked) shuffle(quizQuestions);
-      if(document.getElementById('shuffleOptions').checked) quizQuestions.forEach(shuffleOptions);
-      startTime=Date.now();timerEl.textContent='00:00';clearInterval(timer);
-      timer=setInterval(()=>{
-        const s=Math.floor((Date.now()-startTime)/1000);
-        timerEl.textContent=('0'+Math.floor(s/60)).slice(-2)+':'+('0'+s%60).slice(-2);
-      },1000);
-      renderQuestion();updateScore();
-    }
+document.getElementById('submitBtn').onclick=submit;
+document.getElementById('nextBtn').onclick=next;
+document.getElementById('restartBtn').onclick=()=>{if(confirm('Clear progress?')){resetState();loadSample();}};
+document.getElementById('exportBtn').onclick=exportResults;
+document.getElementById('darkToggle').onclick=()=>{document.body.classList.toggle('dark');settings.dark=document.body.classList.contains('dark');saveState();};
+document.getElementById('retryBtn').onclick=retryIncorrect;
+document.getElementById('closeResult').onclick=()=>document.getElementById('resultModal').style.display='none';
+document.getElementById('exportStateBtn').onclick=exportState;
+document.getElementById('importStateBtn').onclick=()=>document.getElementById('importState').click();
+document.getElementById('importState').addEventListener('change',e=>{const f=e.target.files[0];if(f)importStateFile(f);});
 
-  function renderQuestion(){
-    if(index>=quizQuestions.length){finishQuiz();return;}
-    const q=quizQuestions[index];
-    let html='<div class="question">'+q.text+'</div>';
-    if(mode==='cram' && !q.showing){html+='<button id="revealBtn">Reveal options</button>';quizEl.innerHTML=html;document.getElementById('revealBtn').onclick=()=>{q.showing=true;renderQuestion();};return;}
-    html+='<div id="options" role="radiogroup" class="options">';
-    q.options.forEach((o,i)=>{html+='<button class="option" role="radio" data-index="'+i+'" aria-checked="false">'+String.fromCharCode(65+i)+'. '+o.text+'</button>';});
-    html+='</div><div id="feedback" aria-live="polite"></div>';
-    html+='<details id="explanation" class="hidden"><summary>Explanation</summary>'+q.explanation+'</details>';
-    quizEl.innerHTML=html;
-    Array.from(document.querySelectorAll('.option')).forEach(btn=>btn.addEventListener('click',()=>selectOption(btn)));
-    document.addEventListener('keydown',keyHandler);
-    updateProgress();
-  }
+document.getElementById('shuffleQ').addEventListener('change',e=>{settings.shuffleQ=e.target.checked;saveState();});
+document.getElementById('shuffleO').addEventListener('change',e=>{settings.shuffleO=e.target.checked;saveState();});
 
-  let selected=-1;
-  function selectOption(btn){
-    document.querySelectorAll('.option').forEach(b=>{b.setAttribute('aria-checked','false');b.classList.remove('selected');});
-    btn.setAttribute('aria-checked','true');btn.classList.add('selected');selected=parseInt(btn.dataset.index);
-  }
+/* ---------- Sample Data ---------- */
+function loadSample(){
+  const sampleJSON=document.getElementById('sample-json').textContent;
+  const qs=JSON.parse(sampleJSON);
+  startQuiz(qs);
+}
 
-  function keyHandler(e){
-    const opts=document.querySelectorAll('.option');
-    if(['ArrowDown','ArrowRight'].includes(e.key)){if(selected<opts.length-1){selectOption(opts[selected+1]||opts[0]);}}
-    if(['ArrowUp','ArrowLeft'].includes(e.key)){if(selected>0){selectOption(opts[selected-1]||opts[opts.length-1]);}}
-    const num=parseInt(e.key)-1;if(num>=0 && num<opts.length){selectOption(opts[num]);}
-    if(e.key==='Enter'){submitAnswer();}
-  }
+/* ---------- Init ---------- */
+if(!loadState()){
+  // if no previous state, load sample csv
+  loadSample();
+}else{
+  render();
+}
+// prepare downloadable sample CSV
+const sampleCsv=document.getElementById('sample-csv').textContent;
+const link=document.getElementById('sampleCsvLink');
+link.href=URL.createObjectURL(new Blob([sampleCsv],{type:'text/csv'}));
+link.textContent='Download sample CSV';
+link.classList.remove('hidden');
 
-  function submitAnswer(){
-    const q=quizQuestions[index];
-    if(selected<0) return;
-    q.chosen=selected;
-    const correct=selected===q.correctIndex;
-    allQuestions.find(x=>x.num===q.num).chosen=selected;
-    saveState();
-    results.push({QuestionNumber:q.num,ChosenAnswer:String.fromCharCode(65+selected),CorrectAnswer:String.fromCharCode(65+q.correctIndex),IsCorrect:correct,Mode:mode,Timestamp:new Date().toISOString()});
-    if(mode==='study'||mode==='cram'){
-      const opts=document.querySelectorAll('.option');
-      opts[q.correctIndex].classList.add('correct');
-      if(!correct) opts[selected].classList.add('incorrect');
-      document.getElementById('feedback').textContent=correct?'Correct':'Incorrect';
-      document.getElementById('explanation').classList.remove('hidden');
-    }
-    updateScore();
-    document.removeEventListener('keydown',keyHandler);
-  }
-
-  function next(){selected=-1;index++;renderQuestion();}
-  function prev(){if(index>0){index--;selected=-1;renderQuestion();}}
-
-    function updateProgress(){
-      progressBar.style.width=((index)/quizQuestions.length*100)+'%';
-      document.getElementById('progressText').textContent='Question '+(index+1)+' of '+quizQuestions.length;
-    }
-    function updateScore(){
-      const ans=results.filter(r=>r.IsCorrect).length;
-      scoreEl.textContent=ans+'/'+quizQuestions.length;
-    }
-
-    function finishQuiz(){
-      clearInterval(timer);
-      progressBar.style.width='100%';
-      document.getElementById('progressText').textContent='Question '+quizQuestions.length+' of '+quizQuestions.length;
-      const correct=results.filter(r=>r.IsCorrect).length;
-      const total=quizQuestions.length;
-      const time=timerEl.textContent;
-      document.getElementById('resultSummary').innerHTML=`Score ${correct}/${total} in ${time}`;
-      const breakdown={A:0,B:0,C:0,D:0};
-      results.forEach(r=>{breakdown[r.ChosenAnswer]++});
-      let bd='';
-      for(const k in breakdown){bd+=k+': '+breakdown[k]+'<br>';}
-      document.getElementById('breakdown').innerHTML=bd;
-      const incorrect=total-correct;
-      document.getElementById('retryIncorrectBtn').style.display=incorrect? 'inline-block':'none';
-      document.getElementById('resultsModal').style.display='flex';
-    }
-
-    function exportResultsCsv(){if(results.length===0)return;let csv='QuestionNumber,ChosenAnswer,CorrectAnswer,IsCorrect,Mode,Timestamp\n';results.forEach(r=>{csv+=`${r.QuestionNumber},${r.ChosenAnswer},${r.CorrectAnswer},${r.IsCorrect},${r.Mode},${r.Timestamp}\n`;});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='results.csv';a.click();}
-
-    // Start a new session with only the questions answered incorrectly
-    function retryIncorrect(){
-      const incorrect=quizQuestions.filter(q=>q.chosen!==q.correctIndex);
-      if(!incorrect.length){document.getElementById('resultsModal').style.display='none';return;}
-      document.getElementById('resultsModal').style.display='none';
-      startQuiz(mode,incorrect);
-    }
-
-    function renderReview(filter){const qs=allQuestions.filter(q=>filter==='incorrect'?q.chosen!==null&&q.chosen!==q.correctIndex:q.bookmarked);let html='';qs.forEach(q=>{html+=`<div><strong>${q.num}. ${q.text}</strong><br>`;q.options.forEach((o,i)=>{const cls=i===q.correctIndex?'correct':(i===q.chosen?'incorrect':'');html+=`<div class="option ${cls}">${String.fromCharCode(65+i)}. ${o.text}</div>`;});html+=`<div>${q.explanation}</div><hr></div>`;});document.getElementById('reviewContainer').innerHTML=html||'None';document.getElementById('reviewModal').style.display='flex';}
-
-  /* Event bindings */
-  document.getElementById('importBtn').onclick=()=>document.getElementById('fileInput').click();
-  document.getElementById('fileInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{const res=await parseCsv(file);const {valid,skipped}=validateRows(res);showImportSummary(valid,skipped);}catch(err){alert(err.message);}});
-
-  function showImportSummary(valid,skipped){document.getElementById('previewTable').innerHTML='';valid.slice(0,3).forEach(q=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${q.num}</td><td>${q.text}</td>`;document.getElementById('previewTable').appendChild(tr);});document.getElementById('importSummary').textContent=`Imported ${valid.length} questions. Skipped ${skipped.length}.`;document.getElementById('skippedList').innerHTML=skipped.map(s=>`Row ${s.row}: ${s.reason}`).join('<br>');document.getElementById('importModal').style.display='flex';document.getElementById('useDataBtn').onclick=()=>{allQuestions=valid;saveState();document.getElementById('importModal').style.display='none';};}
-
-  document.querySelectorAll('.modal .close').forEach(btn=>btn.onclick=e=>e.target.closest('.modal').style.display='none');
-
-  document.getElementById('modeSelect').addEventListener('change',e=>startQuiz(e.target.value));
-  document.getElementById('nextBtn').onclick=()=>{if(selected===-1)submitAnswer();next();};
-  document.getElementById('prevBtn').onclick=prev;
-  document.getElementById('bookmarkBtn').onclick=()=>{const q=quizQuestions[index];q.bookmarked=!q.bookmarked;allQuestions.find(x=>x.num===q.num).bookmarked=q.bookmarked;saveState();};
-  document.getElementById('resetSessionBtn').onclick=()=>{if(confirm('Clear progress?')){resetSession();}};
-  document.getElementById('resetAllBtn').onclick=()=>{if(confirm('Clear all data?'))resetAll();};
-  document.getElementById('exportBtn').onclick=exportResultsCsv;
-    document.getElementById('restartBtn').onclick=()=>{document.getElementById('resultsModal').style.display='none';startQuiz(mode);};
-    document.getElementById('retryIncorrectBtn').onclick=retryIncorrect;
-    document.getElementById('reviewIncorrectBtn').onclick=()=>{document.getElementById('resultsModal').style.display='none';renderReview('incorrect');};
-
-  document.getElementById('reviewModal').querySelector('.close').onclick=()=>document.getElementById('reviewModal').style.display='none';
-
-  loadState();if(allQuestions.length)startQuiz('study');
-
-    /* Acceptance tests (manual):
-      1. Import provided sample CSV. Expect preview first 3 questions and summary.
-      2. Toggle shuffle options and ensure correct answers remain valid.
-      3. Answer 5 questions in Test mode; finish and see results with explanations.
-      4. Filter by keyword 'Key Vault' to show only matching questions.
-      5. Bookmark two questions and open Review (bookmarked) via renderReview('bookmarked').
-      6. Export results CSV and check headers/rows.
-      7. After completing a quiz with incorrect answers, use Retry incorrect to reattempt only missed questions.
-    */
 })();
 </script>
+
+<script id="sample-json" type="application/json">[
+  {
+    "question":"What is the capital of France?",
+    "options":["Paris","London","Berlin","Madrid"],
+    "answer":0,
+    "explanation":"Paris is the capital of France."
+  },
+  {
+    "question":"Which planet is known as the Red Planet?",
+    "options":["Earth","Venus","Mars","Jupiter"],
+    "answer":2,
+    "explanation":"The iron oxide on Mars gives it a reddish appearance."
+  },
+  {
+    "question":"Which of the following are prime numbers?",
+    "options":["2","3","4","5"],
+    "answer":[0,1,3],
+    "explanation":"2, 3 and 5 are prime numbers."
+  }
+]</script>
+
+<script id="sample-csv" type="text/plain">Question,Option A,Option B,Option C,Option D,Correct Answer,Explanation
+What is the capital of France?,Paris,London,Berlin,Madrid,A,Paris is the capital of France.
+Which planet is known as the Red Planet?,Earth,Venus,Mars,Jupiter,C,The iron oxide on Mars gives it a reddish appearance.
+Which of the following are prime numbers?,2,3,4,5,A;B;D,2, 3 and 5 are prime numbers.
+</script>
+
 </body>
 </html>
