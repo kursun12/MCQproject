@@ -195,3 +195,19 @@ body.dark .nav {
 .question-item button {
   margin-right: 0.5rem;
 }
+
+.scoreboard {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.achievement {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  text-align: center;
+  border-radius: 4px;
+  background: rgba(255, 215, 0, 0.2);
+}

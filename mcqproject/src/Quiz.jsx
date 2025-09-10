@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import defaultQuestions from './questions';
 
 function Quiz() {
@@ -17,8 +17,35 @@ function Quiz() {
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
   const [answers, setAnswers] = useState([]);
+  const [streak, setStreak] = useState(0);
+  const [maxStreak, setMaxStreak] = useState(() => {
+    const stored = parseInt(localStorage.getItem('maxStreak'), 10);
+    return Number.isFinite(stored) ? stored : 0;
+  });
+  const [achievement, setAchievement] = useState('');
+  const audioCtxRef = useRef(null);
 
   const question = questions[current];
+
+  const playTone = (freq) => {
+    try {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.start();
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.2);
+      osc.stop(ctx.currentTime + 0.2);
+    } catch {
+      /* ignore audio errors */
+    }
+  };
 
   const handleOption = (index) => {
     setSelected(index);
@@ -28,6 +55,21 @@ function Quiz() {
     if (selected === null) return;
     if (selected === question.answer) {
       setScore(score + 1);
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      if (newStreak > maxStreak) {
+        setMaxStreak(newStreak);
+        localStorage.setItem('maxStreak', String(newStreak));
+      }
+      if ([3, 5, 10].includes(newStreak)) {
+        const msg = `${newStreak} correct in a row!`;
+        setAchievement(msg);
+        setTimeout(() => setAchievement(''), 3000);
+      }
+      playTone(880);
+    } else {
+      setStreak(0);
+      playTone(440);
     }
     setAnswers([...answers, selected]);
     setSelected(null);
@@ -44,6 +86,19 @@ function Quiz() {
     setScore(0);
     setFinished(false);
     setAnswers([]);
+    setStreak(0);
+    setAchievement('');
+  };
+
+  const share = () => {
+    const text = `I scored ${score}/${questions.length} with a best streak of ${maxStreak} on MCQ Practice!`;
+    if (navigator.share) {
+      navigator.share({ text });
+    } else {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => alert('Result copied to clipboard'));
+    }
   };
 
   if (finished) {
@@ -53,6 +108,7 @@ function Quiz() {
         <p>
           {score} / {questions.length} ({Math.round((score / questions.length) * 100)}%)
         </p>
+        <p>Best streak: {maxStreak}</p>
         <ul className="review">
           {questions.map((q, idx) => (
             <li key={q.id} className="review-question">
@@ -76,6 +132,7 @@ function Quiz() {
           ))}
         </ul>
         <button onClick={restart}>Restart</button>
+        <button onClick={share}>Share</button>
       </div>
     );
   }
@@ -88,6 +145,12 @@ function Quiz() {
           style={{ width: `${(current / questions.length) * 100}%` }}
         ></div>
       </div>
+      <div className="scoreboard">
+        <span>Score: {score}</span>
+        <span>Streak: {streak}</span>
+        <span>Best: {maxStreak}</span>
+      </div>
+      {achievement && <div className="achievement">🏆 {achievement}</div>}
       <h2>
         Question {current + 1} of {questions.length}
       </h2>
