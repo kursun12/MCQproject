@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from 'react';
 import defaultQuestions from './questions';
 import prepareQuestions from './utils/prepareQuestions';
 import exportCsv from './utils/exportCsv';
@@ -53,7 +52,6 @@ function Quiz() {
     return 0;
   });
   const [finished, setFinished] = useState(false);
-  const [answers, setAnswers] = useState(saved.answers || []);
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(() => {
     const stored = parseInt(localStorage.getItem('maxStreak'), 10);
@@ -61,37 +59,6 @@ function Quiz() {
   });
   const [achievement, setAchievement] = useState('');
   const audioCtxRef = useRef(null);
-  const [elapsed, setElapsed] = useState(0);
-  const timerRef = useRef(null);
-
-  const question = questions[current];
-
-  useEffect(() => {
-    timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
-    return () => clearInterval(timerRef.current);
-  }, []);
-
-  useEffect(() => {
-    saveState({ current, answers, bookmarks });
-  }, [current, answers, bookmarks]);
-
-  useEffect(() => {
-    localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
-  }, [bookmarks]);
-
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key >= '1' && e.key <= '4') {
-        const idx = Number(e.key) - 1;
-        if (idx < question.options.length) setSelected(idx);
-      } else if (e.key === 'Enter') {
-        handleNext();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  });
-
   const playTone = (freq) => {
     try {
       if (!audioCtxRef.current) {
@@ -167,9 +134,6 @@ function Quiz() {
     setAnswers([]);
     setStreak(0);
     setAchievement('');
-    setElapsed(0);
-    clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
   };
 
   const share = () => {
@@ -191,7 +155,6 @@ function Quiz() {
           {score} / {questions.length} ({Math.round((score / questions.length) * 100)}%)
         </p>
         <p>Best streak: {maxStreak}</p>
-        <p>Time: {elapsed}s</p>
         <ul className="review">
           {questions.map((q, idx) => (
             <li key={q.id} className="review-question">
@@ -215,24 +178,6 @@ function Quiz() {
           ))}
         </ul>
         <button onClick={restart}>Restart</button>
-        {answers.some((a, idx) => a !== questions[idx].answer) && (
-          <button onClick={() => restart(true)}>Retry Incorrect</button>
-        )}
-        <button onClick={share}>Share</button>
-        <button
-          onClick={() => {
-            const csv = exportCsv(questions, answers, score);
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'results.csv';
-            a.click();
-            URL.revokeObjectURL(url);
-          }}
-        >
-          Export CSV
-        </button>
       </div>
     );
   }
@@ -245,7 +190,6 @@ function Quiz() {
           style={{ width: `${(current / questions.length) * 100}%` }}
         ></div>
       </div>
-      <div className="timer">Time: {elapsed}s</div>
       <div className="scoreboard">
         <span>Score: {score}</span>
         <span>Streak: {streak}</span>
