@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MCQ Practice App</title>
+  <style>
+    :root {
+      --bg: #fff;
+      --fg: #000;
+      --accent: #0077cc;
+      --error: #cc0000;
+      --correct: #0a0;
+    }
+    body.dark {
+      --bg: #1e1e1e;
+      --fg: #f0f0f0;
+      --accent: #4aa3ff;
+      --error: #ff5555;
+      --correct: #44dd44;
+    }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #topbar {
+      background: var(--accent);
+      color: #fff;
+      padding: 0.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    #topbar button,
+    #topbar select,
+    #topbar input {
+      margin-right: 0.5rem;
+    }
+    #container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    main {
+      flex: 2;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    aside {
+      flex: 1;
+      border-left: 1px solid #ccc;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    @media (max-width: 700px) {
+      #container {
+        flex-direction: column;
+      }
+      aside {
+        border-left: none;
+        border-top: 1px solid #ccc;
+      }
+    }
+    .choices li {
+      list-style: none;
+      margin: 0.5rem 0;
+    }
+    .choices label {
+      display: block;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .choices input:focus + label,
+    .choices label:hover {
+      border-color: var(--accent);
+    }
+    #feedback {
+      margin-top: 1rem;
+      min-height: 1.5rem;
+    }
+    .correct {
+      color: var(--correct);
+    }
+    .incorrect {
+      color: var(--error);
+    }
+    .hidden { display:none; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.25rem 0.5rem;
+    }
+    .modal {
+      position: fixed;
+      top:0;left:0;right:0;bottom:0;
+      background: rgba(0,0,0,0.5);
+      display:none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal .content {
+      background: var(--bg);
+      color: var(--fg);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding:1rem;
+      border-radius:8px;
+      width: 90%;
+      max-width: 800px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: #ddd;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    .progress-bar div {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+    }
+    .focus-visible:focus {outline:2px solid var(--accent);}
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <button id="importBtn">Import</button>
+    <button id="exportJsonBtn">Export JSON</button>
+    <button id="exportCsvBtn">Export CSV</button>
+    <label>Mode:
+      <select id="modeSelect">
+        <option value="practice">Practice</option>
+        <option value="exam">Exam</option>
+        <option value="review">Review</option>
+      </select>
+    </label>
+    <label>Difficulty:
+      <select id="difficultyFilter"><option value="">All</option><option>easy</option><option>medium</option><option>hard</option></select>
+    </label>
+    <label>Tags:
+      <input id="tagFilter" placeholder="tag1;tag2" size="10"/>
+    </label>
+    <button id="shuffleBtn">Shuffle</button>
+    <label><input type="checkbox" id="shuffleChoices"> Shuffle Choices</label>
+    <label><input type="checkbox" id="keepOrder"> Keep Order</label>
+    <button id="darkBtn">Dark</button>
+    <button id="resetBtn">Reset</button>
+    <input id="search" placeholder="Search..."/>
+  </div>
+  <div id="container">
+    <main>
+      <div id="questionText"></div>
+      <button id="hintBtn" class="hidden">Show hint</button>
+      <div id="hint" class="hidden"></div>
+      <ul id="choices" class="choices"></ul>
+      <div>
+        <button id="confirmBtn">Confirm</button>
+        <button id="nextBtn" class="hidden">Next</button>
+        <button id="bookmarkBtn">Bookmark</button>
+      </div>
+      <div id="feedback"></div>
+    </main>
+    <aside>
+      <div class="progress-bar"><div id="progress"></div></div>
+      <div id="score">Score: 0/0</div>
+      <div id="timer" class="hidden">00:00</div>
+      <h3>Tag Accuracy</h3>
+      <table id="tagTable"></table>
+    </aside>
+  </div>
+  <div id="importModal" class="modal" role="dialog" aria-modal="true">
+    <div class="content">
+      <h2>Import Preview</h2>
+      <div id="importErrors" class="incorrect"></div>
+      <table id="importTable"></table>
+      <button id="importCommit">Commit</button>
+      <button class="closeModal">Close</button>
+    </div>
+  </div>
+  <div id="settingsModal" class="modal" role="dialog" aria-modal="true">
+    <div class="content">
+      <h2>Settings</h2>
+      <label><input type="checkbox" id="showHintsSetting"> Show hints by default</label>
+      <div>
+        <button id="saveSetBtn">Save current filter as set</button>
+      </div>
+      <div>
+        Saved Sets:
+        <ul id="setList"></ul>
+      </div>
+      <button class="closeModal">Close</button>
+    </div>
+  </div>
+  <div id="shortcutsModal" class="modal" role="dialog" aria-modal="true">
+    <div class="content">
+      <h2>Keyboard Shortcuts</h2>
+      <ul>
+        <li>1-6: choose answer</li>
+        <li>Enter: confirm/next</li>
+        <li>B: bookmark</li>
+        <li>S: shuffle</li>
+        <li>R: review incorrect</li>
+        <li>E: toggle exam mode</li>
+      </ul>
+      <button class="closeModal">Close</button>
+    </div>
+  </div>
+  <div id="setModal" class="modal" role="dialog" aria-modal="true">
+    <div class="content">
+      <h2>Save Set</h2>
+      <input id="setName" placeholder="Set name"/>
+      <button id="setSave">Save</button>
+      <button class="closeModal">Cancel</button>
+    </div>
+  </div>
+  <input type="file" id="fileInput" accept=".csv,.json" class="hidden"/>
+  <script>
+  (()=>{ // Storage Module
+    const KEY='mcqApp';
+    function load(){
+      try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; }
+    }
+    function save(data){ localStorage.setItem(KEY,JSON.stringify(data)); }
+    window.AppStorage={load,save,KEY};
+  })();
+
+  (()=>{ // Data Module
+    const defaultQuestions=[
+      {id:'q1',question:'What is 2 + 2?',choices:['3','4','5','6'],answerIndex:1,explanation:'2+2=4',tags:['math'],difficulty:'easy',hint:'Think of addition'},
+      {id:'q2',question:'Capital of France?',choices:['Berlin','Paris','Rome','Madrid'],answerIndex:1,explanation:'Paris is the capital of France',tags:['geography'],difficulty:'easy'},
+      {id:'q3',question:'Which planet is known as the Red Planet?',choices:['Mars','Venus','Jupiter','Saturn'],answerIndex:0,explanation:'Mars is red',tags:['space'],difficulty:'easy'},
+      {id:'q4',question:'HTML stands for?',choices:['Hyperlinks and Text Markup Language','Hyper Text Markup Language','Home Tool Markup Language'],answerIndex:1,explanation:'Standard markup language',tags:['tech'],difficulty:'medium',hint:'Common web term'},
+      {id:'q5',question:'The powerhouse of the cell?',choices:['Nucleus','Mitochondria','Ribosome','Golgi apparatus'],answerIndex:1,explanation:'Mitochondria produce energy',tags:['biology'],difficulty:'easy'},
+      {id:'q6',question:'Derivative of sin(x)?',choices:['cos(x)','-cos(x)','sin(x)','-sin(x)'],answerIndex:0,explanation:'Derivative of sin is cos',tags:['math'],difficulty:'medium'}
+    ];
+    let state = AppStorage.load();
+    if(!state.questions) state.questions=defaultQuestions;
+    if(!state.results) state.results=[];
+    if(!state.bookmarks) state.bookmarks={};
+    if(!state.settings) state.settings={dark:false, showHints:false, shuffleQuestions:false, shuffleChoices:false};
+    if(!state.sets) state.sets={};
+    AppStorage.save(state);
+
+    function getQuestions(){return state.questions;}
+    function setQuestions(q){state.questions=q;AppStorage.save(state);}
+    function addQuestions(qs){state.questions=state.questions.concat(qs);AppStorage.save(state);}
+    function toggleBookmark(id){ if(state.bookmarks[id]) delete state.bookmarks[id]; else state.bookmarks[id]=true; AppStorage.save(state); }
+    function isBookmarked(id){ return !!state.bookmarks[id]; }
+    function saveResult(res){ state.results.push(res); AppStorage.save(state); }
+    function getSettings(){ return state.settings; }
+    function updateSettings(s){ state.settings=Object.assign(state.settings,s); AppStorage.save(state); }
+    function saveSet(name,ids){ state.sets[name]=ids; AppStorage.save(state); }
+    function getSets(){ return state.sets; }
+    function reset(){ localStorage.removeItem(AppStorage.KEY); location.reload(); }
+    window.Data={getQuestions,setQuestions,addQuestions,toggleBookmark,isBookmarked,saveResult,getSettings,updateSettings,saveSet,getSets,reset,state};
+  })();
+
+  (()=>{ // Parsing Module
+    function parseCSV(text){
+      const lines=text.trim().split(/\r?\n/);
+      const header=lines.shift().split(',');
+      const required=['question','choiceA','choiceB','answerIndex'];
+      for(let r of required){ if(!header.includes(r)) throw new Error('Missing column '+r); }
+      const idx={}; header.forEach((h,i)=>idx[h]=i);
+      const out=[]; const errors=[];
+      lines.forEach((line,ln)=>{
+        if(!line.trim()) return;
+        const cells=line.split(',');
+        try{
+          const question=cells[idx.question];
+          const choices=[];
+          ['choiceA','choiceB','choiceC','choiceD','choiceE','choiceF'].forEach(k=>{ if(idx[k]!=null&&cells[idx[k]]) choices.push(cells[idx[k]]); });
+          if(choices.length<2) throw new Error('Need at least 2 choices');
+          const answerIndex=parseInt(cells[idx.answerIndex]);
+          if(isNaN(answerIndex)||answerIndex>=choices.length) throw new Error('Invalid answerIndex');
+          const explanation=idx.explanation!=null?cells[idx.explanation]:'';
+          const tags=idx.tags!=null&&cells[idx.tags]?cells[idx.tags].split(';').filter(Boolean):[];
+          const difficulty=idx.difficulty!=null&&cells[idx.difficulty]?cells[idx.difficulty]:'easy';
+          const id='q'+Math.random().toString(36).slice(2,9);
+          out.push({id,question,choices,answerIndex,explanation,tags,difficulty});
+        }catch(e){ errors.push('Line '+(ln+2)+': '+e.message); }
+      });
+      return {questions:out,errors};
+    }
+    function parseJSON(text){
+      const arr=JSON.parse(text);
+      if(!Array.isArray(arr)) throw new Error('JSON must be array');
+      const errors=[]; const out=[];
+      arr.forEach((q,i)=>{
+        if(!q.question||!Array.isArray(q.choices)||q.choices.length<2||q.answerIndex==null){ errors.push('Index '+i+': invalid'); return; }
+        q.id=q.id||'q'+Math.random().toString(36).slice(2,9);
+        q.tags=q.tags||[];
+        q.difficulty=q.difficulty||'easy';
+        out.push(q);
+      });
+      return {questions:out,errors};
+    }
+    window.Parser={parseCSV,parseJSON};
+  })();
+
+  (()=>{ // UI & Controller
+    const qEl=document.getElementById('questionText');
+    const choicesEl=document.getElementById('choices');
+    const feedbackEl=document.getElementById('feedback');
+    const progressBar=document.getElementById('progress');
+    const scoreEl=document.getElementById('score');
+    const timerEl=document.getElementById('timer');
+    const hintBtn=document.getElementById('hintBtn');
+    const hintEl=document.getElementById('hint');
+    let questions=[]; let index=0; let correct=0; let startTime=0; let timerInterval=null; let mode='practice'; let answered=false; let order=[];
+
+    function loadSession(){
+      const all=Data.getQuestions();
+      const settings=Data.getSettings();
+      if(settings.shuffleQuestions) questions=shuffleArray([...all]); else questions=[...all];
+      order=questions.map((_,i)=>i);
+      applyFilters();
+      renderSets();
+      renderQuestion();
+      document.body.classList.toggle('dark',settings.dark);
+      document.getElementById('shuffleChoices').checked=settings.shuffleChoices;
+      document.getElementById('keepOrder').checked=!settings.shuffleQuestions;
+    }
+
+    function applyFilters(){
+      const tagFilter=document.getElementById('tagFilter').value.split(';').filter(Boolean);
+      const diff=document.getElementById('difficultyFilter').value;
+      const search=document.getElementById('search').value.toLowerCase();
+      const all=Data.getQuestions();
+      questions=all.filter(q=>{
+        if(tagFilter.length && !tagFilter.every(t=>q.tags.includes(t))) return false;
+        if(diff && q.difficulty!==diff) return false;
+        if(search && !q.question.toLowerCase().includes(search)) return false;
+        return true;
+      });
+      if(document.getElementById('keepOrder').checked){} else if(document.getElementById('shuffleBtn').dataset.active==='1'||Data.getSettings().shuffleQuestions) questions=shuffleArray([...questions]);
+      index=0;correct=0;answered=false;
+    }
+
+    function shuffleArray(arr){
+      for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()* (i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;
+    }
+
+    function renderQuestion(){
+      if(index>=questions.length){ showResult(); return; }
+      const q=questions[index];
+      qEl.textContent=q.question;
+      hintEl.textContent=q.hint||''; hintBtn.classList.toggle('hidden',!q.hint);
+      hintEl.classList.add('hidden');
+      choicesEl.innerHTML='';
+      let choiceOrder=q.choices.map((c,i)=>({c,i}));
+      if(document.getElementById('shuffleChoices').checked && !document.getElementById('keepOrder').checked){ choiceOrder=shuffleArray(choiceOrder); }
+      choiceOrder.forEach(({c,i},idx)=>{
+        const li=document.createElement('li');
+        const id='choice'+idx;
+        li.innerHTML='<input type="radio" name="choice" id="'+id+'" value="'+i+'"/><label for="'+id+'">'+c+'</label>';
+        choicesEl.appendChild(li);
+      });
+      feedbackEl.textContent='';
+      document.getElementById('confirmBtn').classList.remove('hidden');
+      document.getElementById('nextBtn').classList.add('hidden');
+      scoreEl.textContent='Score: '+correct+'/'+questions.length;
+      progressBar.style.width=((index)/questions.length*100)+'%';
+    }
+
+    function confirm(){
+      const sel=document.querySelector('input[name="choice"]:checked');
+      if(!sel){alert('Select an option');return;}
+      const q=questions[index];
+      answered=true;
+      if(parseInt(sel.value)===q.answerIndex){
+        feedbackEl.textContent='Correct! '+(q.explanation||'');
+        feedbackEl.className='correct';
+        correct++;}
+      else{
+        feedbackEl.textContent='Incorrect. '+(q.explanation||'');
+        feedbackEl.className='incorrect';
+      }
+      document.getElementById('confirmBtn').classList.add('hidden');
+      document.getElementById('nextBtn').classList.remove('hidden');
+      progressBar.style.width=((index+1)/questions.length*100)+'%';
+      scoreEl.textContent='Score: '+correct+'/'+questions.length;
+    }
+
+    function next(){ index++; answered=false; renderQuestion(); }
+
+    function showResult(){
+      const percent=Math.round(correct/questions.length*100);
+      qEl.textContent='Finished! Score '+percent+'%';
+      choicesEl.innerHTML='';
+      document.getElementById('confirmBtn').classList.add('hidden');
+      document.getElementById('nextBtn').classList.add('hidden');
+      Data.saveResult({mode,correct,total:questions.length,date:Date.now()});
+    }
+
+    document.getElementById('confirmBtn').addEventListener('click',confirm);
+    document.getElementById('nextBtn').addEventListener('click',next);
+    document.getElementById('bookmarkBtn').addEventListener('click',()=>{const q=questions[index];Data.toggleBookmark(q.id);});
+    document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('fileInput').click());
+    document.getElementById('fileInput').addEventListener('change',handleFile);
+    document.getElementById('exportJsonBtn').addEventListener('click',()=>{
+      const blob=new Blob([JSON.stringify(Data.getQuestions(),null,2)],{type:'application/json'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='questions.json';a.click();
+    });
+    document.getElementById('exportCsvBtn').addEventListener('click',()=>{
+      const qs=Data.getQuestions();
+      let csv='question,choiceA,choiceB,choiceC,choiceD,answerIndex,explanation,tags,difficulty\n';
+      qs.forEach(q=>{const row=[q.question,...q.choices, q.answerIndex, q.explanation||'', q.tags.join(';'), q.difficulty];csv+=row.map(v=>'"'+(v||'').replace(/"/g,'""')+'"').join(',')+'\n';});
+      const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='questions.csv';a.click();
+    });
+    document.getElementById('shuffleBtn').addEventListener('click',()=>{document.getElementById('shuffleBtn').dataset.active=document.getElementById('shuffleBtn').dataset.active==='1'?'0':'1';applyFilters();renderQuestion();});
+    document.getElementById('darkBtn').addEventListener('click',()=>{document.body.classList.toggle('dark');Data.updateSettings({dark:document.body.classList.contains('dark')});});
+    document.getElementById('keepOrder').addEventListener('change',()=>{Data.updateSettings({shuffleQuestions:!document.getElementById('keepOrder').checked});applyFilters();renderQuestion();});
+    document.getElementById('shuffleChoices').addEventListener('change',()=>{Data.updateSettings({shuffleChoices:document.getElementById('shuffleChoices').checked});renderQuestion();});
+    document.getElementById('difficultyFilter').addEventListener('change',()=>{applyFilters();renderQuestion();});
+    document.getElementById('tagFilter').addEventListener('change',()=>{applyFilters();renderQuestion();});
+    document.getElementById('search').addEventListener('input',()=>{applyFilters();renderQuestion();});
+    document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('Reset everything?')) Data.reset();});
+
+    hintBtn.addEventListener('click',()=>hintEl.classList.toggle('hidden'));
+
+    document.addEventListener('keydown',e=>{
+      const num=parseInt(e.key)-1;
+      if(num>=0&&num<6){ const input=document.querySelectorAll('input[name="choice"]')[num]; if(input){input.checked=true;} }
+      if(e.key==='Enter'){ answered?next():confirm(); }
+      if(e.key==='b'||e.key==='B') document.getElementById('bookmarkBtn').click();
+      if(e.key==='s'||e.key==='S'){document.getElementById('shuffleBtn').click();}
+      if(e.key==='r'||e.key==='R'){document.getElementById('modeSelect').value='review';mode='review';applyFilters();renderQuestion();}
+      if(e.key==='e'||e.key==='E'){document.getElementById('modeSelect').value='exam';mode='exam';}
+    });
+
+    document.getElementById('modeSelect').addEventListener('change',e=>{mode=e.target.value;index=0;correct=0;renderQuestion();if(mode==='exam'){startTimer();}else{stopTimer();}});
+
+    function startTimer(){startTime=Date.now();timerEl.classList.remove('hidden');timerInterval=setInterval(()=>{const s=Math.floor((Date.now()-startTime)/1000);timerEl.textContent=('0'+Math.floor(s/60)).slice(-2)+':'+('0'+(s%60)).slice(-2);},1000);}
+    function stopTimer(){timerEl.classList.add('hidden');clearInterval(timerInterval);}
+
+    function handleFile(e){
+      const file=e.target.files[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=evt=>{
+        let res;
+        try{
+          if(file.name.endsWith('.csv')) res=Parser.parseCSV(evt.target.result); else res=Parser.parseJSON(evt.target.result);
+          showImportPreview(res.questions,res.errors);
+        }catch(err){alert(err.message);} }
+      reader.readAsText(file);
+    }
+
+    function showImportPreview(qs,errors){
+      const modal=document.getElementById('importModal');
+      const table=document.getElementById('importTable');
+      const errEl=document.getElementById('importErrors');
+      table.innerHTML='';
+      const thead=document.createElement('tr'); ['Question','Choices','Answer','Tags','Difficulty'].forEach(h=>{const th=document.createElement('th');th.textContent=h;thead.appendChild(th);}); table.appendChild(thead);
+      qs.forEach(q=>{const tr=document.createElement('tr');tr.innerHTML='<td>'+q.question+'</td><td>'+q.choices.join('<br>')+'</td><td>'+q.answerIndex+'</td><td>'+q.tags.join(';')+'</td><td>'+q.difficulty+'</td>';table.appendChild(tr);});
+      errEl.innerHTML=errors.join('<br>');
+      modal.style.display='flex';
+      document.getElementById('importCommit').onclick=()=>{Data.addQuestions(qs);modal.style.display='none';applyFilters();renderQuestion();};
+    }
+
+    document.querySelectorAll('.modal .closeModal').forEach(btn=>btn.addEventListener('click',e=>e.target.closest('.modal').style.display='none'));
+    document.getElementById('saveSetBtn').addEventListener('click',()=>{document.getElementById('setModal').style.display='flex';});
+    document.getElementById('setSave').addEventListener('click',()=>{const name=document.getElementById('setName').value.trim();if(!name) return;const ids=questions.map(q=>q.id);Data.saveSet(name,ids);document.getElementById('setModal').style.display='none';renderSets();});
+
+    function renderSets(){
+      const ul=document.getElementById('setList');
+      ul.innerHTML='';
+      const sets=Data.getSets();
+      Object.keys(sets).forEach(k=>{const li=document.createElement('li');const btn=document.createElement('button');btn.textContent=k;btn.onclick=()=>{questions=Data.getQuestions().filter(q=>sets[k].includes(q.id));index=0;correct=0;renderQuestion();};li.appendChild(btn);ul.appendChild(li);});
+    }
+
+    window.addEventListener('load',loadSession);
+  })();
+  </script>
+</body>
+</html>
