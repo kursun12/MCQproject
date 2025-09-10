@@ -6,6 +6,7 @@ function Quiz() {
   const [selected, setSelected] = useState(null);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [answers, setAnswers] = useState([]);
 
   const question = questions[current];
 
@@ -18,6 +19,7 @@ function Quiz() {
     if (selected === question.answer) {
       setScore(score + 1);
     }
+    setAnswers([...answers, selected]);
     setSelected(null);
     if (current + 1 < questions.length) {
       setCurrent(current + 1);
@@ -31,6 +33,7 @@ function Quiz() {
     setSelected(null);
     setScore(0);
     setFinished(false);
+    setAnswers([]);
   };
 
   if (finished) {
@@ -38,8 +41,30 @@ function Quiz() {
       <div className="result card">
         <h2>Your Score</h2>
         <p>
-          {score} / {questions.length}
+          {score} / {questions.length} ({Math.round((score / questions.length) * 100)}%)
         </p>
+        <ul className="review">
+          {questions.map((q, idx) => (
+            <li key={q.id} className="review-question">
+              <p>{q.question}</p>
+              <p>
+                Your answer:{' '}
+                <span
+                  className={
+                    answers[idx] === q.answer ? 'correct' : 'incorrect'
+                  }
+                >
+                  {q.options[answers[idx]]}
+                </span>
+              </p>
+              {answers[idx] !== q.answer && (
+                <p>
+                  Correct answer: <span className="correct">{q.options[q.answer]}</span>
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
         <button onClick={restart}>Restart</button>
       </div>
     );
@@ -47,6 +72,12 @@ function Quiz() {
 
   return (
     <div className="quiz card">
+      <div className="progress">
+        <div
+          className="progress-bar"
+          style={{ width: `${(current / questions.length) * 100}%` }}
+        ></div>
+      </div>
       <h2>
         Question {current + 1} of {questions.length}
       </h2>
