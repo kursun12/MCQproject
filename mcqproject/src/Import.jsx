@@ -25,26 +25,21 @@ function ImportQuestions() {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const rows = reader.result.trim().split(/\r?\n/).filter(Boolean);
-        const [, ...data] = rows; // drop header
-        const parsed = data.map((row, idx) => {
-          const cols = row.split(',');
-          const answer = ['A', 'B', 'C', 'D'].indexOf(
-            cols[5]?.trim().toUpperCase()
-          );
-          return {
-            id: Date.now() + idx,
-            question: cols[0],
-            options: cols.slice(1, 5),
-            answer,
-          };
-        });
-        setQuestions(parsed);
-        localStorage.setItem('questions', JSON.stringify(parsed));
+        const parsed = JSON.parse(reader.result);
+        if (!Array.isArray(parsed)) throw new Error('Invalid format');
+        const questionsWithIds = parsed.map((q, idx) => ({
+          id: q.id ?? Date.now() + idx,
+          question: q.question,
+          options: q.options || [],
+          answer: q.answer ?? 0,
+          explanation: q.explanation || '',
+        }));
+        setQuestions(questionsWithIds);
+        localStorage.setItem('questions', JSON.stringify(questionsWithIds));
         setError('');
       } catch (err) {
         console.error(err);
-        setError('Failed to parse file');
+        setError('Failed to parse JSON file');
       }
     };
     reader.readAsText(file);
@@ -77,7 +72,7 @@ function ImportQuestions() {
   return (
     <div className="card">
       <h2>Questions</h2>
-      <input type="file" accept=".csv" onChange={handleFile} />
+      <input type="file" accept=".json" onChange={handleFile} />
       {error && <p className="error">{error}</p>}
       {questions.length > 0 && <p>Loaded {questions.length} questions.</p>}
       {questions.length > 0 && (
