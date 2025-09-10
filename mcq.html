@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MCQ Practice</title>
 <style>
+  /* Layout */
   body{font-family:Arial,sans-serif;margin:0;padding:20px;display:flex;flex-direction:column;align-items:center;}
   #quiz{max-width:600px;width:100%;}
   #question{font-size:1.2rem;margin-bottom:1rem;}
@@ -23,7 +24,7 @@
 </head>
 <body>
 <h1>MCQ Practice</h1>
-<input type="file" id="fileInput" accept=".csv">
+<input type="file" id="fileInput" accept=".csv" />
 <div id="quiz" class="hidden">
   <div id="progressText"></div>
   <div id="progressBar"><div></div></div>
@@ -32,19 +33,16 @@
   <div id="options"></div>
   <div id="feedback"></div>
   <div id="explanation" class="hidden"></div>
-  <div id="controls">
-    <button id="nextBtn" disabled>Next</button>
-  </div>
+  <div id="controls"><button id="nextBtn" disabled>Next</button></div>
 </div>
 <div id="result" class="hidden">
   <h2 id="summary"></h2>
   <button id="restartBtn">Restart</button>
   <button id="retryBtn">Retry Incorrect</button>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
-// Utility: Fisher-Yates shuffle
+// Fisher-Yates shuffle
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
@@ -59,6 +57,7 @@ let incorrectBase=[];      // base questions answered incorrectly
 let index=0;
 let score=0;
 
+// DOM refs
 const fileInput=document.getElementById('fileInput');
 const quizEl=document.getElementById('quiz');
 const questionEl=document.getElementById('question');
@@ -82,21 +81,21 @@ fileInput.addEventListener('change', e=>{
     header:true,
     skipEmptyLines:true,
     complete:res=>{
-      // Map CSV rows to question objects
+      // map CSV rows to question objects
       baseQuestions=res.data.map((row,idx)=>({
         id:idx,
-        text:row["Question"],
+        text:row['Question'],
         options:[
-          {text:row["Option A"],letter:"A"},
-          {text:row["Option B"],letter:"B"},
-          {text:row["Option C"],letter:"C"},
-          {text:row["Option D"],letter:"D"}
+          {text:row['Option A'],letter:'A'},
+          {text:row['Option B'],letter:'B'},
+          {text:row['Option C'],letter:'C'},
+          {text:row['Option D'],letter:'D'}
         ],
-        correctLetter:row["Correct Answer"].trim().toUpperCase(),
-        explanation:row["Explanation"]
+        correctLetter:row['Correct Answer'].trim().toUpperCase(),
+        explanation:row['Explanation']
       })).filter(q=>q.text && q.options.every(o=>o.text));
       if(baseQuestions.length===0){
-        alert("No questions found in CSV.");
+        alert('No questions found in CSV.');
         return;
       }
       resultEl.classList.add('hidden');
@@ -129,7 +128,7 @@ function startQuiz(source){
 function showQuestion(){
   const q=quizQuestions[index];
   progressText.textContent=`Question ${index+1} of ${quizQuestions.length}`;
-  progressBar.style.width=((index)/quizQuestions.length*100)+"%";
+  progressBar.style.width=((index)/quizQuestions.length*100)+'%';
   scoreEl.textContent=`Score: ${score} / ${quizQuestions.length}`;
   questionEl.textContent=q.text;
   optionsEl.innerHTML='';
@@ -170,7 +169,7 @@ function selectOption(i){
 }
 
 // Advance to next question or show results
-nextBtn.addEventListener('click', ()=>{
+nextBtn.addEventListener('click',()=>{
   if(index<quizQuestions.length-1){
     index++;
     showQuestion();
