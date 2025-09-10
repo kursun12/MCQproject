@@ -157,6 +157,7 @@
     <label><input type="checkbox" id="keepOrder"> Keep Order</label>
     <button id="darkBtn">Dark</button>
     <button id="resetBtn">Reset</button>
+    <button id="reviewBtn">Review Incorrect</button>
     <input id="search" placeholder="Search..."/>
   </div>
   <div id="container">
@@ -326,6 +327,7 @@
     const timerEl=document.getElementById('timer');
     const hintBtn=document.getElementById('hintBtn');
     const hintEl=document.getElementById('hint');
+    const reviewBtn=document.getElementById('reviewBtn');
     let questions=[]; let index=0; let correct=0; let startTime=0; let timerInterval=null; let mode='practice'; let answered=false; let order=[];
 
     function loadSession(){
@@ -336,6 +338,7 @@
       applyFilters();
       renderSets();
       renderQuestion();
+      updateReviewBtn();
       document.body.classList.toggle('dark',settings.dark);
       document.getElementById('shuffleChoices').checked=settings.shuffleChoices;
       document.getElementById('keepOrder').checked=!settings.shuffleQuestions;
@@ -439,6 +442,7 @@
     document.getElementById('tagFilter').addEventListener('change',()=>{applyFilters();renderQuestion();});
     document.getElementById('search').addEventListener('input',()=>{applyFilters();renderQuestion();});
     document.getElementById('resetBtn').addEventListener('click',()=>{if(confirm('Reset everything?')) Data.reset();});
+    reviewBtn.addEventListener('click',()=>{if(reviewBtn.disabled) return;mode='review';document.getElementById('modeSelect').value='review';stopTimer();applyFilters();renderQuestion();});
 
     hintBtn.addEventListener('click',()=>hintEl.classList.toggle('hidden'));
 
@@ -451,8 +455,6 @@
       if(e.key==='r'||e.key==='R'){document.getElementById('modeSelect').value='review';mode='review';stopTimer();applyFilters();renderQuestion();}
       if(e.key==='e'||e.key==='E'){document.getElementById('modeSelect').value='exam';mode='exam';applyFilters();renderQuestion();startTimer();}
     });
-
-    document.getElementById('modeSelect').addEventListener('change',e=>{mode=e.target.value;index=0;correct=0;applyFilters();renderQuestion();if(mode==='exam'){startTimer();}else{stopTimer();}});
 
     function startTimer(){startTime=Date.now();timerEl.classList.remove('hidden');timerInterval=setInterval(()=>{const s=Math.floor((Date.now()-startTime)/1000);timerEl.textContent=('0'+Math.floor(s/60)).slice(-2)+':'+('0'+(s%60)).slice(-2);},1000);}
     function stopTimer(){timerEl.classList.add('hidden');clearInterval(timerInterval);}
@@ -490,6 +492,12 @@
       ul.innerHTML='';
       const sets=Data.getSets();
       Object.keys(sets).forEach(k=>{const li=document.createElement('li');const btn=document.createElement('button');btn.textContent=k;btn.onclick=()=>{questions=Data.getQuestions().filter(q=>sets[k].includes(q.id));index=0;correct=0;renderQuestion();};li.appendChild(btn);ul.appendChild(li);});
+    }
+
+    function updateReviewBtn(){
+      const count=Object.keys(Data.getIncorrect()).length;
+      reviewBtn.disabled=count===0;
+      reviewBtn.textContent='Review Incorrect ('+count+')';
     }
 
     window.addEventListener('load',loadSession);
