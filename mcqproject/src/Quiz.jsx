@@ -1,30 +1,167 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { gradePartial, gradeStrict, toPoints } from './utils/scoring';
+import { toast } from './utils/toast.js';
+import { ensureKatex, renderMDKaTeX } from './utils/katex';
+import Hotspot from './components/Hotspot.jsx';
 import defaultQuestions from './questions';
+import { RepeatEngine } from './repeat/engine';
 
 function Quiz() {
-  const [questions] = useState(() => {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const mode = params.get('mode') || 'practice'; // practice | test | challenge
+  const [questions, setQuestions] = useState(() => {
     try {
       const stored = localStorage.getItem('questions');
       const parsed = stored ? JSON.parse(stored) : null;
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      const data = Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultQuestions;
+      const shuffleQs = localStorage.getItem('shuffleQs') === 'true';
+      const shuffleOpts = localStorage.getItem('shuffleOpts') === 'true';
+      const arr = data.map((q, idx) => ({ ...q, id: q.id ?? idx + 1 }));
+      // Shuffle questions if enabled
+      let qs = shuffleQs ? shuffleCopy(arr) : arr;
+      // If retry subset is specified
+      try {
+        const retryIds = JSON.parse(localStorage.getItem('retryIds') || 'null');
+        if (Array.isArray(retryIds) && retryIds.length) {
+          qs = qs.filter((q) => retryIds.includes(q.id));
+          localStorage.removeItem('retryIds');
+        }
+      } catch {}
+      // Filter by set and hard mode
+      try {
+        const paramsSetId = new URLSearchParams(window.location.search).get('setId');
+        const hard = new URLSearchParams(window.location.search).get('hard') === 'true';
+        const countParam = parseInt(new URLSearchParams(window.location.search).get('count'), 10);
+        let filtered = qs;
+        if (paramsSetId) {
+          const setsLS = JSON.parse(localStorage.getItem('sets')||'[]');
+          const s = setsLS.find(x => String(x.id) === String(paramsSetId));
+          if (s) {
+            const idSet = new Set(s.questionIds || []);
+            filtered = filtered.filter(q => idSet.has(q.id));
+          }
+        }
+        if (hard) {
+          const stats = JSON.parse(localStorage.getItem('stats')||'{}');
+          filtered = filtered.filter(q => {
+            const st = stats[q.id];
+            return st && st.fails >= 3 && (st.fails / st.attempts) >= 0.6;
+          });
+        }
+        if (shuffleQs) filtered = shuffleCopy(filtered);
+        const limit = Number.isFinite(countParam) && countParam > 0 ? countParam : null;
+        if (limit) filtered = filtered.slice(0, limit);
+        qs = filtered;
+      } catch {}
+
+      // Filter by set and hard mode
+      try {
+        const url = new URL(window.location.href);
+        const setId = url.searchParams.get('setId');
+        const hard = url.searchParams.get('hard') === 'true';
+        const countParam = parseInt(url.searchParams.get('count'), 10);
+        if (setId) {
+          const setsLS = JSON.parse(localStorage.getItem('sets')||'[]');
+          const s = setsLS.find(x => String(x.id) === String(setId));
+          if (s) { const idSet = new Set(s.questionIds || []); qs = qs.filter(q => idSet.has(q.id)); }
+        }
+        if (hard) {
+          const stats = JSON.parse(localStorage.getItem('stats')||'{}');
+          qs = qs.filter(q => { const st = stats[q.id]; return st && st.fails >= 3 && (st.fails / st.attempts) >= 0.6; });
+        }
+        if (shuffleQs) qs = shuffleCopy(qs);
+        const limit = Number.isFinite(countParam) && countParam > 0 ? countParam : null;
+        if (limit) qs = qs.slice(0, limit);
+      } catch {}
+      // Prepare option display order per question
+      return qs.map((q) => ({
+        ...q,
+        _order: shuffleOpts ? shuffleArray([...Array(q.options.length).keys()]) : [...Array(q.options.length).keys()],
+      }));
     } catch {
       // ignore parse errors and fall back to defaults
     }
-    return defaultQuestions;
+    return defaultQuestions.map((q, idx) => ({ ...q, id: q.id ?? idx + 1, _order: [...Array(q.options.length).keys()] }));
   });
+  const engineRef = useRef(null);
+  const byIdRef = useRef(new Map());
   const [current, setCurrent] = useState(0);
   // Store selected indices as an array for both single/multi
   const [selected, setSelected] = useState([]);
   const [score, setScore] = useState(0);
+  const [points, setPoints] = useState(0);
   const [finished, setFinished] = useState(false);
   const [answers, setAnswers] = useState([]);
+  const [times, setTimes] = useState([]); // seconds per question
+  const [qStart, setQStart] = useState(() => performance.now());
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(() => {
     const stored = parseInt(localStorage.getItem('maxStreak'), 10);
     return Number.isFinite(stored) ? stored : 0;
   });
   const [achievement, setAchievement] = useState('');
+  const instantReveal = useMemo(() => localStorage.getItem('instantReveal') === 'true', []);
+  const feedbackTrigger = useMemo(() => localStorage.getItem('feedbackTrigger') || 'onNext', []);
+  const [revealed, setRevealed] = useState(false);
+  const testQuick = useMemo(() => localStorage.getItem('testQuick') === 'true', []);
+  const testNoChange = useMemo(() => localStorage.getItem('testNoChange') === 'true', []);
+  const [expandedRows, setExpandedRows] = useState({});
+  const [resSort, setResSort] = useState({ key: 'idx', dir: 'asc' });
+  const [resIncorrectOnly, setResIncorrectOnly] = useState(false);
+  const [resSearch, setResSearch] = useState('');
+  const [bookmarks, setBookmarks] = useState(() => {
+    try {
+      const b = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+      return new Set(Array.isArray(b) ? b : []);
+    } catch { return new Set(); }
+  });
+  const [notes, setNotes] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('notes') || '{}'); } catch { return {}; }
+  });
   const audioCtxRef = useRef(null);
+
+  // Persist initial session skeleton
+  useEffect(() => {
+    const payload = { mode, current, questions, results: [], bookmarks: [...bookmarks], notes };
+    try { localStorage.setItem('mcqSession', JSON.stringify(payload)); } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => { ensureKatex(); }, []);
+  // Initialize Repeat Engine if needed
+  useEffect(() => {
+    byIdRef.current = new Map(questions.map(q => [q.id, q]));
+    if (mode === 'repeat') {
+      let pool = [];
+      try {
+        const url = new URL(window.location.href);
+        const source = url.searchParams.get('source');
+        if (source === 'lastWrong') {
+          const sess = JSON.parse(localStorage.getItem('mcqSession')||'{}');
+          const wrongIdx = (sess.results||[]).filter(r=>!r.isCorrect).map(r=>r.index||0);
+          pool = wrongIdx.map(i => (questions[i]||{}).id).filter(Boolean);
+        } else if (source === 'everWrong') {
+          const stats = JSON.parse(localStorage.getItem('repeatStats')||'{}');
+          pool = questions.filter(q => (stats[q.id]?.wrong||0) > 0).map(q=>q.id);
+        } else {
+          pool = questions.map(q=>q.id);
+        }
+      } catch { pool = questions.map(q=>q.id); }
+      const eng = new RepeatEngine(questions, pool);
+      engineRef.current = eng;
+      const first = eng.next();
+      if (first && questions[0]?.id !== first) {
+        const qobj = byIdRef.current.get(first);
+        if (qobj) {
+          setQuestions([qobj]);
+          setCurrent(0);
+        }
+      }
+      if (first) eng.onShow(first);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const question = questions[current];
   const correct = Array.isArray(question.answers)
@@ -35,6 +172,13 @@ function Quiz() {
     ? [question.answer]
     : [];
   const isMulti = correct.length > 1;
+
+  // Update header progress CSS var
+  const progress = Math.round((current / Math.max(1, questions.length)) * 100);
+  useMemo(() => {
+    try { document.documentElement.style.setProperty('--app-progress', progress + '%'); } catch {}
+    return null;
+  }, [progress]);
 
   const playTone = (freq) => {
     try {
@@ -57,57 +201,215 @@ function Quiz() {
   };
 
   const handleOption = (index) => {
+    if (mode === 'test' && testNoChange && selected.length > 0) return; // lock once selected
     if (isMulti) {
       const set = new Set(selected);
       if (set.has(index)) set.delete(index);
       else set.add(index);
-      setSelected(Array.from(set).sort((a, b) => a - b));
+      const nextSel = Array.from(set).sort((a, b) => a - b);
+      setSelected(nextSel);
+      if (feedbackTrigger === 'onSelect' && mode !== 'test') {
+        if (nextSel.length === correct.length) setRevealed(true);
+      }
     } else {
       setSelected([index]);
+      if (mode === 'test' && testQuick) {
+        // In test quick mode for single-answer: auto-advance immediately
+        setTimeout(() => handleNext(), 10);
+        return;
+      }
+      if (feedbackTrigger === 'onSelect' && mode !== 'test') setRevealed(true);
     }
   };
 
+  const shuffleArray = (arr) => {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+  const shuffleCopy = (arr) => shuffleArray([...arr]);
+
+  const saveSession = (nextState = {}) => {
+    const payload = {
+      mode,
+      current,
+      questions,
+      results: answers.map((sel, i) => ({ index: i, selected: sel, isCorrect: gradeStrict(sel, getCorrect(questions[i])) === 1 })),
+      bookmarks: [...bookmarks],
+      notes,
+      score,
+      points,
+      ...nextState,
+    };
+    localStorage.setItem('mcqSession', JSON.stringify(payload));
+  };
+  // Stats for hard questions
+  const updateStats = (id, ok) => {
+    try {
+      const stats = JSON.parse(localStorage.getItem('stats')||'{}');
+      const s = stats[id] || { attempts:0, fails:0, last:0 };
+      s.attempts += 1; if (!ok) s.fails += 1; s.last = Date.now();
+      stats[id] = s; localStorage.setItem('stats', JSON.stringify(stats));
+    } catch {}
+  };
+  const isHard = (id) => {
+    try { const s = JSON.parse(localStorage.getItem('stats')||'{}')[id]; if (!s) return false; return s.fails >= 3 && (s.fails / s.attempts) >= 0.6; } catch { return false; }
+  };
+
+  const getCorrect = (q) => (
+    Array.isArray(q.answers) ? q.answers : Array.isArray(q.answer) ? q.answer : [q.answer]
+  );
+
   const handleNext = () => {
     if (!selected || selected.length === 0) return;
-    const selSet = new Set(selected);
-    const corSet = new Set(correct);
-    const isCorrect = selSet.size === corSet.size && [...corSet].every((i) => selSet.has(i));
-    if (isCorrect) {
-      setScore(score + 1);
-      const newStreak = streak + 1;
-      setStreak(newStreak);
-      if (newStreak > maxStreak) {
-        setMaxStreak(newStreak);
-        localStorage.setItem('maxStreak', String(newStreak));
-      }
-      if ([3, 5, 10].includes(newStreak)) {
-        const msg = `${newStreak} correct in a row!`;
-        setAchievement(msg);
-        setTimeout(() => setAchievement(''), 3000);
-      }
-      playTone(880);
-    } else {
-      setStreak(0);
-      playTone(440);
+    if (!revealed && feedbackTrigger === 'onNext' && mode !== 'test') {
+      setRevealed(true);
+      return;
     }
-    setAnswers([...answers, selected]);
+    // Record time for current question
+    try {
+      const dt = Math.max(0, (performance.now() - qStart) / 1000);
+      setTimes((t) => [...t, dt]);
+    } catch {}
+    const strict = gradeStrict(selected, correct);
+    const partialMode = localStorage.getItem('partialCredit') === 'true';
+    const partial = partialMode ? gradePartial(selected, correct) : strict;
+    if (mode !== 'test') {
+      if (strict === 1) {
+        setScore(score + 1);
+        const newStreak = streak + 1;
+        setStreak(newStreak);
+        if (newStreak > maxStreak) {
+          setMaxStreak(newStreak);
+          localStorage.setItem('maxStreak', String(newStreak));
+        }
+        if ([3, 5, 10].includes(newStreak)) {
+          const msg = `${newStreak} correct in a row!`;
+          setAchievement(msg);
+          setTimeout(() => setAchievement(''), 3000);
+        }
+        playTone(880);
+      } else {
+        setStreak(0);
+        playTone(440);
+      }
+    }
+    // track stats
+    updateStats(question.id, strict === 1);
+    if (mode === 'challenge') {
+      const delta = toPoints(partial) + Math.max(0, 25 - Math.floor((performance.now() % 25000) / 1000));
+      setPoints(points + delta);
+    }
+    const nextAnswers = [...answers, selected];
+    setAnswers(nextAnswers);
     setSelected([]);
-    if (current + 1 < questions.length) {
-      setCurrent(current + 1);
+    setRevealed(false);
+    if (mode === 'repeat') {
+      const eng = engineRef.current;
+      if (eng) {
+        eng.onGrade(question.id, strict === 1);
+        const nid = eng.next();
+        if (!nid) {
+          setFinished(true);
+        } else {
+          const qobj = byIdRef.current.get(nid);
+          if (qobj) {
+            setQuestions(prev => [...prev, qobj]);
+            setCurrent(prev => prev + 1);
+            setQStart(performance.now());
+            eng.onShow(nid);
+          } else {
+            setFinished(true);
+          }
+        }
+      } else {
+        setFinished(true);
+      }
     } else {
-      setFinished(true);
+      if (current + 1 < questions.length) {
+        setCurrent(current + 1);
+        setQStart(performance.now());
+      } else {
+        setFinished(true);
+      }
     }
+    saveSession({ current: Math.min(current + 1, questions.length - 1) });
   };
+
+  const toggleBookmark = () => {
+    const id = question.id;
+    const next = new Set(bookmarks);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    setBookmarks(next);
+    localStorage.setItem('bookmarks', JSON.stringify([...next]));
+    localStorage.setItem('mcqSession', JSON.stringify({
+      ...(JSON.parse(localStorage.getItem('mcqSession')||'{}')),
+      bookmarks: [...next],
+    }));
+    toast(next.has(id) ? 'Bookmarked' : 'Removed bookmark');
+  };
+
+  const addNote = () => {
+    const id = question.id;
+    const value = prompt('Add a note for this question', notes[id] || '');
+    if (value === null) return;
+    const next = { ...notes, [id]: value };
+    setNotes(next);
+    localStorage.setItem('notes', JSON.stringify(next));
+    localStorage.setItem('mcqSession', JSON.stringify({
+      ...(JSON.parse(localStorage.getItem('mcqSession')||'{}')),
+      notes: next,
+    }));
+    toast(value ? 'Note saved' : 'Note cleared');
+  };
+
+  // Keyboard shortcuts: 1–9 select/toggle, Enter submit/next
+  useEffect(() => {
+    const onKey = (e) => {
+      if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+      const num = parseInt(e.key, 10);
+      if (num >= 1 && num <= Math.min(9, question.options.length)) {
+        const optIdx = question._order[num - 1];
+        handleOption(optIdx);
+      } else if (e.key === 'Enter') {
+        handleNext();
+      } else if (e.key === 'ArrowRight') {
+        if (selected.length>0) handleNext();
+      } else if (e.key === 'ArrowLeft') {
+        if (current>0) { setCurrent(current-1); setSelected([]); }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [question, selected, handleNext]);
 
   const restart = () => {
     setCurrent(0);
     setSelected([]);
     setScore(0);
+    setPoints(0);
     setFinished(false);
     setAnswers([]);
+    setTimes([]);
     setStreak(0);
     setAchievement('');
+    localStorage.removeItem('retryIds');
   };
+
+  // Auto-finish convenience: if feedback is onSelect and on last question, grade shortly after reveal
+  useEffect(() => {
+    if (feedbackTrigger === 'onSelect' && mode !== 'test' && revealed && current === questions.length - 1 && selected.length > 0) {
+      const t = setTimeout(() => {
+        // Only proceed if still revealed and on the same question
+        if (revealed && current === questions.length - 1) {
+          handleNext();
+        }
+      }, 300);
+      return () => clearTimeout(t);
+    }
+  }, [revealed, feedbackTrigger, mode, current, questions.length, selected.length]);
 
   const share = () => {
     const text = `I scored ${score}/${questions.length} with a best streak of ${maxStreak} on MCQ Practice!`;
@@ -121,54 +423,168 @@ function Quiz() {
   };
 
   if (finished) {
+    const partialMode = localStorage.getItem('partialCredit') === 'true';
+    let partialSum = 0;
+    if (partialMode) {
+      questions.forEach((q, i) => {
+        const corr = Array.isArray(q.answers) ? q.answers : Array.isArray(q.answer) ? q.answer : [q.answer];
+        partialSum += gradePartial(answers[i] || [], corr);
+      });
+    }
+    const totalTime = (times || []).reduce((s, n) => s + (n || 0), 0);
+    const avgTime = questions.length ? totalTime / questions.length : 0;
+
+    // Build rows for table with sorting and filtering
+    let rows = questions.map((q, idx) => {
+      const corr = Array.isArray(q.answers) ? q.answers : Array.isArray(q.answer) ? q.answer : [q.answer];
+      const sel = Array.isArray(answers[idx]) ? answers[idx] : [];
+      const selSet = new Set(sel);
+      const corSet = new Set(corr);
+      const ok = selSet.size === corSet.size && [...corSet].every((i) => selSet.has(i));
+      const renderOpts = (arr) => arr.map((i) => q.options[i]).join(', ');
+      return {
+        idx: idx + 1,
+        text: q.question,
+        your: renderOpts(sel) || '—',
+        correct: renderOpts(corr),
+        ok,
+        tags: (q.tags || []).join(', '),
+        time: times[idx] ? Number(times[idx]).toFixed(1) : '—',
+      };
+    });
+
+    // Filter by incorrect only and search
+    if (resIncorrectOnly) rows = rows.filter(r => !r.ok);
+    if (resSearch.trim()) {
+      const term = resSearch.trim().toLowerCase();
+      rows = rows.filter(r => r.text.toLowerCase().includes(term) || r.correct.toLowerCase().includes(term) || r.your.toLowerCase().includes(term));
+    }
+    // Sort
+    rows.sort((a,b)=>{
+      const k = resSort.key;
+      const dir = resSort.dir === 'asc' ? 1 : -1;
+      if (k === 'idx') return (a.idx - b.idx) * dir;
+      if (k === 'ok') return ((a.ok?1:0)-(b.ok?1:0)) * dir;
+      if (k === 'time') return ((parseFloat(a.time)||0) - (parseFloat(b.time)||0)) * dir;
+      return String(a[k]||'').localeCompare(String(b[k]||'')) * dir;
+    });
     return (
       <div className="result card">
-        <h2>Your Score</h2>
+        <h2>Your Results</h2>
         <p>
           {score} / {questions.length} ({Math.round((score / questions.length) * 100)}%)
         </p>
+        {partialMode && (
+          <p>Partial credit: {partialSum.toFixed(2)} / {questions.length}</p>
+        )}
+        {mode==='challenge' && <p>Points: {points}</p>}
         <p>Best streak: {maxStreak}</p>
-        <ul className="review">
-          {questions.map((q, idx) => {
-            const corr = Array.isArray(q.answers)
-              ? q.answers
-              : Array.isArray(q.answer)
-              ? q.answer
-              : Number.isFinite(q.answer)
-              ? [q.answer]
-              : [];
-            const sel = Array.isArray(answers[idx]) ? answers[idx] : [];
-            const selSet = new Set(sel);
-            const corSet = new Set(corr);
-            const correctMatch = selSet.size === corSet.size && [...corSet].every((i) => selSet.has(i));
-            const renderOpts = (arr) => arr.map((i) => q.options[i]).join(', ');
-            return (
-              <li key={q.id} className="review-question">
-                <p>{q.question}</p>
-                <p>
-                  Your answer:{' '}
-                  <span className={correctMatch ? 'correct' : 'incorrect'}>
-                    {renderOpts(sel)}
-                  </span>
-                </p>
-                {!correctMatch && (
-                  <p>
-                    Correct answer{corr.length > 1 ? 's' : ''}:{' '}
-                    <span className="correct">{renderOpts(corr)}</span>
-                  </p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-        <button onClick={restart}>Restart</button>
-        <button onClick={share}>Share</button>
+        <div className="summary-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',margin:'10px 0'}}>
+          <div className="card" style={{padding:'10px'}}>
+            <div className="muted">Score</div>
+            <div style={{fontSize:'1.3rem',fontWeight:700}}>{Math.round((score/questions.length)*100)}%</div>
+          </div>
+          <div className="card" style={{padding:'10px'}}>
+            <div className="muted">Correct</div>
+            <div style={{fontSize:'1.3rem',fontWeight:700}}>{score} / {questions.length}</div>
+          </div>
+          <div className="card" style={{padding:'10px'}}>
+            <div className="muted">Time</div>
+            <div style={{fontSize:'1.3rem',fontWeight:700}}>{formatTime(totalTime)}</div>
+            <div className="muted" style={{fontSize:'.85rem'}}>Avg {avgTime.toFixed(1)}s / q</div>
+          </div>
+          <div className="card" style={{padding:'10px'}}>
+            <div className="muted">Streak</div>
+            <div style={{fontSize:'1.3rem',fontWeight:700}}>{maxStreak}</div>
+          </div>
+        </div>
+        <div style={{margin:'8px 0'}}>
+          {score===questions.length && <span className="badge" title="All answers correct">Perfect!</span>}
+          {maxStreak>=5 && <span className="badge" style={{marginLeft:6}}>Streak {maxStreak}🔥</span>}
+          {points>=3000 && <span className="badge" style={{marginLeft:6}}>Fast Learner</span>}
+        </div>
+        <div className="card" style={{overflow:'auto', marginTop:8, position:'relative'}}>
+          <div style={{position:'sticky', top:0, background:'var(--card-bg)', padding:'8px', display:'flex', gap:'8px', zIndex:1, borderBottom:'1px solid var(--border-color)', alignItems:'center', flexWrap:'wrap'}}>
+            <button onClick={restart}>Restart</button>
+            <button onClick={() => retryIncorrect(questions, answers, setCurrent, setFinished)}>Retry Incorrect</button>
+            <button onClick={() => { window.location.href = '/review'; }}>Open Review</button>
+            <button className="btn-ghost" onClick={() => { exportResultsCSV(questions, answers); toast('Exported results.csv'); }}>Export CSV</button>
+            <button className="btn-ghost" onClick={() => exportStateJSON(questions, answers, mode, points)}>Export State</button>
+            <label className="toggle" style={{marginLeft:'auto'}}>
+              <input type="checkbox" checked={resIncorrectOnly} onChange={(e)=>setResIncorrectOnly(e.target.checked)} /> Incorrect only
+            </label>
+            <input type="search" placeholder="Search" value={resSearch} onChange={(e)=>setResSearch(e.target.value)} />
+          </div>
+          <table style={{width:'100%', borderCollapse:'collapse'}}>
+            <thead>
+              <tr>
+                <th style={{cursor:'pointer'}} onClick={()=>setResSort(s=>({key:'idx', dir: s.key==='idx'&&s.dir==='asc'?'desc':'asc'}))}>#</th>
+                <th style={{cursor:'pointer'}} onClick={()=>setResSort(s=>({key:'text', dir: s.key==='text'&&s.dir==='asc'?'desc':'asc'}))}>Question</th>
+                <th style={{cursor:'pointer'}} onClick={()=>setResSort(s=>({key:'your', dir: s.key==='your'&&s.dir==='asc'?'desc':'asc'}))}>Yours</th>
+                <th style={{cursor:'pointer'}} onClick={()=>setResSort(s=>({key:'correct', dir: s.key==='correct'&&s.dir==='asc'?'desc':'asc'}))}>Correct</th>
+                <th style={{cursor:'pointer'}} onClick={()=>setResSort(s=>({key:'tags', dir: s.key==='tags'&&s.dir==='asc'?'desc':'asc'}))}>Tags</th>
+                <th style={{cursor:'pointer'}} onClick={()=>setResSort(s=>({key:'time', dir: s.key==='time'&&s.dir==='asc'?'desc':'asc'}))}>Time (s)</th>
+                <th style={{cursor:'pointer'}} onClick={()=>setResSort(s=>({key:'ok', dir: s.key==='ok'&&s.dir==='asc'?'desc':'asc'}))}>✓</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} className={r.ok? 'status-correct':'status-incorrect'}>
+                  <td>{r.idx}</td>
+                  <td>
+                    <div
+                      className={!expandedRows[i] ? 'clamp-2' : ''}
+                      onClick={()=>setExpandedRows((m)=>({...m,[i]:!m[i]}))}
+                      style={{cursor:'pointer'}}
+                      title={!expandedRows[i] ? 'Click to expand' : 'Click to collapse'}
+                    >
+                      {r.text}
+                    </div>
+                  </td>
+                  <td>{r.your}</td>
+                  <td>{r.correct}</td>
+                  <td>{r.tags || '—'}</td>
+                  <td style={{textAlign:'right'}}>{r.time}</td>
+                  <td>{r.ok? '✓':'✗'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Accuracy by tag */}
+        <div className="card" style={{marginTop:8,padding:'10px'}}>
+          <div className="section-title"><strong>Accuracy by tag</strong></div>
+          <div className="chips">
+            {(() => {
+              const map = new Map();
+              rows.forEach((r, i) => {
+                const tags = (r.tags || '').split(',').map(s=>s.trim()).filter(Boolean);
+                if (tags.length===0) tags.push('(none)');
+                tags.forEach((t) => {
+                  const cur = map.get(t) || { total:0, ok:0 };
+                  cur.total += 1; if (r.ok) cur.ok += 1; map.set(t, cur);
+                });
+              });
+              return [...map.entries()].map(([t,v]) => (
+                <span key={t} className="chip">{t}: {Math.round((v.ok/v.total)*100)}% ({v.ok}/{v.total})</span>
+              ));
+            })()}
+          </div>
+        </div>
+        <div style={{display:'flex',gap:'8px',flexWrap:'wrap', marginTop:8}}>
+          <button onClick={restart}>Restart</button>
+          <button onClick={() => retryIncorrect(questions, answers, setCurrent, setFinished)}>Retry Incorrect Only</button>
+          <button onClick={() => { window.location.href = '/review'; }}>Open Review</button>
+          <button onClick={share}>Share</button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="quiz card">
+      {mode==='repeat' && <div className="badge">Repeat Adaptive</div>}
       <div className="progress">
         <div
           className="progress-bar"
@@ -179,36 +595,131 @@ function Quiz() {
         <span>Score: {score}</span>
         <span>Streak: {streak}</span>
         <span>Best: {maxStreak}</span>
+        {mode==='repeat' && engineRef.current && (
+          <span>{engineRef.current.queue.length} remaining</span>
+        )}
+      </div>
+      <div className="muted" style={{marginTop:4}}>
+        Feedback: {mode==='test' ? 'Hidden until end' : (feedbackTrigger==='onNext' ? 'Reveal, then Next' : (isMulti ? 'Reveal when all chosen' : 'Reveal on select'))}
+        {instantReveal && mode!=='test' ? ' • Explanation after reveal' : ''}
       </div>
       {achievement && <div className="achievement">🏆 {achievement}</div>}
       <h2>
         Question {current + 1} of {questions.length}
+        <button
+          type="button"
+          onClick={toggleBookmark}
+          className="icon-btn"
+          style={{ marginLeft: '0.5rem' }}
+          title="Bookmark"
+        >
+          {bookmarks.has(question.id) ? '★' : '☆'}
+        </button>
+        <button
+          type="button"
+          onClick={addNote}
+          className="icon-btn"
+          style={{ marginLeft: '0.25rem' }}
+          title="Add note"
+        >
+          📝
+        </button>
       </h2>
-      <p className="question">{question.question}</p>
+      {isMulti && (
+        <div className="badge" aria-hidden="true" style={{display:'inline-block',marginBottom:'6px'}}>Select ALL that apply · Choose {correct.length}</div>
+      )}
+      <p className="question" dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.question)}}></p>
+      {question.type === 'hotspot' && question.media?.src ? (
+        <div style={{marginBottom:'10px'}}>
+          <Hotspot src={question.media.src} zones={question.media.zones||[]} selected={selected} onSelect={handleOption} />
+        </div>
+      ) : null}
       <ul className="options">
-        {question.options.map((opt, idx) => (
-          <li key={idx} className="option">
-            <label className={selected.includes(idx) ? 'selected' : ''}>
-              <input
-                type={isMulti ? 'checkbox' : 'radio'}
-                name="option"
-                value={idx}
-                checked={selected.includes(idx)}
-                onChange={() => handleOption(idx)}
-              />
-              {opt}
-            </label>
-          </li>
-        ))}
+        {question._order.map((optIdx, idx) => {
+          const isSel = selected.includes(optIdx);
+          const isCor = correct.includes(optIdx);
+          const show = revealed && mode !== 'test';
+          const labelCls = show ? (isCor ? 'correct' : (isSel ? 'incorrect' : '')) : (isSel ? 'selected' : '');
+          return (
+            <li key={idx} className="option">
+              <label className={labelCls}>
+                <input
+                  type={isMulti ? 'checkbox' : 'radio'}
+                  name="option"
+                  value={optIdx}
+                  checked={isSel}
+                  onChange={() => handleOption(optIdx)}
+                />
+                <span className="opt-bubble">{String.fromCharCode(65 + idx)}</span>
+                <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.options[optIdx])}}></span>
+              </label>
+            </li>
+          );
+        })}
       </ul>
-      {selected.length > 0 && (
-        <p className="explanation">{question.explanation}</p>
+      {revealed && instantReveal && mode!=='test' && (
+        <p className="explanation" dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.explanation||'')}}></p>
       )}
       <button className="next" onClick={handleNext} disabled={selected.length === 0}>
-        {current + 1 === questions.length ? 'Finish' : 'Next'}
+        {(!revealed && feedbackTrigger==='onNext' && mode!=='test')
+          ? 'Reveal'
+          : (current + 1 === questions.length ? 'Finish' : (mode==='test' ? 'Save' : 'Next'))}
       </button>
     </div>
   );
 }
 
 export default Quiz;
+
+// Helpers
+function exportResultsCSV(questions, answers){
+  let csv='Question,YourAnswer,Correct,Explanation\n';
+  questions.forEach((q,i)=>{
+    const sel=(answers[i]||[]).map(n=>String.fromCharCode(65+n)).join('');
+    const ans=(Array.isArray(q.answers)?q.answers:Array.isArray(q.answer)?q.answer:[q.answer]).map(n=>String.fromCharCode(65+n)).join('');
+    csv+=`"${q.question.replace(/"/g,'""')}",${sel},${ans},"${(q.explanation||'').replace(/"/g,'""')}"\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='results.csv'; a.click();
+}
+
+function retryIncorrect(questions, answers, setCurrent, setFinished){
+  const incorrectIdx = questions.map((q,i)=>{
+    const corr=Array.isArray(q.answers)?q.answers:Array.isArray(q.answer)?q.answer:[q.answer];
+    const sel=new Set(answers[i]||[]); const cor=new Set(corr);
+    const ok= sel.size===cor.size && [...cor].every(n=>sel.has(n));
+    return ok?null:i;
+  }).filter((i)=>i!==null);
+  if(incorrectIdx.length===0){ alert('No incorrect answers to retry.'); return; }
+  localStorage.setItem('retryIds', JSON.stringify(incorrectIdx.map(i=>questions[i].id)));
+  setCurrent(0); setFinished(false); window.location.href='/quiz?mode=practice';
+}
+
+function exportStateJSON(questions, answers, mode, points){
+  const data={
+    mode,
+    timestamp: Date.now(),
+    points,
+    questions,
+    answers,
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='mcq-state.json'; a.click();
+}
+
+// Minimal Markdown renderer (bold, italic, code, links)
+function renderMarkdown(text=''){
+  let html = String(text)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  html = html.replace(/`([^`]+)`/g,'<code>$1</code>');
+  html = html.replace(/\[(.*?)\]\((https?:[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  return html;
+}
+
+function formatTime(sec = 0){
+  const s = Math.max(0, Math.floor(sec));
+  const m = Math.floor(s / 60).toString().padStart(2,'0');
+  const ss = (s % 60).toString().padStart(2,'0');
+  return `${m}:${ss}`;
+}
