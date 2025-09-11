@@ -39,118 +39,277 @@ Timer & Utilities
 - End screen shows basic analytics: average time per question, accuracy by tag and hardest questions.
 -->
 <style>
+/* Design System */
 :root{
-  --bg:#ffffff;
-  --fg:#222222;
-  --accent:#1976d2;
-  --correct:#188038;
-  --incorrect:#c62828;
+  /* Colors */
+  --color-bg:#ffffff;
+  --color-surface:#f7f8fa;
+  --color-text:#1f2328;
+  --color-muted:#6b7280;
+  --color-accent:#2563eb;
+  --color-correct:#16a34a;
+  --color-incorrect:#dc2626;
+  /* Radii, shadows, spacing */
+  --radius:12px;
+  --shadow:0 6px 18px rgba(0,0,0,.08);
+  --gap:12px;
+  /* Type scale */
+  --font-size-sm:12px;
+  --font-size-md:14px;
+  --font-size-lg:16px;
+  --font-size-xl:20px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --color-bg:#0f172a;
+    --color-surface:#111827;
+    --color-text:#e5e7eb;
+    --color-muted:#94a3b8;
+    --color-accent:#60a5fa;
+    --color-correct:#22c55e;
+    --color-incorrect:#ef4444;
+  }
 }
 body.dark{
-  --bg:#1e1e1e;
-  --fg:#dddddd;
-  --accent:#90caf9;
-  --correct:#00e676;
-  --incorrect:#ef5350;
+  --color-bg:#0f172a;
+  --color-surface:#111827;
+  --color-text:#e5e7eb;
+  --color-muted:#94a3b8;
+  --color-accent:#60a5fa;
+  --color-correct:#22c55e;
+  --color-incorrect:#ef4444;
 }
+/* Legacy var aliases (keep existing logic working) */
+:root,body.dark{
+  --bg:var(--color-bg);
+  --fg:var(--color-text);
+  --accent:var(--color-accent);
+  --correct:var(--color-correct);
+  --incorrect:var(--color-incorrect);
+}
+
+/* Base */
+*{box-sizing:border-box}
 body{
-  background:var(--bg);
-  color:var(--fg);
-  font-family:Arial,Helvetica,sans-serif;
-  margin:0;
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
+  background:var(--color-bg);
+  color:var(--color-text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif;
+  margin:0;display:flex;flex-direction:column;min-height:100vh;
+  font-size:var(--font-size-lg);
 }
+a{color:inherit}
+button{cursor:pointer}
+.hidden{display:none}
+
+/* AppShell */
 header{
-  display:flex;
-  flex-wrap:wrap;
-  align-items:center;
-  gap:.5rem;
-  padding:.5rem 1rem;
-  background:var(--accent);
-  color:#fff;
+  position:sticky;top:0;z-index:10;
+  display:grid;grid-template-columns:1fr auto auto;gap:var(--gap);
+  align-items:center;padding:10px 16px;
+  background:linear-gradient(180deg,var(--color-surface),transparent),var(--color-surface);
+  box-shadow:var(--shadow);
 }
-header h1{font-size:1.2rem;margin-right:auto;}
-header button,header label,header select{font-size:.9rem;}
-#tagFilter{max-width:10rem;}
-#progressBar{flex:1;height:8px;background:#ccc;border-radius:4px;overflow:hidden;}
-#progressBar div{height:100%;width:0;background:#fff;}
-main{flex:1;padding:1rem;display:flex;flex-direction:column;}
-.question{font-size:1.1rem;margin-bottom:1rem;}
-.hidden{display:none;}
-#multiNotice{margin:.5rem 0;font-weight:bold;color:var(--accent);}
-.options{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.5rem;}
-.option{padding:.6rem;border:1px solid #999;border-radius:6px;cursor:pointer;background:var(--bg);color:var(--fg);}
-.option input{margin-right:.5rem;}
-.option.correct{border-color:var(--correct);background:#e6ffe6;}
-.option.incorrect{border-color:var(--incorrect);background:#ffe6e6;}
-#resultList{margin-top:1rem;}
-#resultList li.correct{color:var(--correct);}
-#resultList li.incorrect{color:var(--incorrect);}
-footer{padding:.5rem;background:#eee;display:flex;align-items:center;gap:1rem;}
-footer button{padding:.4rem .8rem;}
-#timer{font-weight:bold;margin:0 .5rem;}
-#flagBtn{background:var(--bg);color:var(--fg);border:1px solid #999;border-radius:4px;cursor:pointer;}
-#flagBtn.flagged{color:var(--accent);}
-.modal{position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);}
-.modal .box{background:var(--bg);color:var(--fg);padding:1rem;border-radius:8px;max-width:90%;max-height:90%;overflow:auto;}
-@media(max-width:600px){header{flex-direction:column;align-items:flex-start;}#progressBar{width:100%;order:99;}}
+header h1{margin:0;font-size:18px;font-weight:700;display:flex;gap:8px;align-items:center}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(99,102,241,.15);color:#6366f1;font-weight:600;font-size:12px}
+.bar{height:8px;background:rgba(148,163,184,.35);border-radius:999px;overflow:hidden}
+.bar>div{height:100%;width:0;background:var(--color-accent);transition:width .25s ease}
+.shell-right{display:flex;align-items:center;gap:8px;justify-self:end}
+.icon-btn{border:1px solid rgba(148,163,184,.35);background:transparent;color:var(--color-text);padding:6px 10px;border-radius:8px}
+.icon-btn[aria-pressed="true"]{border-color:var(--color-accent);color:var(--color-accent)}
+.score-pill{padding:4px 8px;border-radius:999px;background:rgba(34,197,94,.15);color:#16a34a;font-weight:700}
+
+/* Layout */
+main{flex:1;display:grid;grid-template-columns:260px 1fr;gap:var(--gap);padding:16px;max-width:1200px;margin:0 auto;width:100%}
+aside#sidebar{background:var(--color-surface);border:1px solid rgba(148,163,184,.25);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow)}
+.content{display:flex;flex-direction:column;gap:var(--gap)}
+
+/* Card */
+.card{background:var(--color-surface);border:1px solid rgba(148,163,184,.25);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.question{font-size:18px;line-height:1.55;margin:0 0 8px}
+.muted{color:var(--color-muted)}
+
+/* Options */
+.options{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.option{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid rgba(148,163,184,.35);border-radius:10px;cursor:pointer;background:var(--color-bg);transition:background .15s,border-color .15s}
+.option:hover{border-color:var(--color-accent);background:rgba(37,99,235,.06)}
+.option:focus{outline:2px solid var(--color-accent)}
+.option.correct{border-color:var(--color-correct);background:rgba(22,163,74,.1)}
+.option.incorrect{border-color:var(--color-incorrect);background:rgba(220,38,38,.08)}
+
+/* Footer actions */
+footer{position:sticky;bottom:0;background:var(--color-surface);box-shadow:var(--shadow);padding:10px 16px;display:flex;align-items:center;gap:8px}
+.btn{border:1px solid rgba(148,163,184,.35);background:var(--color-bg);color:var(--color-text);padding:8px 12px;border-radius:8px}
+.btn.primary{background:var(--color-accent);border-color:var(--color-accent);color:#fff}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.6;cursor:not-allowed}
+
+/* Drawers and Modals */
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5)}
+.modal .box{background:var(--color-surface);color:var(--color-text);padding:16px;border-radius:12px;max-width:95%;max-height:95%;overflow:auto;box-shadow:var(--shadow)}
+.drawer{position:fixed;top:0;right:-360px;width:320px;height:100vh;background:var(--color-surface);box-shadow:var(--shadow);border-left:1px solid rgba(148,163,184,.3);padding:16px;transition:right .25s ease;overflow:auto;z-index:20}
+.drawer.open{right:0}
+
+/* Table */
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px 10px;border-bottom:1px solid rgba(148,163,184,.25);text-align:left}
+th.sortable{cursor:pointer}
+th.sortable:after{content:'\25B4';opacity:.35;margin-left:6px;font-size:12px}
+th.sortable.desc:after{content:'\25BE'}
+
+/* Tags/Pills */
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{padding:4px 8px;border-radius:999px;border:1px solid rgba(148,163,184,.35);cursor:pointer}
+.pill.active{background:var(--color-accent);border-color:var(--color-accent);color:#fff}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:16px;right:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
+.toast{background:var(--color-surface);border:1px solid rgba(148,163,184,.35);box-shadow:var(--shadow);padding:10px 12px;border-radius:8px}
+
+/* Responsive */
+@media (max-width: 900px){
+  main{grid-template-columns:1fr}
+  aside#sidebar{order:2}
+}
+@media (prefers-reduced-motion: reduce){
+  *{transition:none!important}
+}
 </style>
 </head>
 <body>
 <header>
-  <h1>MCQ Practice</h1>
+  <h1>
+    MCQ Practice
+    <span id="mode" class="badge" title="Current mode">Practice</span>
+    <span id="version" class="badge" title="UI build/version">v2025.09</span>
+  </h1>
   <input type="file" id="fileInput" accept=".csv,.json" class="hidden" />
-  <button id="loadBtn">Load Questions</button>
-  <label>Shuffle Qs <input type="checkbox" id="shuffleQ" checked /></label>
-  <label>Shuffle Opts <input type="checkbox" id="shuffleO" checked /></label>
-  <label>Auto Submit <input type="checkbox" id="autoSubmit" /></label>
-  <label>Time (min) <input type="number" id="timeLimit" min="0" style="width:4rem" /></label>
-  <div id="timer">00:00</div>
-  <input type="search" id="searchBox" placeholder="Search..." />
-  <select id="tagFilter" class="hidden" title="Filter by tag"><option value="">All Tags</option></select>
-  <button id="darkToggle" aria-label="Toggle dark mode">Dark</button>
-  <div id="progressText"></div>
-  <div id="progressBar"><div></div></div>
-  <div id="score"></div>
+  <button id="loadBtn" class="icon-btn" title="Load CSV/JSON">📁 Load</button>
+  <div class="shell-right">
+    <div id="progressText" class="muted"></div>
+    <div id="progressBar" class="bar"><div></div></div>
+    <span id="score" class="score-pill">0/0</span>
+    <div id="timer" class="icon-btn" aria-live="polite" title="Timer">00:00</div>
+    <button id="openSettings" class="icon-btn" aria-label="Open settings">⚙</button>
+    <button id="darkToggle" class="icon-btn" aria-label="Toggle theme" title="Theme">🌙</button>
+  </div>
   <a id="sampleCsvLink" download="sample.csv" class="hidden"></a>
 </header>
 <main aria-live="polite">
-  <div id="quiz">
-    <div id="questionRow" style="display:flex;align-items:center;gap:.5rem;">
-      <div id="question" class="question" style="flex:1"></div>
-      <button id="tagEditBtn" title="Edit tags">🏷️</button>
-      <button id="flagBtn" title="Bookmark question">☆</button>
+  <aside id="sidebar" aria-label="Sidebar">
+    <div class="pills" style="margin-bottom:8px">
+      <button class="pill" id="filterAll">All</button>
+      <button class="pill" id="filterUnseen">Unseen</button>
+      <button class="pill" id="filterIncorrect">Incorrect</button>
+      <button class="pill" id="filterBookmarked">Bookmarked</button>
     </div>
-    <div id="multiNotice" class="hidden"></div>
-    <div id="tagInfo" style="font-size:.9rem;color:var(--accent);"></div>
-    <ul id="options" class="options"></ul>
-    <div id="feedback"></div>
-    <div id="explanation" class="hidden"></div>
-  </div>
+    <input type="search" id="searchBox" placeholder="Search… (press /)" aria-label="Search" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(148,163,184,.35);margin-bottom:8px" />
+    <select id="tagFilter" title="Filter by tag" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(148,163,184,.35);margin-bottom:12px"><option value="">All Tags</option></select>
+    <div>
+      <h3 style="margin:8px 0">Bookmarks</h3>
+      <ul id="bookmarkList" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px"></ul>
+    </div>
+  </aside>
+  <section class="content">
+    <div id="quiz" class="card">
+      <div id="questionRow" style="display:flex;align-items:center;gap:.5rem;">
+        <div id="question" class="question" style="flex:1"></div>
+        <span id="multiNotice" class="badge hidden" aria-hidden="true"></span>
+        <button id="tagEditBtn" class="icon-btn" title="Edit tags">🏷️</button>
+        <button id="flagBtn" class="icon-btn" title="Bookmark question" aria-pressed="false">☆</button>
+        <button id="noteBtn" class="icon-btn" title="Add note">📝</button>
+      </div>
+      <div id="tagInfo" class="muted" style="margin-bottom:8px"></div>
+      <ul id="options" class="options"></ul>
+      <div id="feedback" aria-live="assertive" style="min-height:24px"></div>
+      <details id="explainWrap" class="hidden"><summary class="muted">Show explanation</summary><div id="explanation" style="margin-top:6px"></div></details>
+      <div class="muted" style="margin-top:8px">Press ? for keyboard shortcuts.</div>
+    </div>
+  </section>
 </main>
 <footer>
-  <button id="submitBtn">Submit</button>
-  <button id="nextBtn" class="hidden">Next</button>
-  <button id="restartBtn">Restart</button>
-  <button id="exportBtn">Export CSV</button>
-  <button id="exportStateBtn">Export State</button>
+  <button id="submitBtn" class="btn primary">Submit</button>
+  <button id="nextBtn" class="btn hidden">Next</button>
+  <button id="restartBtn" class="btn ghost">Restart</button>
+  <button id="exportBtn" class="btn ghost" title="Export results (CSV)">Export CSV</button>
+  <button id="exportStateBtn" class="btn ghost" title="Export state (JSON)">Export State</button>
   <input type="file" id="importState" class="hidden" />
-  <button id="importStateBtn">Import State</button>
+  <button id="importStateBtn" class="btn ghost">Import State</button>
 </footer>
 
 <div id="resultModal" class="modal" role="dialog" aria-modal="true">
   <div class="box">
     <h2>Results</h2>
-    <div id="resultSummary"></div>
-    <div id="analytics"></div>
-    <ol id="resultList"></ol>
+    <div id="resultSummary" style="margin-bottom:8px"></div>
+    <div id="analytics" class="card" style="margin:8px 0"></div>
+    <div class="card" style="overflow:auto">
+      <table id="resultTable" aria-label="Results table">
+        <thead>
+          <tr>
+            <th class="sortable" data-key="idx">#</th>
+            <th class="sortable" data-key="q">Question</th>
+            <th>Yours</th>
+            <th>Correct</th>
+            <th class="sortable" data-key="ok">✓</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
     <button id="retryBtn">Retry Incorrect</button>
     <button id="flaggedBtn">Review Flagged</button>
     <button id="closeResult">Close</button>
   </div>
 </div>
+
+<!-- Settings Drawer -->
+<aside id="settingsDrawer" class="drawer" aria-label="Settings">
+  <h3>Settings</h3>
+  <label><input type="checkbox" id="setShuffleQ"> Shuffle questions</label><br>
+  <label><input type="checkbox" id="setShuffleO"> Shuffle options</label><br>
+  <label><input type="checkbox" id="setInstant"> Instant reveal on select</label><br>
+  <label><input type="checkbox" id="setSounds"> Sound cues</label><br>
+  <label><input type="checkbox" id="setAnims" checked> Animations</label><br>
+  <label><input type="checkbox" id="setCompact"> Compact mode</label><br>
+  <label>Font size
+    <select id="setFont">
+      <option value="sm">Small</option>
+      <option value="md" selected>Medium</option>
+      <option value="lg">Large</option>
+      <option value="xl">X-Large</option>
+    </select>
+  </label><br>
+  <label>Time limit (min) <input type="number" id="timeLimit" min="0" style="width:5rem"></label><br>
+  <label><input type="checkbox" id="setDark"> Dark mode</label><br>
+  <label><input type="checkbox" id="setPartial"> Partial credit (beta)</label><br>
+  <div style="margin-top:8px">
+    <button id="saveSettings" class="btn primary">Save</button>
+    <button id="closeSettings" class="btn">Close</button>
+  </div>
+  <div style="margin-top:10px" class="muted">Press Esc to close</div>
+  <hr>
+  <div class="muted">Import tips: CSV columns can be in any order; JSON supports number or array answers.</div>
+  <button id="openFileFromSettings" class="btn" style="margin-top:8px">📁 Load Questions</button>
+</aside>
+
+<!-- Keyboard Help Modal -->
+<div id="keysModal" class="modal" role="dialog" aria-modal="true">
+  <div class="box">
+    <h3>Keyboard Shortcuts</h3>
+    <ul>
+      <li>1–9: Select/toggle options</li>
+      <li>Enter: Submit / Next</li>
+      <li>/ : Focus search</li>
+      <li>s: Settings</li>
+      <li>b: Bookmark</li>
+      <li>?: Keyboard help</li>
+      <li>Esc: Close modals/drawers</li>
+    </ul>
+    <button id="closeKeys" class="btn">Close</button>
+  </div>
+ </div>
+
+<!-- Toasts -->
+<div class="toast-wrap" id="toasts" aria-live="polite" aria-atomic="true"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha512-rLAFH3b0x0Ygn+GJPD7W82dManIeZDV4SSQdlqzTeWY5Avzkdxl3pNGdisz8Iky3Uczdlz7YT1Do1B4ezwIJ1Q==" crossorigin="anonymous"></script>
 <script>
@@ -163,9 +322,18 @@ let allQuestions=[]; // full deck
 let questions=[]; // current filtered deck
 let current=0; // index
 let score=0; // number correct
-let settings={shuffleQ:true,shuffleO:true,dark:false,timeLimit:0,autoSubmit:false,tag:''};
+let settings={shuffleQ:true,shuffleO:true,dark:false,timeLimit:0,autoSubmit:false,tag:'',instant:false,sounds:false,anims:true,compact:false,font:'md',partial:false};
  let results=[]; // {index, selected:number[], isCorrect:boolean}
 let startTime=0,elapsed=0,timerInterval=null;
+
+/* ---------- Toasts ---------- */
+function toast(msg, ms=2200){
+  const wrap=document.getElementById('toasts');
+  if(!wrap) return; const el=document.createElement('div');
+  el.className='toast'; el.textContent=msg; wrap.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';}, ms-300);
+  setTimeout(()=>{if(el.parentNode) wrap.removeChild(el);}, ms);
+}
 
 /* ---------- Utility Functions ---------- */
 function saveState(){
@@ -184,11 +352,13 @@ function loadState(){
       results=(state.results||[]).map(r=>({index:r.index,selected:r.selected||[],isCorrect:r.isCorrect!==undefined?r.isCorrect:r.correct||false}));
       questions.forEach(q=>{if(q.flagged===undefined) q.flagged=false;if(q.correct===undefined&&q.answer!==undefined) q.correct=q.answer;});
     settings=Object.assign(settings,state.settings||{});
-      document.getElementById('shuffleQ').checked=settings.shuffleQ;
-      document.getElementById('shuffleO').checked=settings.shuffleO;
-      document.getElementById('autoSubmit').checked=settings.autoSubmit;
-      document.getElementById('timeLimit').value=settings.timeLimit||'';
-    if(settings.dark) document.body.classList.add('dark');
+      const tl=document.getElementById('timeLimit'); if(tl) tl.value=settings.timeLimit||'';
+      const map={setShuffleQ:'shuffleQ',setShuffleO:'shuffleO',setInstant:'instant',setSounds:'sounds',setAnims:'anims',setCompact:'compact',setPartial:'partial'};
+      Object.entries(map).forEach(([el,key])=>{const n=document.getElementById(el); if(n) n.checked=!!settings[key];});
+      const sf=document.getElementById('setFont'); if(sf) sf.value=settings.font||'md';
+      const sd=document.getElementById('setDark'); if(sd) sd.checked=!!settings.dark;
+    if(settings.dark) document.body.classList.add('dark'); else document.body.classList.remove('dark');
+    applyUiPrefs();
     elapsed=state.elapsed||0;
     startTime=Date.now()-elapsed*1000;
     if(allQuestions.length && !questions.length) questions=allQuestions.slice();
@@ -227,12 +397,9 @@ function applyTagFilter(){
   const tag=document.getElementById('tagFilter').value;
   settings.tag=tag;
   questions=allQuestions.filter(q=>!tag||(q.tags||[]).includes(tag));
-  if(document.getElementById('shuffleQ').checked) shuffle(questions);
+  if(settings.shuffleQ) shuffle(questions);
   current=0;results=[];score=0;elapsed=0;
   questions.forEach(q=>{q.answered=false;q.selected=[];q.optionsShuffled=false;});
-  settings.shuffleQ=document.getElementById('shuffleQ').checked;
-  settings.shuffleO=document.getElementById('shuffleO').checked;
-  settings.autoSubmit=document.getElementById('autoSubmit').checked;
   settings.timeLimit=parseInt(document.getElementById('timeLimit').value)||0;
   startTime=Date.now();
   startTimer();
@@ -388,7 +555,10 @@ function startTimer(){
 function renderQuestion(){
   if(!questions.length) return;
   const q=questions[current];
-  document.getElementById('question').innerHTML=(current+1)+'. '+q.question;
+  const term=(document.getElementById('searchBox')?.value||'').trim();
+  const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const hl=s=>term?String(s).replace(new RegExp(esc(term),'ig'),m=>`<mark>${m}</mark>`):String(s);
+  document.getElementById('question').innerHTML=(current+1)+'. '+hl(q.question);
   const flag=document.getElementById('flagBtn');
   flag.textContent=q.flagged?'★':'☆';
   flag.classList.toggle('flagged',q.flagged);
@@ -399,7 +569,7 @@ function renderQuestion(){
   list.innerHTML='';
   const multi=q.correct.length>1;
   const notice=document.getElementById('multiNotice');
-  if(multi){notice.textContent=`Select all that apply (Choose ${q.correct.length})`;notice.classList.remove('hidden');}
+  if(multi){notice.textContent=`Select ALL that apply · Choose ${q.correct.length}`;notice.classList.remove('hidden');}
   else{notice.classList.add('hidden');}
   q.shuffledOptions=q.shuffledOptions||q.options.map((o,i)=>({text:o,index:i}));
   if(settings.shuffleO && !q.optionsShuffled){shuffle(q.shuffledOptions);q.optionsShuffled=true;}
@@ -414,7 +584,7 @@ function renderQuestion(){
     input.checked=(q.selected||[]).includes(o.index);
     const label=document.createElement('label');
     label.setAttribute('for','opt'+pos);
-    label.textContent=o.text;
+    label.innerHTML=hl(o.text);
     li.appendChild(input);li.appendChild(label);
     li.setAttribute('tabindex','0');
     li.setAttribute('role',multi?'checkbox':'radio');
@@ -428,17 +598,19 @@ function renderQuestion(){
         sel.length=0;if(input.checked) sel.push(o.index);
         document.querySelectorAll('input[name="option"]').forEach(r=>{if(r!==input) r.checked=false;});
       }
-        q.selected=sel;li.setAttribute('aria-checked',input.checked);saveState();if(settings.autoSubmit && !multi) submitAnswer();
+        q.selected=sel;li.setAttribute('aria-checked',input.checked);saveState();
+        if((settings.autoSubmit && !multi) || settings.instant) submitAnswer();
       });
     list.appendChild(li);
   });
     list.querySelector('li')?.focus();
     document.getElementById('feedback').textContent='';
-  document.getElementById('explanation').classList.add('hidden');
+  const wrap=document.getElementById('explainWrap'); if(wrap) wrap.classList.add('hidden');
   updateProgress();
   updateScore();
   document.getElementById('submitBtn').disabled=!!q.answered;
   document.getElementById('nextBtn').classList.toggle('hidden',!q.answered);
+  updateSidebar();
 }
 function updateProgress(){
   const pct=(current)/questions.length*100;
@@ -472,8 +644,9 @@ function submitAnswer(){
     if(q.correct.includes(val)) opt.classList.add('correct');
     if(sel.includes(val)&&!q.correct.includes(val)) opt.classList.add('incorrect');
   });
+  const wrap=document.getElementById('explainWrap');
   const exp=document.getElementById('explanation');
-  exp.textContent=q.explanation||'';exp.classList.remove('hidden');
+  if(exp){exp.textContent=q.explanation||''; if(wrap) wrap.classList.remove('hidden');}
   document.getElementById('submitBtn').disabled=true;
   document.getElementById('nextBtn').classList.remove('hidden');
   updateScore();
@@ -487,18 +660,19 @@ function next(){
     const correctCount=results.filter(r=>r.isCorrect).length;
     const flagged=questions.filter(q=>q.flagged).length;
     clearInterval(timerInterval);
+    document.getElementById('mode').textContent='Results';
     document.getElementById('resultSummary').textContent=`Score ${correctCount} / ${questions.length} in ${formatTime(elapsed)}. Flagged ${flagged}`;
-    const list=document.getElementById('resultList');
-    list.innerHTML='';
-    questions.forEach((q,i)=>{
-      const li=document.createElement('li');
-      const sel=(results[i]?.selected||[]).map(n=>String.fromCharCode(65+n)).join('')||'—';
-      const ans=q.correct.map(n=>String.fromCharCode(65+n)).join('');
-      const raw=Array.isArray(q.rawAnswer)?q.rawAnswer.join(' '):(q.rawAnswer||'');
-      li.textContent=`${q.question} — Your: ${sel} | Correct: ${ans}${raw?` (Orig: ${raw})`:''}`;
-      li.className=results[i]?.isCorrect?'correct':'incorrect';
-      list.appendChild(li);
-    });
+    const tbody=document.querySelector('#resultTable tbody');
+    if(tbody){
+      tbody.innerHTML='';
+      questions.forEach((q,i)=>{
+        const tr=document.createElement('tr');
+        const sel=(results[i]?.selected||[]).map(n=>String.fromCharCode(65+n)).join('')||'—';
+        const ans=q.correct.map(n=>String.fromCharCode(65+n)).join('');
+        tr.innerHTML=`<td>${i+1}</td><td>${q.question.replace(/</g,'&lt;')}</td><td>${sel}</td><td>${ans}</td><td>${results[i]?.isCorrect?'✓':'✗'}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
     // ----- Analytics -----
     const analytics=document.getElementById('analytics');
     analytics.innerHTML='';
@@ -543,6 +717,18 @@ function next(){
       analytics.appendChild(ol);
     }
     document.getElementById('resultModal').style.display='flex';
+    document.querySelectorAll('#resultTable th.sortable').forEach(th=>{
+      th.onclick=()=>{
+        const key=th.dataset.key;const rows=[...document.querySelectorAll('#resultTable tbody tr')];
+        const idx={idx:0,q:1,ok:4}[key];
+        const desc=th.classList.toggle('desc');
+        rows.sort((a,b)=>{
+          const va=a.children[idx].textContent;const vb=b.children[idx].textContent;
+          if(key==='idx'||key==='ok'){return (parseInt(va)||0)-(parseInt(vb)||0);} else {return va.localeCompare(vb);} });
+        if(desc) rows.reverse();
+        const tb=document.querySelector('#resultTable tbody');tb.innerHTML='';rows.forEach(r=>tb.appendChild(r));
+      };
+    });
     saveState();
   }
   function retryIncorrect(){
@@ -573,6 +759,7 @@ function startQuiz(qs){
   document.getElementById('tagFilter').value='';
   updateTagOptions();
   applyTagFilter();
+  const mode=document.getElementById('mode'); if(mode) mode.textContent='Practice';
 }
 
 /* ---------- Export / Import State ---------- */
@@ -602,12 +789,18 @@ function importStateFile(file){
 
 /* ---------- Event Bindings ---------- */
 document.getElementById('loadBtn').onclick=()=>document.getElementById('fileInput').click();
+document.getElementById('openFileFromSettings').onclick=()=>document.getElementById('fileInput').click();
 window.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT') return;
   const opts=[...document.querySelectorAll('#options input')];
   const num=parseInt(e.key,10);
   if(num>=1&&num<=opts.length){opts[num-1].click();}
   if(e.key==='Enter'){ if(!questions[current].answered) submitAnswer(); else next(); }
+  if(e.key==='/'){e.preventDefault();document.getElementById('searchBox').focus();}
+  if(e.key==='?'){document.getElementById('keysModal').style.display='flex';}
+  if(e.key==='s'){toggleSettings();}
+  if(e.key==='b'){const q=questions[current];q.flagged=!q.flagged;renderQuestion();saveState();toast(q.flagged?'Bookmarked':'Unbookmarked');}
+  if(e.key==='Escape'){document.getElementById('resultModal').style.display='none';document.getElementById('keysModal').style.display='none';document.getElementById('settingsDrawer').classList.remove('open');}
 });
 document.getElementById('fileInput').addEventListener('change',e=>{const file=e.target.files[0];if(file)handleFile(file);});
 
@@ -615,22 +808,55 @@ document.getElementById('submitBtn').onclick=submitAnswer;
 document.getElementById('nextBtn').onclick=next;
 document.getElementById('restartBtn').onclick=()=>{if(confirm('Clear progress?')){resetState();loadSample();}};
 document.getElementById('exportBtn').onclick=exportResults;
-document.getElementById('darkToggle').onclick=()=>{document.body.classList.toggle('dark');settings.dark=document.body.classList.contains('dark');saveState();};
+document.getElementById('darkToggle').onclick=()=>{document.body.classList.toggle('dark');settings.dark=document.body.classList.contains('dark');saveState();toast(settings.dark?'Dark mode':'Light mode');};
 document.getElementById('retryBtn').onclick=retryIncorrect;
 document.getElementById('flaggedBtn').onclick=reviewFlagged;
 document.getElementById('closeResult').onclick=()=>document.getElementById('resultModal').style.display='none';
 document.getElementById('exportStateBtn').onclick=exportState;
 document.getElementById('importStateBtn').onclick=()=>document.getElementById('importState').click();
 document.getElementById('importState').addEventListener('change',e=>{const f=e.target.files[0];if(f)importStateFile(f);});
-document.getElementById('flagBtn').onclick=()=>{const q=questions[current];q.flagged=!q.flagged;renderQuestion();saveState();};
+document.getElementById('flagBtn').onclick=()=>{const q=questions[current];q.flagged=!q.flagged;renderQuestion();saveState();toast(q.flagged?'Bookmarked':'Unbookmarked');};
+document.getElementById('noteBtn').onclick=()=>{const q=questions[current];const val=prompt('Add a short note for this question:',q.note||''); if(val===null) return; q.note=val; saveState(); updateSidebar(); toast(q.note?'Note saved':'Note cleared');};
 document.getElementById('tagEditBtn').onclick=editTags;
 document.getElementById('tagFilter').addEventListener('change',applyTagFilter);
-document.getElementById('searchBox').addEventListener('keydown',e=>{if(e.key==='Enter'){const term=e.target.value.trim().toLowerCase();if(!term)return;const i=questions.findIndex(q=>q.question.toLowerCase().includes(term));if(i>=0){current=i;renderQuestion();saveState();}else alert('No match');}});
+const debounce=(fn,ms=250)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
+document.getElementById('searchBox').addEventListener('input',debounce(()=>{renderQuestion();},200));
+document.getElementById('searchBox').addEventListener('keydown',e=>{if(e.key==='Enter'){const term=e.target.value.trim().toLowerCase();if(!term)return;const i=questions.findIndex(q=>q.question.toLowerCase().includes(term));if(i>=0){current=i;renderQuestion();saveState();}else toast('No match');}});
 document.getElementById('timeLimit').addEventListener('change',e=>{settings.timeLimit=parseInt(e.target.value)||0;saveState();});
 
-document.getElementById('shuffleQ').addEventListener('change',e=>{settings.shuffleQ=e.target.checked;saveState();});
-document.getElementById('shuffleO').addEventListener('change',e=>{settings.shuffleO=e.target.checked;saveState();});
-document.getElementById('autoSubmit').addEventListener('change',e=>{settings.autoSubmit=e.target.checked;saveState();});
+function toggleSettings(){document.getElementById('settingsDrawer').classList.toggle('open');}
+document.getElementById('openSettings').onclick=toggleSettings;
+document.getElementById('closeSettings').onclick=toggleSettings;
+document.getElementById('saveSettings').onclick=()=>{
+  settings.shuffleQ=document.getElementById('setShuffleQ').checked;
+  settings.shuffleO=document.getElementById('setShuffleO').checked;
+  settings.instant=document.getElementById('setInstant').checked;
+  settings.sounds=document.getElementById('setSounds').checked;
+  settings.anims=document.getElementById('setAnims').checked;
+  settings.compact=document.getElementById('setCompact').checked;
+  settings.font=document.getElementById('setFont').value;
+  settings.timeLimit=parseInt(document.getElementById('timeLimit').value)||0;
+  settings.dark=document.getElementById('setDark').checked;
+  settings.partial=document.getElementById('setPartial').checked;
+  if(settings.dark) document.body.classList.add('dark'); else document.body.classList.remove('dark');
+  applyUiPrefs(); saveState(); toast('Settings saved');
+};
+document.getElementById('closeKeys').onclick=()=>document.getElementById('keysModal').style.display='none';
+
+function applyUiPrefs(){
+  const sizes={sm:'13px',md:'16px',lg:'18px',xl:'20px'}; document.body.style.fontSize=sizes[settings.font]||'16px';
+}
+
+function updateSidebar(){
+  const ul=document.getElementById('bookmarkList'); if(!ul) return; ul.innerHTML='';
+  questions.forEach((q,i)=>{ if(!q.flagged) return; const li=document.createElement('li'); li.innerHTML=`<button class="btn ghost" style="width:100%;text-align:left">★ Q${i+1} ${q.note?`- ${q.note.replace(/</g,'&lt;')}`:''}</button>`; li.querySelector('button').onclick=()=>{current=i;renderQuestion();}; ul.appendChild(li);});
+}
+
+const setActive=(id)=>{document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active');};
+document.getElementById('filterAll').onclick=()=>{setActive('filterAll'); questions=allQuestions.slice(); applyTagFilter(); };
+document.getElementById('filterUnseen').onclick=()=>{setActive('filterUnseen'); questions=allQuestions.filter(q=>!q.answered); applyTagFilter(); };
+document.getElementById('filterIncorrect').onclick=()=>{setActive('filterIncorrect'); questions=allQuestions.filter((q,i)=>results[i]&&!results[i].isCorrect); applyTagFilter(); };
+document.getElementById('filterBookmarked').onclick=()=>{setActive('filterBookmarked'); questions=allQuestions.filter(q=>q.flagged); applyTagFilter(); };
 
 /* ---------- Sample Data ---------- */
 function loadSample(){
@@ -649,6 +875,10 @@ function loadSample(){
 }
 
 /* ---------- Init ---------- */
+// Theme default from prefers-color-scheme on first load
+if(!localStorage.getItem(STORAGE_KEY)){
+  try{ if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){ document.body.classList.add('dark'); settings.dark=true; } }catch{}
+}
 if(!loadState()){
   // if no previous state, load sample csv
   loadSample();
@@ -662,6 +892,13 @@ const link=document.getElementById('sampleCsvLink');
 link.href=URL.createObjectURL(new Blob([sampleCsv],{type:'text/csv'}));
 link.textContent='Download sample CSV';
 link.classList.remove('hidden');
+
+// Sync settings controls with current settings on first render
+const mapInit=[['setShuffleQ','shuffleQ'],['setShuffleO','shuffleO'],['setInstant','instant'],['setSounds','sounds'],['setAnims','anims'],['setCompact','compact'],['setPartial','partial']];
+mapInit.forEach(([id,key])=>{const el=document.getElementById(id); if(el) el.checked=!!settings[key];});
+const sf=document.getElementById('setFont'); if(sf) sf.value=settings.font||'md';
+const sd=document.getElementById('setDark'); if(sd) sd.checked=!!settings.dark;
+applyUiPrefs();
 
 })();
 </script>

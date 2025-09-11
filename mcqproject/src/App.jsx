@@ -24,7 +24,9 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app">
-        <h1>MCQ Practice</h1>
+        <h1>
+          MCQ Practice <span style={{fontSize: '0.7em', opacity: 0.7}}>v2025.09</span>
+        </h1>
         <nav className="nav">
           <div className="nav-links">
             <NavLink to="/" end>

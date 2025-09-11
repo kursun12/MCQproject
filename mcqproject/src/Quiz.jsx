@@ -13,7 +13,8 @@ function Quiz() {
     return defaultQuestions;
   });
   const [current, setCurrent] = useState(0);
-  const [selected, setSelected] = useState(null);
+  // Store selected indices as an array for both single/multi
+  const [selected, setSelected] = useState([]);
   const [score, setScore] = useState(0);
   const [finished, setFinished] = useState(false);
   const [answers, setAnswers] = useState([]);
@@ -26,6 +27,14 @@ function Quiz() {
   const audioCtxRef = useRef(null);
 
   const question = questions[current];
+  const correct = Array.isArray(question.answers)
+    ? question.answers
+    : Array.isArray(question.answer)
+    ? question.answer
+    : Number.isFinite(question.answer)
+    ? [question.answer]
+    : [];
+  const isMulti = correct.length > 1;
 
   const playTone = (freq) => {
     try {
@@ -48,12 +57,22 @@ function Quiz() {
   };
 
   const handleOption = (index) => {
-    setSelected(index);
+    if (isMulti) {
+      const set = new Set(selected);
+      if (set.has(index)) set.delete(index);
+      else set.add(index);
+      setSelected(Array.from(set).sort((a, b) => a - b));
+    } else {
+      setSelected([index]);
+    }
   };
 
   const handleNext = () => {
-    if (selected === null) return;
-    if (selected === question.answer) {
+    if (!selected || selected.length === 0) return;
+    const selSet = new Set(selected);
+    const corSet = new Set(correct);
+    const isCorrect = selSet.size === corSet.size && [...corSet].every((i) => selSet.has(i));
+    if (isCorrect) {
       setScore(score + 1);
       const newStreak = streak + 1;
       setStreak(newStreak);
@@ -72,7 +91,7 @@ function Quiz() {
       playTone(440);
     }
     setAnswers([...answers, selected]);
-    setSelected(null);
+    setSelected([]);
     if (current + 1 < questions.length) {
       setCurrent(current + 1);
     } else {
@@ -82,7 +101,7 @@ function Quiz() {
 
   const restart = () => {
     setCurrent(0);
-    setSelected(null);
+    setSelected([]);
     setScore(0);
     setFinished(false);
     setAnswers([]);
@@ -110,26 +129,37 @@ function Quiz() {
         </p>
         <p>Best streak: {maxStreak}</p>
         <ul className="review">
-          {questions.map((q, idx) => (
-            <li key={q.id} className="review-question">
-              <p>{q.question}</p>
-              <p>
-                Your answer:{' '}
-                <span
-                  className={
-                    answers[idx] === q.answer ? 'correct' : 'incorrect'
-                  }
-                >
-                  {q.options[answers[idx]]}
-                </span>
-              </p>
-              {answers[idx] !== q.answer && (
+          {questions.map((q, idx) => {
+            const corr = Array.isArray(q.answers)
+              ? q.answers
+              : Array.isArray(q.answer)
+              ? q.answer
+              : Number.isFinite(q.answer)
+              ? [q.answer]
+              : [];
+            const sel = Array.isArray(answers[idx]) ? answers[idx] : [];
+            const selSet = new Set(sel);
+            const corSet = new Set(corr);
+            const correctMatch = selSet.size === corSet.size && [...corSet].every((i) => selSet.has(i));
+            const renderOpts = (arr) => arr.map((i) => q.options[i]).join(', ');
+            return (
+              <li key={q.id} className="review-question">
+                <p>{q.question}</p>
                 <p>
-                  Correct answer: <span className="correct">{q.options[q.answer]}</span>
+                  Your answer:{' '}
+                  <span className={correctMatch ? 'correct' : 'incorrect'}>
+                    {renderOpts(sel)}
+                  </span>
                 </p>
-              )}
-            </li>
-          ))}
+                {!correctMatch && (
+                  <p>
+                    Correct answer{corr.length > 1 ? 's' : ''}:{' '}
+                    <span className="correct">{renderOpts(corr)}</span>
+                  </p>
+                )}
+              </li>
+            );
+          })}
         </ul>
         <button onClick={restart}>Restart</button>
         <button onClick={share}>Share</button>
@@ -158,12 +188,12 @@ function Quiz() {
       <ul className="options">
         {question.options.map((opt, idx) => (
           <li key={idx} className="option">
-            <label className={selected === idx ? 'selected' : ''}>
+            <label className={selected.includes(idx) ? 'selected' : ''}>
               <input
-                type="radio"
+                type={isMulti ? 'checkbox' : 'radio'}
                 name="option"
                 value={idx}
-                checked={selected === idx}
+                checked={selected.includes(idx)}
                 onChange={() => handleOption(idx)}
               />
               {opt}
@@ -171,10 +201,10 @@ function Quiz() {
           </li>
         ))}
       </ul>
-      {selected !== null && (
+      {selected.length > 0 && (
         <p className="explanation">{question.explanation}</p>
       )}
-      <button className="next" onClick={handleNext} disabled={selected === null}>
+      <button className="next" onClick={handleNext} disabled={selected.length === 0}>
         {current + 1 === questions.length ? 'Finish' : 'Next'}
       </button>
     </div>
