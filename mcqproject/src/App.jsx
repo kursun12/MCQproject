@@ -6,6 +6,7 @@ import LandingPage from './LandingPage.jsx';
 import Settings from './Settings.jsx';
 import ImportQuestions from './Import.jsx';
 import Review from './Review.jsx';
+import RepeatBuilder from './RepeatBuilder.jsx';
 import Toaster from './components/Toaster.jsx';
 import HelpOverlay from './components/HelpOverlay.jsx';
 
@@ -73,6 +74,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/quiz" element={<Quiz />} />
+          <Route path="/repeat" element={<RepeatBuilder />} />
           <Route path="/review" element={<Review />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/import" element={<ImportQuestions />} />

@@ -11,82 +11,74 @@ function Quiz() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const mode = params.get('mode') || 'practice'; // practice | test | challenge
-  const [questions, setQuestions] = useState(() => {
-    try {
-      const stored = localStorage.getItem('questions');
-      const parsed = stored ? JSON.parse(stored) : null;
-      const data = Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultQuestions;
-      const shuffleQs = localStorage.getItem('shuffleQs') === 'true';
-      const shuffleOpts = localStorage.getItem('shuffleOpts') === 'true';
-      const arr = data.map((q, idx) => ({ ...q, id: q.id ?? idx + 1 }));
-      // Shuffle questions if enabled
-      let qs = shuffleQs ? shuffleCopy(arr) : arr;
-      // If retry subset is specified
+  const buildQuestions = () => {
+    // Load dataset safely without throwing
+    let dataset = defaultQuestions;
+    const raw = localStorage.getItem('questions');
+    if (raw) {
       try {
-        const retryIds = JSON.parse(localStorage.getItem('retryIds') || 'null');
-        if (Array.isArray(retryIds) && retryIds.length) {
-          qs = qs.filter((q) => retryIds.includes(q.id));
-          localStorage.removeItem('retryIds');
-        }
-      } catch {}
-      // Filter by set and hard mode
-      try {
-        const paramsSetId = new URLSearchParams(window.location.search).get('setId');
-        const hard = new URLSearchParams(window.location.search).get('hard') === 'true';
-        const countParam = parseInt(new URLSearchParams(window.location.search).get('count'), 10);
-        let filtered = qs;
-        if (paramsSetId) {
-          const setsLS = JSON.parse(localStorage.getItem('sets')||'[]');
-          const s = setsLS.find(x => String(x.id) === String(paramsSetId));
-          if (s) {
-            const idSet = new Set(s.questionIds || []);
-            filtered = filtered.filter(q => idSet.has(q.id));
-          }
-        }
-        if (hard) {
-          const stats = JSON.parse(localStorage.getItem('stats')||'{}');
-          filtered = filtered.filter(q => {
-            const st = stats[q.id];
-            return st && st.fails >= 3 && (st.fails / st.attempts) >= 0.6;
-          });
-        }
-        if (shuffleQs) filtered = shuffleCopy(filtered);
-        const limit = Number.isFinite(countParam) && countParam > 0 ? countParam : null;
-        if (limit) filtered = filtered.slice(0, limit);
-        qs = filtered;
-      } catch {}
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) dataset = parsed;
+      } catch {/* keep defaults */}
+    }
 
-      // Filter by set and hard mode
-      try {
-        const url = new URL(window.location.href);
-        const setId = url.searchParams.get('setId');
-        const hard = url.searchParams.get('hard') === 'true';
-        const countParam = parseInt(url.searchParams.get('count'), 10);
-        if (setId) {
+    // Normalize
+    let arr = dataset.map((q, idx) => ({
+      ...q,
+      id: q.id ?? idx + 1,
+      options: Array.isArray(q.options) ? q.options : [],
+    }));
+
+    // Retry subset
+    try {
+      const retryIds = JSON.parse(localStorage.getItem('retryIds') || 'null');
+      if (Array.isArray(retryIds) && retryIds.length) {
+        const idSet = new Set(retryIds);
+        arr = arr.filter(q => idSet.has(q.id));
+        localStorage.removeItem('retryIds');
+      }
+    } catch {}
+
+    // Filters
+    try {
+      const url = new URL(window.location.href);
+      const setId = url.searchParams.get('setId');
+      const hard = url.searchParams.get('hard') === 'true';
+      const countParam = parseInt(url.searchParams.get('count'), 10);
+      if (setId) {
+        try {
           const setsLS = JSON.parse(localStorage.getItem('sets')||'[]');
           const s = setsLS.find(x => String(x.id) === String(setId));
-          if (s) { const idSet = new Set(s.questionIds || []); qs = qs.filter(q => idSet.has(q.id)); }
-        }
-        if (hard) {
+          if (s) { const idSet = new Set(s.questionIds || []); arr = arr.filter(q => idSet.has(q.id)); }
+        } catch {}
+      }
+      if (hard) {
+        try {
           const stats = JSON.parse(localStorage.getItem('stats')||'{}');
-          qs = qs.filter(q => { const st = stats[q.id]; return st && st.fails >= 3 && (st.fails / st.attempts) >= 0.6; });
-        }
-        if (shuffleQs) qs = shuffleCopy(qs);
-        const limit = Number.isFinite(countParam) && countParam > 0 ? countParam : null;
-        if (limit) qs = qs.slice(0, limit);
-      } catch {}
-      // Prepare option display order per question
-      return qs.map((q) => ({
-        ...q,
-        _order: shuffleOpts ? shuffleArray([...Array(q.options.length).keys()]) : [...Array(q.options.length).keys()],
-      }));
-    } catch {
-      // ignore parse errors and fall back to defaults
-    }
-    return defaultQuestions.map((q, idx) => ({ ...q, id: q.id ?? idx + 1, _order: [...Array(q.options.length).keys()] }));
-  });
+          arr = arr.filter(q => { const st = stats[q.id]; return st && st.fails >= 3 && (st.fails / Math.max(1,(st.attempts||0))) >= 0.6; });
+        } catch {}
+      }
+      const shuffleQs = localStorage.getItem('shuffleQs') === 'true';
+      if (shuffleQs) arr = shuffleCopy(arr);
+      const limit = Number.isFinite(countParam) && countParam > 0 ? countParam : null;
+      if (limit) arr = arr.slice(0, limit);
+    } catch {}
+
+    const shuffleOpts = localStorage.getItem('shuffleOpts') === 'true';
+    const mapped = arr.map((q) => ({
+      ...q,
+      _order: shuffleOpts ? shuffleArray([...Array(q.options.length).keys()]) : [...Array(q.options.length).keys()],
+    }));
+    // Guard: ensure we never return empty if dataset existed
+    return mapped.length > 0 ? mapped : defaultQuestions.map((q, idx) => ({ ...q, id: q.id ?? idx + 1, _order: [...Array(q.options.length).keys()] }));
+  };
+
+  const [questions, setQuestions] = useState(() => buildQuestions());
   const engineRef = useRef(null);
   const byIdRef = useRef(new Map());
+  const [repeatTotal, setRepeatTotal] = useState(0);
+  const [repeatAttempted, setRepeatAttempted] = useState(0);
+  const [repeatSourceLabel, setRepeatSourceLabel] = useState('');
   const [current, setCurrent] = useState(0);
   // Store selected indices as an array for both single/multi
   const [selected, setSelected] = useState([]);
@@ -128,7 +120,15 @@ function Quiz() {
     try { localStorage.setItem('mcqSession', JSON.stringify(payload)); } catch {}
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  // Rebuild questions on route change (e.g., after toggling settings and navigating back)
+  useEffect(() => {
+    setQuestions(buildQuestions());
+    setCurrent(0);
+  }, [location.pathname, location.search]);
   useEffect(() => { ensureKatex(); }, []);
+  useEffect(() => {
+    if (current >= questions.length) setCurrent(0);
+  }, [questions.length]);
   // Initialize Repeat Engine if needed
   useEffect(() => {
     byIdRef.current = new Map(questions.map(q => [q.id, q]));
@@ -141,15 +141,20 @@ function Quiz() {
           const sess = JSON.parse(localStorage.getItem('mcqSession')||'{}');
           const wrongIdx = (sess.results||[]).filter(r=>!r.isCorrect).map(r=>r.index||0);
           pool = wrongIdx.map(i => (questions[i]||{}).id).filter(Boolean);
+          setRepeatSourceLabel('Last session (wrong)');
         } else if (source === 'everWrong') {
           const stats = JSON.parse(localStorage.getItem('repeatStats')||'{}');
           pool = questions.filter(q => (stats[q.id]?.wrong||0) > 0).map(q=>q.id);
+          setRepeatSourceLabel('All-time wrong');
         } else {
           pool = questions.map(q=>q.id);
+          setRepeatSourceLabel('Entire pool');
         }
       } catch { pool = questions.map(q=>q.id); }
       const eng = new RepeatEngine(questions, pool);
       engineRef.current = eng;
+      setRepeatTotal(eng.queue.length);
+      setRepeatAttempted(0);
       const first = eng.next();
       if (first && questions[0]?.id !== first) {
         const qobj = byIdRef.current.get(first);
@@ -164,6 +169,7 @@ function Quiz() {
   }, []);
 
   const question = questions[current];
+  const noQuestions = !question;
   const correct = Array.isArray(question.answers)
     ? question.answers
     : Array.isArray(question.answer)
@@ -310,6 +316,7 @@ function Quiz() {
       const eng = engineRef.current;
       if (eng) {
         eng.onGrade(question.id, strict === 1);
+        setRepeatAttempted(v=>v+1);
         const nid = eng.next();
         if (!nid) {
           setFinished(true);
@@ -368,10 +375,15 @@ function Quiz() {
   // Keyboard shortcuts: 1–9 select/toggle, Enter submit/next
   useEffect(() => {
     const onKey = (e) => {
+      if (!question) return;
       if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
       const num = parseInt(e.key, 10);
-      if (num >= 1 && num <= Math.min(9, question.options.length)) {
-        const optIdx = question._order[num - 1];
+      const optsLen = Array.isArray(question.options) ? question.options.length : 0;
+      const order = (Array.isArray(question._order) && question._order.length===optsLen && question._order.every(i => Number.isInteger(i) && i>=0 && i<optsLen))
+        ? question._order
+        : [...Array(optsLen).keys()];
+      if (num >= 1 && num <= Math.min(9, optsLen)) {
+        const optIdx = order[num - 1];
         handleOption(optIdx);
       } else if (e.key === 'Enter') {
         handleNext();
@@ -588,7 +600,7 @@ function Quiz() {
       <div className="progress">
         <div
           className="progress-bar"
-          style={{ width: `${(current / questions.length) * 100}%` }}
+          style={{ width: mode==='repeat' ? `${(repeatAttempted / Math.max(1, repeatTotal)) * 100}%` : `${(current / questions.length) * 100}%` }}
         ></div>
       </div>
       <div className="scoreboard">
@@ -596,16 +608,30 @@ function Quiz() {
         <span>Streak: {streak}</span>
         <span>Best: {maxStreak}</span>
         {mode==='repeat' && engineRef.current && (
-          <span>{engineRef.current.queue.length} remaining</span>
+          <>
+            <span>Total: {repeatTotal}</span>
+            <span>Remaining: {engineRef.current.queue.length}</span>
+          </>
         )}
       </div>
+      {noQuestions && (
+        <div className="muted" style={{marginTop:6}}>No questions available. Check your import or filters.</div>
+      )}
       <div className="muted" style={{marginTop:4}}>
-        Feedback: {mode==='test' ? 'Hidden until end' : (feedbackTrigger==='onNext' ? 'Reveal, then Next' : (isMulti ? 'Reveal when all chosen' : 'Reveal on select'))}
-        {instantReveal && mode!=='test' ? ' • Explanation after reveal' : ''}
+        {mode==='repeat' ? (
+          <>Repeat set: {repeatSourceLabel || 'Custom'}. Progress {repeatAttempted}/{Math.max(1, repeatTotal)}. Cooldown and anti back‑to‑back applied.</>
+        ) : (
+          <>Feedback: {mode==='test' ? 'Hidden until end' : (feedbackTrigger==='onNext' ? 'Reveal, then Next' : (isMulti ? 'Reveal when all chosen' : 'Reveal on select'))}{instantReveal && mode!=='test' ? ' • Explanation after reveal' : ''}</>
+        )}
       </div>
       {achievement && <div className="achievement">🏆 {achievement}</div>}
+      {!noQuestions && (
       <h2>
-        Question {current + 1} of {questions.length}
+        {mode==='repeat' ? (
+          <>Item {repeatAttempted + 1} of {Math.max(1, repeatTotal)}</>
+        ) : (
+          <>Question {current + 1} of {questions.length}</>
+        )}
         <button
           type="button"
           onClick={toggleBookmark}
@@ -625,17 +651,24 @@ function Quiz() {
           📝
         </button>
       </h2>
-      {isMulti && (
+      )}
+      {!noQuestions && isMulti && (
         <div className="badge" aria-hidden="true" style={{display:'inline-block',marginBottom:'6px'}}>Select ALL that apply · Choose {correct.length}</div>
       )}
-      <p className="question" dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.question)}}></p>
-      {question.type === 'hotspot' && question.media?.src ? (
+      {!noQuestions && <p className="question" dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.question)}}></p>}
+      {!noQuestions && question.type === 'hotspot' && question.media?.src ? (
         <div style={{marginBottom:'10px'}}>
           <Hotspot src={question.media.src} zones={question.media.zones||[]} selected={selected} onSelect={handleOption} />
         </div>
       ) : null}
+      {!noQuestions && (
       <ul className="options">
-        {question._order.map((optIdx, idx) => {
+        {(() => {
+          const optsLen = Array.isArray(question.options) ? question.options.length : 0;
+          const order = (Array.isArray(question._order) && question._order.length===optsLen && question._order.every(i => Number.isInteger(i) && i>=0 && i<optsLen))
+            ? question._order
+            : [...Array(optsLen).keys()];
+          return order.map((optIdx, idx) => {
           const isSel = selected.includes(optIdx);
           const isCor = correct.includes(optIdx);
           const show = revealed && mode !== 'test';
@@ -651,20 +684,24 @@ function Quiz() {
                   onChange={() => handleOption(optIdx)}
                 />
                 <span className="opt-bubble">{String.fromCharCode(65 + idx)}</span>
-                <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.options[optIdx])}}></span>
+                <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.options[optIdx] ?? '')}}></span>
               </label>
             </li>
           );
-        })}
+          });
+        })()}
       </ul>
-      {revealed && instantReveal && mode!=='test' && (
+      )}
+      {!noQuestions && revealed && instantReveal && mode!=='test' && (
         <p className="explanation" dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.explanation||'')}}></p>
       )}
+      {!noQuestions && (
       <button className="next" onClick={handleNext} disabled={selected.length === 0}>
         {(!revealed && feedbackTrigger==='onNext' && mode!=='test')
           ? 'Reveal'
           : (current + 1 === questions.length ? 'Finish' : (mode==='test' ? 'Save' : 'Next'))}
       </button>
+      )}
     </div>
   );
 }

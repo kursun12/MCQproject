@@ -22,6 +22,7 @@ function ImportQuestions() {
   });
   const [search, setSearch] = useState('');
   const [filterSet, setFilterSet] = useState('');
+  const [assignFilter, setAssignFilter] = useState('all'); // all | assigned | unassigned
   const [activeTab, setActiveTab] = useState('library'); // library | editor | sets
   const [showNew, setShowNew] = useState(false);
   const [dragIdx, setDragIdx] = useState(null);
@@ -242,6 +243,9 @@ function ImportQuestions() {
   const filteredQuestions = useMemo(() => {
     const term = search.trim().toLowerCase();
     return questions.filter((q) => {
+      const isAssigned = sets.some(s => (s.questionIds||[]).includes(q.id));
+      if (assignFilter === 'assigned' && !isAssigned) return false;
+      if (assignFilter === 'unassigned' && isAssigned) return false;
       if (filterSet) {
         const s = sets.find((x) => x.id === Number(filterSet));
         if (!s || !(s.questionIds || []).includes(q.id)) return false;
@@ -252,7 +256,7 @@ function ImportQuestions() {
         (q.options||[]).some((o) => String(o).toLowerCase().includes(term))
       );
     });
-  }, [search, filterSet, questions, sets]);
+  }, [search, filterSet, questions, sets, assignFilter]);
 
   // ----- Draft autosave for New Question modal -----
   useEffect(() => {
@@ -333,6 +337,11 @@ function ImportQuestions() {
                 {sets.map((s)=>(<option key={s.id} value={s.id}>{s.name}</option>))}
               </select>
             )}
+            <select value={assignFilter} onChange={(e)=>setAssignFilter(e.target.value)} title="Assignment filter">
+              <option value="all">All (assigned + unassigned)</option>
+              <option value="assigned">Assigned only</option>
+              <option value="unassigned">Unassigned only</option>
+            </select>
             <span className="chip">Total: {questions.length}</span>
             <button onClick={()=>{ setShowNew(true); }}>+ New</button>
             {selectedIds.size>0 && (
@@ -390,38 +399,77 @@ function ImportQuestions() {
 
       {activeTab==='editor' && (
         <div className="two-col">
-          <div className="card" style={{padding:'12px'}}>
-            <h3 style={{marginTop:0}}>{editingId? 'Edit Question' : 'New Question'}</h3>
-            {/* Validation hints */}
-            {(() => {
-              const o = (editingId? draft.options : newQ.options).filter(Boolean);
-              const a = (editingId? draft.answers : newQ.answers);
-              const ok = o.length >= 4 && a.length >= 1 && a.every(i=>i<o.length);
-              return (
-                <div className="chips" style={{marginBottom:8}}>
-                  <span className={`chip ${o.length>=4?'accent':''}`}>≥4 options</span>
-                  <span className={`chip ${a.length>=1?'accent':''}`}>≥1 correct</span>
-                  {!ok && <span className="chip">Fill all required</span>}
-                </div>
-              );
-            })()}
-            <textarea
-              placeholder="Question text"
-              value={editingId? draft.question : newQ.question}
-              onChange={(e) => editingId? setDraft({ ...draft, question: e.target.value }) : setNewQ({ ...newQ, question: e.target.value })}
-            />
-            <input
-              type="text"
-              placeholder="Explanation (optional)"
-              value={editingId? (draft.explanation||'') : (newQ.explanation||'')}
-              onChange={(e) => editingId? setDraft({ ...draft, explanation: e.target.value }) : setNewQ({ ...newQ, explanation: e.target.value })}
-              style={{marginTop:8}}
-            />
+          <div className="card" style={{padding:'0'}}>
+            <div className="editor-actions">
+              <div className="soft-hint">{editingId? 'Editing question' : 'New Question'} • Markdown & KaTeX supported</div>
+              {(() => {
+                const o = (editingId? draft.options : newQ.options).filter(v=>String(v||'').trim()!=='');
+                const a = (editingId? draft.answers : newQ.answers);
+                const valid = o.length >= 4 && a.length >= 1 && a.every(i=>i<o.length);
+                return (
+                  <div style={{display:'flex',gap:8}}>
+                    {editingId? (
+                      <>
+                        <button disabled={!valid} onClick={saveEdit}>Save</button>
+                        <button className="btn-ghost" onClick={cancelEdit}>Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button disabled={!valid} onClick={addQuestion}>Add</button>
+                        {restoreDraftAvailable && <button className="btn-ghost" onClick={restoreDraft}>Restore draft</button>}
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+            <div style={{padding:'12px'}}>
+              {/* Validation chips */}
+              {(() => {
+                const o = (editingId? draft.options : newQ.options).filter(v=>String(v||'').trim()!=='');
+                const a = (editingId? draft.answers : newQ.answers);
+                const ok = o.length >= 4 && a.length >= 1 && a.every(i=>i<o.length);
+                return (
+                  <div className="chips" style={{marginBottom:8}}>
+                    <span className={`chip ${o.length>=4?'accent':''}`}>≥4 options</span>
+                    <span className={`chip ${a.length>=1?'accent':''}`}>≥1 correct</span>
+                    {!ok && <span className="chip">Fill all required</span>}
+                  </div>
+                );
+              })()}
+              <textarea
+                placeholder="Question text"
+                value={editingId? draft.question : newQ.question}
+                onChange={(e) => editingId? setDraft({ ...draft, question: e.target.value }) : setNewQ({ ...newQ, question: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Explanation (optional)"
+                value={editingId? (draft.explanation||'') : (newQ.explanation||'')}
+                onChange={(e) => editingId? setDraft({ ...draft, explanation: e.target.value }) : setNewQ({ ...newQ, explanation: e.target.value })}
+                style={{marginTop:8}}
+              />
+              <div className="template-row">
+                <button type="button" className="btn-ghost" onClick={()=>{
+                  const base=[ 'True','False' ];
+                  if (editingId) setDraft({...draft, options: base, answers:[0]}); else setNewQ({...newQ, options: base, answers:[0]});
+                }}>True/False</button>
+                <button type="button" className="btn-ghost" onClick={()=>{
+                  const base=['Option 1','Option 2','Option 3','Option 4'];
+                  if (editingId) setDraft({...draft, options: base, answers:[0]}); else setNewQ({...newQ, options: base, answers:[0]});
+                }}>4-Option Single</button>
+                <button type="button" className="btn-ghost" onClick={()=>{
+                  const base=['Item 1','Item 2','Item 3','Item 4'];
+                  if (editingId) setDraft({...draft, options: base, answers:[0,1]}); else setNewQ({...newQ, options: base, answers:[0,1]});
+                }}>Multi (2 correct)</button>
+              </div>
+            </div>
           </div>
           <div className="card" style={{padding:'12px'}}>
             <h3 style={{marginTop:0}}>Options</h3>
             {(editingId? draft.options : newQ.options).map((opt, idx) => (
               <div key={idx}
+                   className="opt-row"
                    draggable
                    onDragStart={()=>{ setDragIdx(idx); setDragSrc(editingId? 'edit':'new'); }}
                    onDragOver={(e)=>e.preventDefault()}
@@ -439,7 +487,8 @@ function ImportQuestions() {
                      }
                      setDragIdx(null); setDragSrc(null);
                    }}
-                   style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:6, cursor:'grab'}}>
+                   style={{cursor:'grab'}}>
+                <span className="opt-letter">{String.fromCharCode(65+idx)}</span>
                 <input
                   type="text"
                   placeholder={`Option ${idx + 1}`}
@@ -452,6 +501,11 @@ function ImportQuestions() {
                     }
                   }}
                   style={{flex:1}}
+                  onKeyDown={(e)=>{
+                    if (e.key==='Enter') {
+                      if (editingId) setDraft({...draft, options:[...draft.options, '']}); else setNewQ({...newQ, options:[...newQ.options, '']});
+                    }
+                  }}
                 />
                 <label className="toggle" title="Mark correct">
                   <input
@@ -486,18 +540,6 @@ function ImportQuestions() {
                   );
                 })}
               </div>
-            </div>
-            <div style={{display:'flex',gap:'8px',marginTop:12}}>
-              {editingId? (
-                <>
-                  <button onClick={saveEdit}>Save</button>
-                  <button className="btn-ghost" onClick={cancelEdit}>Cancel</button>
-                </>
-              ) : (
-                <>
-                  {restoreDraftAvailable && <button className="btn-ghost" onClick={restoreDraft}>Restore draft</button>}
-                </>
-              )}
             </div>
           </div>
         </div>
