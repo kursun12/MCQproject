@@ -237,7 +237,7 @@ function applyTagFilter(){
   startTime=Date.now();
   startTimer();
   saveState();
-  render();
+  renderQuestion();
 }
 
 function editTags(){
@@ -250,7 +250,7 @@ function editTags(){
   const master=allQuestions.find(m=>m.id===q.id);
   if(master) master.tags=q.tags;
   updateTagOptions();
-  render();
+  renderQuestion();
   saveState();
 }
 
@@ -273,13 +273,13 @@ function editTags(){
       const oneBased=numbers.every(n=>n>=1 && n<=optLen) && !numbers.includes(0);
       indices=numbers.map(n=>oneBased?n-1:n);
     }
-    indices=indices.concat(letters);
+    if(!assumeIndex) indices=indices.concat(letters);
     indices=indices.filter(n=>n>=0 && n<optLen);
     indices=[...new Set(indices)].sort((a,b)=>a-b);
     return indices.length?indices:null;
   }
 
-  function normalizeCSVRow(row,idx){
+  function normalizeCsvRow(row,idx){
     const map={};
     Object.keys(row).forEach(k=>{map[k.trim().toLowerCase()]=row[k];});
     const q=map['question'];
@@ -301,12 +301,12 @@ function editTags(){
     return{ id:idx+1, question:q, options:opts, correct:corr, explanation:map['explanation']||'', rawAnswer:rawAns, tags };
   }
 
-  function parseCSV(file){
+  function parseCsv(file){
     return new Promise((resolve,reject)=>{
       Papa.parse(file,{header:true,skipEmptyLines:true,complete:res=>{
         const qs=[];const errors=[];
         res.data.forEach((row,i)=>{
-          try{qs.push(normalizeCSVRow(row,i));}
+          try{qs.push(normalizeCsvRow(row,i));}
           catch(err){errors.push(`Row ${i+2}: ${err.message}`);}
         });
         if(errors.length) alert(errors.join('\n'));
@@ -315,7 +315,7 @@ function editTags(){
       },error:err=>reject(err)});
     });
   }
-  function parseJSON(file){
+  function parseJson(file){
     return new Promise((resolve,reject)=>{
       const reader=new FileReader();
       reader.onload=e=>{
@@ -385,7 +385,7 @@ function startTimer(){
 }
 
 /* ---------- Rendering ---------- */
-function render(){
+function renderQuestion(){
   if(!questions.length) return;
   const q=questions[current];
   document.getElementById('question').innerHTML=(current+1)+'. '+q.question;
@@ -428,7 +428,7 @@ function render(){
         sel.length=0;if(input.checked) sel.push(o.index);
         document.querySelectorAll('input[name="option"]').forEach(r=>{if(r!==input) r.checked=false;});
       }
-        q.selected=sel;li.setAttribute('aria-checked',input.checked);saveState();if(settings.autoSubmit && !multi) submit();
+        q.selected=sel;li.setAttribute('aria-checked',input.checked);saveState();if(settings.autoSubmit && !multi) submitAnswer();
       });
     list.appendChild(li);
   });
@@ -451,12 +451,17 @@ function updateScore(){
   document.getElementById('score').textContent=`${score}/${questions.length} (${pct}%)`;
 }
 
-function submit(){
+function gradeSelection(selected,correct){
+  const sel=[...selected].sort((a,b)=>a-b);
+  return sel.length===correct.length && sel.every((v,i)=>v===correct[i]);
+}
+
+function submitAnswer(){
   const q=questions[current];
   if(q.answered) return;
   const sel=q.selected||[];
   sel.sort((a,b)=>a-b);
-  const correct=JSON.stringify(sel)===JSON.stringify(q.correct);
+  const correct=gradeSelection(sel,q.correct);
   q.answered=true;
   q.timeTaken=(q.timeTaken||0)+((Date.now()-q.timeStart)/1000);
   results[current]={index:current,selected:[...sel],isCorrect:correct};
@@ -475,7 +480,7 @@ function submit(){
   saveState();
 }
 function next(){
-  if(current<questions.length-1){current++;render();saveState();}
+  if(current<questions.length-1){current++;renderQuestion();saveState();}
   else finish();
 }
   function finish(){
@@ -558,7 +563,7 @@ function next(){
 async function handleFile(file){
   try{
     const ext=file.name.split('.').pop().toLowerCase();
-    const qs=ext==='csv'?await parseCSV(file):await parseJSON(file);
+    const qs=ext==='csv'?await parseCsv(file):await parseJson(file);
     startQuiz(qs);
   }catch(err){alert('Import error: '+err.message);}
 }
@@ -589,7 +594,7 @@ function exportState(){
 function importStateFile(file){
   const reader=new FileReader();
   reader.onload=e=>{
-    try{localStorage.setItem(STORAGE_KEY,e.target.result);loadState();render();}
+    try{localStorage.setItem(STORAGE_KEY,e.target.result);loadState();renderQuestion();}
     catch(err){alert('Invalid state file');}
   };
   reader.readAsText(file);
@@ -602,11 +607,11 @@ window.addEventListener('keydown',e=>{
   const opts=[...document.querySelectorAll('#options input')];
   const num=parseInt(e.key,10);
   if(num>=1&&num<=opts.length){opts[num-1].click();}
-  if(e.key==='Enter'){ if(!questions[current].answered) submit(); else next(); }
+  if(e.key==='Enter'){ if(!questions[current].answered) submitAnswer(); else next(); }
 });
 document.getElementById('fileInput').addEventListener('change',e=>{const file=e.target.files[0];if(file)handleFile(file);});
 
-document.getElementById('submitBtn').onclick=submit;
+document.getElementById('submitBtn').onclick=submitAnswer;
 document.getElementById('nextBtn').onclick=next;
 document.getElementById('restartBtn').onclick=()=>{if(confirm('Clear progress?')){resetState();loadSample();}};
 document.getElementById('exportBtn').onclick=exportResults;
@@ -617,10 +622,10 @@ document.getElementById('closeResult').onclick=()=>document.getElementById('resu
 document.getElementById('exportStateBtn').onclick=exportState;
 document.getElementById('importStateBtn').onclick=()=>document.getElementById('importState').click();
 document.getElementById('importState').addEventListener('change',e=>{const f=e.target.files[0];if(f)importStateFile(f);});
-document.getElementById('flagBtn').onclick=()=>{const q=questions[current];q.flagged=!q.flagged;render();saveState();};
+document.getElementById('flagBtn').onclick=()=>{const q=questions[current];q.flagged=!q.flagged;renderQuestion();saveState();};
 document.getElementById('tagEditBtn').onclick=editTags;
 document.getElementById('tagFilter').addEventListener('change',applyTagFilter);
-document.getElementById('searchBox').addEventListener('keydown',e=>{if(e.key==='Enter'){const term=e.target.value.trim().toLowerCase();if(!term)return;const i=questions.findIndex(q=>q.question.toLowerCase().includes(term));if(i>=0){current=i;render();saveState();}else alert('No match');}});
+document.getElementById('searchBox').addEventListener('keydown',e=>{if(e.key==='Enter'){const term=e.target.value.trim().toLowerCase();if(!term)return;const i=questions.findIndex(q=>q.question.toLowerCase().includes(term));if(i>=0){current=i;renderQuestion();saveState();}else alert('No match');}});
 document.getElementById('timeLimit').addEventListener('change',e=>{settings.timeLimit=parseInt(e.target.value)||0;saveState();});
 
 document.getElementById('shuffleQ').addEventListener('change',e=>{settings.shuffleQ=e.target.checked;saveState();});
@@ -648,7 +653,7 @@ if(!loadState()){
   // if no previous state, load sample csv
   loadSample();
 }else{
-  render();
+  renderQuestion();
   if(results.length<questions.length) startTimer(); else document.getElementById('timer').textContent=formatTime(elapsed);
 }
 // prepare downloadable sample CSV
