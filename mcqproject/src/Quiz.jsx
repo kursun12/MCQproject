@@ -130,6 +130,7 @@ function Quiz() {
   const feedbackTrigger = useMemo(() => localStorage.getItem('feedbackTrigger') || 'onNext', []);
   const [revealed, setRevealed] = useState(false);
   const [forceExplain, setForceExplain] = useState(false);
+  const [awaitingNext, setAwaitingNext] = useState(false);
   const testQuick = useMemo(() => localStorage.getItem('testQuick') === 'true', []);
   const testNoChange = useMemo(() => localStorage.getItem('testNoChange') === 'true', []);
   const [expandedRows, setExpandedRows] = useState({});
@@ -347,47 +348,58 @@ function Quiz() {
       setRevealed(true);
       return;
     }
-    // Record time for current question
-    try {
-      const dt = Math.max(0, (performance.now() - qStart) / 1000);
-      setTimes((t) => [...t, dt]);
-    } catch { /* ignore */ }
-    if (mode !== 'test') {
-      if (strict === 1) {
-        setScore(score + 1);
-        const newStreak = streak + 1;
-        setStreak(newStreak);
-        if (newStreak > maxStreak) {
-          setMaxStreak(newStreak);
-          localStorage.setItem('maxStreak', String(newStreak));
+    if (!awaitingNext) {
+      // Record time for current question
+      try {
+        const dt = Math.max(0, (performance.now() - qStart) / 1000);
+        setTimes((t) => [...t, dt]);
+      } catch { /* ignore */ }
+      if (mode !== 'test') {
+        if (strict === 1) {
+          setScore(score + 1);
+          const newStreak = streak + 1;
+          setStreak(newStreak);
+          if (newStreak > maxStreak) {
+            setMaxStreak(newStreak);
+            localStorage.setItem('maxStreak', String(newStreak));
+          }
+          if ([3, 5, 10].includes(newStreak)) {
+            const msg = `${newStreak} correct in a row!`;
+            setAchievement(msg);
+            setTimeout(() => setAchievement(''), 3000);
+          }
+          playTone(880);
+        } else {
+          setStreak(0);
+          playTone(440);
         }
-        if ([3, 5, 10].includes(newStreak)) {
-          const msg = `${newStreak} correct in a row!`;
-          setAchievement(msg);
-          setTimeout(() => setAchievement(''), 3000);
+      }
+      // track stats
+      updateStats(question.id, strict === 1);
+      if (mode === 'challenge') {
+        const delta = toPoints(partial) + Math.max(0, 25 - Math.floor((performance.now() % 25000) / 1000));
+        setPoints(points + delta);
+      }
+      setAnswers([...answers, selected]);
+      if (mode === 'repeat') {
+        const eng = engineRef.current;
+        if (eng) {
+          eng.onGrade(question.id, strict === 1);
+          setRepeatAttempted(v=>v+1);
         }
-        playTone(880);
-      } else {
-        setStreak(0);
-        playTone(440);
       }
     }
-    // track stats
-    updateStats(question.id, strict === 1);
-    if (mode === 'challenge') {
-      const delta = toPoints(partial) + Math.max(0, 25 - Math.floor((performance.now() % 25000) / 1000));
-      setPoints(points + delta);
+    if (mode === 'repeat' && strict === 0 && !settings.autoSkipOnWrong && !awaitingNext) {
+      setAwaitingNext(true);
+      return;
     }
-    const nextAnswers = [...answers, selected];
-    setAnswers(nextAnswers);
     setSelected([]);
     setRevealed(false);
     setForceExplain(false);
+    setAwaitingNext(false);
     if (mode === 'repeat') {
       const eng = engineRef.current;
       if (eng) {
-        eng.onGrade(question.id, strict === 1);
-        setRepeatAttempted(v=>v+1);
         const nid = eng.next();
         if (!nid) {
           setFinished(true);

@@ -131,6 +131,7 @@ function Settings() {
             <label className="toggle"><input type="checkbox" checked={repeatCfg.strictMultiAnswer} onChange={(e)=>setRepeatCfg({...repeatCfg, strictMultiAnswer:e.target.checked})} /> Strict multi-answer</label>
             <label className="toggle"><input type="checkbox" checked={repeatCfg.partialCreditMode} onChange={(e)=>setRepeatCfg({...repeatCfg, partialCreditMode:e.target.checked})} /> Partial credit</label>
           <label className="toggle"><input type="checkbox" checked={repeatCfg.autoRevealExplanationOnError} onChange={(e)=>setRepeatCfg({...repeatCfg, autoRevealExplanationOnError:e.target.checked})} /> Auto-show explanation on wrong</label>
+          <label className="toggle"><input type="checkbox" checked={repeatCfg.autoSkipOnWrong} onChange={(e)=>setRepeatCfg({...repeatCfg, autoSkipOnWrong:e.target.checked})} /> Auto-skip on wrong</label>
           </div>
         </div>
         <div className="card" style={{padding:'12px'}}>

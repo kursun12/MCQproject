@@ -11,6 +11,7 @@ export const DEFAULT_REPEAT_SETTINGS = {
   spacingCurve: 'short', // none | short | leitner-lite
   allowConfidenceButtons: false,
   autoRevealExplanationOnError: true,
+  autoSkipOnWrong: false,
   showSelectAllBadge: true,
 };
 
