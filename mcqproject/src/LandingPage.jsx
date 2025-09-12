@@ -1,12 +1,15 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 function LandingPage() {
   const navigate = useNavigate();
+  const [selectedSet, setSelectedSet] = useState(null);
+  const countOptions = [10, 20, 25, 30];
   let qCount = 0, bmCount = 0;
-  try { qCount = JSON.parse(localStorage.getItem('questions')||'[]').length; } catch {}
-  try { bmCount = JSON.parse(localStorage.getItem('bookmarks')||'[]').length; } catch {}
-  let session=null; try { session = JSON.parse(localStorage.getItem('mcqSession')||'null'); } catch {}
-  let sets=[]; try { sets = JSON.parse(localStorage.getItem('sets')||'[]'); } catch {}
+  try { qCount = JSON.parse(localStorage.getItem('questions')||'[]').length; } catch { /* ignore */ }
+  try { bmCount = JSON.parse(localStorage.getItem('bookmarks')||'[]').length; } catch { /* ignore */ }
+  let session=null; try { session = JSON.parse(localStorage.getItem('mcqSession')||'null'); } catch { /* ignore */ }
+  let sets=[]; try { sets = JSON.parse(localStorage.getItem('sets')||'[]'); } catch { /* ignore */ }
   return (
     <div>
       <div className="hero card">
@@ -54,20 +57,43 @@ function LandingPage() {
         <div className="card" style={{marginTop:12,padding:'12px'}}>
           <div className="section-title"><strong>Quick sets</strong><span className="muted">Jump straight into a topic</span></div>
           <div className="chips">
-            {sets.slice(0,6).map((s)=>(
-              <Link key={s.id} to="/review" className="chip">{s.name} • {(s.questionIds||[]).length}</Link>
-            ))}
+            {sets.slice(0,6).map((s)=>{
+              const count=(s.questionIds||[]).length;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`chip ${selectedSet===s.id?'accent':''}`}
+                  onClick={()=>setSelectedSet(selectedSet===s.id?null:s.id)}
+                >
+                  {s.name} • {count}
+                </button>
+              );
+            })}
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr auto auto',gap:8,marginTop:10,alignItems:'center'}}>
-            <form onSubmit={(e)=>{e.preventDefault(); const setId=e.currentTarget.setId.value; const count=e.currentTarget.count.value; if(!setId) return; navigate(`/quiz?mode=practice&setId=${encodeURIComponent(setId)}&count=${encodeURIComponent(count||'')}`);}} style={{display:'contents'}}>
-              <select name="setId">
-                <option value="">Choose a set…</option>
-                {sets.map(s => (<option key={s.id} value={s.id}>{s.name} ({(s.questionIds||[]).length})</option>))}
-              </select>
-              <input name="count" type="number" min="1" placeholder="Count" />
-              <button type="submit">Start Set</button>
-            </form>
-          </div>
+          {selectedSet && (
+            <div className="chips" style={{marginTop:8}}>
+              {countOptions
+                .filter(n => n <= (sets.find(x=>x.id===selectedSet)?.questionIds?.length || 0))
+                .map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    className="chip"
+                    onClick={()=>navigate(`/quiz?mode=practice&setId=${encodeURIComponent(selectedSet)}&count=${n}`)}
+                  >
+                    {n}
+                  </button>
+                ))}
+              <button
+                type="button"
+                className="chip"
+                onClick={()=>navigate(`/quiz?mode=practice&setId=${encodeURIComponent(selectedSet)}`)}
+              >
+                All
+              </button>
+            </div>
+          )}
         </div>
       )}
       <div className="card" style={{marginTop:12,padding:'12px'}}>
