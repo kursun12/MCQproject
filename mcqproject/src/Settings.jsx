@@ -20,13 +20,6 @@ function Settings() {
   useEffect(() => {
     localStorage.setItem('shuffleOpts', shuffleOpts);
   }, [shuffleOpts]);
-  // Temporarily disable Shuffle options to avoid rendering issues; force-off in storage
-  useEffect(() => {
-    try {
-      localStorage.setItem('shuffleOpts', 'false');
-      setShuffleOpts(false);
-    } catch {}
-  }, []);
 
   useEffect(() => {
     localStorage.setItem('instantReveal', instantReveal);
@@ -78,8 +71,16 @@ function Settings() {
               />
             </label>
             <label className="toggle"><input type="checkbox" checked={shuffleQs} onChange={(e)=>{ setShuffleQs(e.target.checked); toast('Shuffle questions updated'); }} /> Shuffle questions</label>
-            <label className="toggle" title="Temporarily disabled while we improve stability">
-              <input type="checkbox" checked={false} disabled /> Shuffle options (coming soon)
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={shuffleOpts}
+                onChange={(e) => {
+                  setShuffleOpts(e.target.checked);
+                  toast('Shuffle options updated');
+                }}
+              />{' '}
+              Shuffle options
             </label>
             <label>Feedback timing
               <select value={feedbackTrigger} onChange={(e)=>{ setFeedbackTrigger(e.target.value); toast('Feedback timing updated'); }} style={{marginLeft:8}}>

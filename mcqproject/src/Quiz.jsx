@@ -7,6 +7,22 @@ import Hotspot from './components/Hotspot.jsx';
 import defaultQuestions from './questions';
 import { RepeatEngine } from './repeat/engine';
 
+// Shuffle helpers need to be defined before they're used in buildQuestions.
+// Previously these were declared later in the component which meant enabling
+// shuffle options attempted to invoke an uninitialized function, triggering a
+// runtime ReferenceError and rendering a blank screen.
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function shuffleCopy(arr) {
+  return shuffleArray([...arr]);
+}
+
 function Quiz() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -227,15 +243,6 @@ function Quiz() {
       if (feedbackTrigger === 'onSelect' && mode !== 'test') setRevealed(true);
     }
   };
-
-  const shuffleArray = (arr) => {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  };
-  const shuffleCopy = (arr) => shuffleArray([...arr]);
 
   const saveSession = (nextState = {}) => {
     const payload = {
