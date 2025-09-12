@@ -10,6 +10,7 @@ Key features
 - Modes: Practice (instant feedback), Test (no feedback until end), Challenge (points/streaks), Review (browse/filter).
 - Multi-answer support with strict or Partial Credit mode (Settings).
 - Bookmarks (⭐) and Notes (📝) per question; persisted to localStorage.
+- Quick edit (✏️) opens the current question in the Questions editor.
 - Search & tag filters in Review, “Retry Incorrect Only”.
 - Results: score %, streaks, basic badges, export CSV.
 - Theme: Light/Dark with system preference; responsive layout.

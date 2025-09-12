@@ -107,6 +107,15 @@ function Quiz() {
   };
 
   const [questions, setQuestions] = useState(() => buildQuestions());
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'questions') {
+        setQuestions(buildQuestions());
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
   const engineRef = useRef(null);
   const byIdRef = useRef(new Map());
   const [repeatAttempted, setRepeatAttempted] = useState(0);
@@ -455,6 +464,14 @@ function Quiz() {
     toast(value ? 'Note saved' : 'Note cleared');
   };
 
+  const editQuestion = () => {
+    const id = question?.id;
+    if (!id) return;
+    const url = new URL('/import', window.location.origin);
+    url.searchParams.set('edit', id);
+    window.open(url.toString(), '_blank');
+  };
+
   // Keyboard shortcuts are customizable via Settings
   useEffect(() => {
     const onKey = (e) => {
@@ -733,32 +750,41 @@ function Quiz() {
       </div>
       {achievement && <div className="achievement">🏆 {achievement}</div>}
       {!noQuestions && (
-      <h2>
-        {mode==='repeat' ? (
-          <>Item {repeatAttempted + 1} of {Math.max(1, repeatDynamicTotal)}</>
-        ) : (
-          <>Question {current + 1} of {questions.length}</>
+        <h2>
+          {mode==='repeat' ? (
+            <>Item {repeatAttempted + 1} of {Math.max(1, repeatDynamicTotal)}</>
+          ) : (
+            <>Question {current + 1} of {questions.length}</>
+          )}
+          <button
+            type="button"
+            onClick={toggleBookmark}
+            className="icon-btn"
+            style={{ marginLeft: '0.5rem' }}
+            title="Bookmark"
+          >
+            {bookmarks.has(question.id) ? '★' : '☆'}
+          </button>
+          <button
+            type="button"
+            onClick={addNote}
+            className="icon-btn"
+            style={{ marginLeft: '0.25rem' }}
+            title="Add note"
+          >
+            📝
+          </button>
+          <button
+            type="button"
+            onClick={editQuestion}
+            className="icon-btn"
+            style={{ marginLeft: '0.25rem' }}
+            title="Edit question"
+          >
+            ✏️
+          </button>
+        </h2>
         )}
-        <button
-          type="button"
-          onClick={toggleBookmark}
-          className="icon-btn"
-          style={{ marginLeft: '0.5rem' }}
-          title="Bookmark"
-        >
-          {bookmarks.has(question.id) ? '★' : '☆'}
-        </button>
-        <button
-          type="button"
-          onClick={addNote}
-          className="icon-btn"
-          style={{ marginLeft: '0.25rem' }}
-          title="Add note"
-        >
-          📝
-        </button>
-      </h2>
-      )}
       {!noQuestions && isMulti && (
         <div className="badge" aria-hidden="true" style={{display:'inline-block',marginBottom:'6px'}}>Select ALL that apply · Choose {correct.length}</div>
       )}

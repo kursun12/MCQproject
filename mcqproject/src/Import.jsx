@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import Modal from './components/Modal.jsx';
 import { toast } from './utils/toast.js';
 
 function ImportQuestions() {
+  const location = useLocation();
   const [questions, setQuestions] = useState([]);
   const [error, setError] = useState('');
   const [editingId, setEditingId] = useState(null);
@@ -147,6 +149,15 @@ function ImportQuestions() {
     });
     setActiveTab('editor');
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const editId = params.get('edit');
+    if (editId && !editingId) {
+      const q = questions.find((x) => String(x.id) === String(editId));
+      if (q) startEdit(q);
+    }
+  }, [location.search, questions, editingId]);
 
   const importFromText = () => {
     try {
