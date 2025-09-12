@@ -1,4 +1,4 @@
-import { loadRepeatSettings } from './settings';
+import { loadRepeatSettings } from './settings.js';
 
 export class RepeatEngine {
   // opts.filterMastered controls whether items already marked as mastered
@@ -33,8 +33,15 @@ export class RepeatEngine {
   }
 
   pickNext() {
-    const ids = this.eligibleIds();
-    if (ids.length === 0) return null;
+    let ids = this.eligibleIds();
+    if (ids.length === 0) {
+      // All cards are cooling down. Pick the one with the earliest due date
+      // so sessions don't terminate prematurely. This effectively ignores
+      // cooldown if the queue is exhausted.
+      const soonest = [...this.queue].sort((a, b) => (this.due.get(a) || 0) - (this.due.get(b) || 0))[0];
+      if (!soonest) return null;
+      ids = [soonest];
+    }
     // priority: higher wrong rate, lower streak, older lastSeen
     ids.sort((a,b) => {
       const sa = this.stats[a] || {}; const sb = this.stats[b] || {};
