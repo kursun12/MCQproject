@@ -54,7 +54,7 @@ function Quiz() {
         arr = arr.filter(q => idSet.has(q.id));
         localStorage.removeItem('retryIds');
       }
-    } catch {}
+    } catch { /* ignore */ }
 
     // Filters
     try {
@@ -62,24 +62,33 @@ function Quiz() {
       const setId = url.searchParams.get('setId');
       const hard = url.searchParams.get('hard') === 'true';
       const countParam = parseInt(url.searchParams.get('count'), 10);
-      if (setId) {
+      if (setId === 'bookmarks') {
         try {
-          const setsLS = JSON.parse(localStorage.getItem('sets')||'[]');
-          const s = setsLS.find(x => String(x.id) === String(setId));
-          if (s) { const idSet = new Set(s.questionIds || []); arr = arr.filter(q => idSet.has(q.id)); }
-        } catch {}
+          const bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+          const idSet = new Set(bm);
+          arr = arr.filter((q) => idSet.has(q.id));
+        } catch { /* ignore */ }
+      } else if (setId) {
+        try {
+          const setsLS = JSON.parse(localStorage.getItem('sets') || '[]');
+          const s = setsLS.find((x) => String(x.id) === String(setId));
+          if (s) {
+            const idSet = new Set(s.questionIds || []);
+            arr = arr.filter((q) => idSet.has(q.id));
+          }
+        } catch { /* ignore */ }
       }
       if (hard) {
         try {
           const stats = JSON.parse(localStorage.getItem('stats')||'{}');
           arr = arr.filter(q => { const st = stats[q.id]; return st && st.fails >= 3 && (st.fails / Math.max(1,(st.attempts||0))) >= 0.6; });
-        } catch {}
+        } catch { /* ignore */ }
       }
       const shuffleQs = localStorage.getItem('shuffleQs') === 'true';
       if (shuffleQs) arr = shuffleCopy(arr);
       const limit = Number.isFinite(countParam) && countParam > 0 ? countParam : null;
       if (limit) arr = arr.slice(0, limit);
-    } catch {}
+    } catch { /* ignore */ }
 
     const shuffleOpts = localStorage.getItem('shuffleOpts') === 'true';
     const mapped = arr.map((q) => ({
@@ -134,7 +143,7 @@ function Quiz() {
   // Persist initial session skeleton
   useEffect(() => {
     const payload = { mode, current, questions, results: [], bookmarks: [...bookmarks], notes };
-    try { localStorage.setItem('mcqSession', JSON.stringify(payload)); } catch {}
+    try { localStorage.setItem('mcqSession', JSON.stringify(payload)); } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Rebuild questions on route change (e.g., after toggling settings and navigating back)
@@ -199,7 +208,7 @@ function Quiz() {
   // Update header progress CSS var
   const progress = Math.round((current / Math.max(1, questions.length)) * 100);
   useMemo(() => {
-    try { document.documentElement.style.setProperty('--app-progress', progress + '%'); } catch {}
+    try { document.documentElement.style.setProperty('--app-progress', progress + '%'); } catch { /* ignore */ }
     return null;
   }, [progress]);
 
@@ -266,10 +275,7 @@ function Quiz() {
       const s = stats[id] || { attempts:0, fails:0, last:0 };
       s.attempts += 1; if (!ok) s.fails += 1; s.last = Date.now();
       stats[id] = s; localStorage.setItem('stats', JSON.stringify(stats));
-    } catch {}
-  };
-  const isHard = (id) => {
-    try { const s = JSON.parse(localStorage.getItem('stats')||'{}')[id]; if (!s) return false; return s.fails >= 3 && (s.fails / s.attempts) >= 0.6; } catch { return false; }
+    } catch { /* ignore */ }
   };
 
   const getCorrect = (q) => (
@@ -286,7 +292,7 @@ function Quiz() {
     try {
       const dt = Math.max(0, (performance.now() - qStart) / 1000);
       setTimes((t) => [...t, dt]);
-    } catch {}
+    } catch { /* ignore */ }
     const strict = gradeStrict(selected, correct);
     const partialMode = localStorage.getItem('partialCredit') === 'true';
     const partial = partialMode ? gradePartial(selected, correct) : strict;
@@ -406,7 +412,8 @@ function Quiz() {
     return () => window.removeEventListener('keydown', onKey);
   }, [question, selected, handleNext, current]);
 
-  const restart = () => {
+  const restart = (newQuestions = questions) => {
+    setQuestions(newQuestions);
     setCurrent(0);
     setSelected([]);
     setScore(0);
@@ -417,6 +424,29 @@ function Quiz() {
     setStreak(0);
     setAchievement('');
     localStorage.removeItem('retryIds');
+  };
+
+  const retryIncorrect = () => {
+    const subset = questions.filter((q, i) => {
+      const corr = Array.isArray(q.correct)
+        ? q.correct
+        : Array.isArray(q.answers)
+        ? q.answers
+        : Array.isArray(q.answer)
+        ? q.answer
+        : Number.isFinite(q.answer)
+        ? [q.answer]
+        : [];
+      const sel = Array.isArray(answers[i]) ? answers[i] : [];
+      const ok =
+        sel.length === corr.length && corr.every((n) => sel.includes(n));
+      return !ok;
+    });
+    if (subset.length === 0) {
+      alert('No incorrect answers to retry.');
+      return;
+    }
+    restart(subset);
   };
 
   // Auto-finish convenience: if feedback is onSelect and on last question, grade shortly after reveal
@@ -527,7 +557,6 @@ function Quiz() {
         <div className="card" style={{overflow:'auto', marginTop:8, position:'relative'}}>
           <div style={{position:'sticky', top:0, background:'var(--card-bg)', padding:'8px', display:'flex', gap:'8px', zIndex:1, borderBottom:'1px solid var(--border-color)', alignItems:'center', flexWrap:'wrap'}}>
             <button onClick={restart}>Restart</button>
-            <button onClick={() => retryIncorrect(questions, answers)}>Retry Incorrect</button>
             <button onClick={() => { window.location.href = '/review'; }}>Open Review</button>
             <button className="btn-ghost" onClick={() => { exportResultsCSV(questions, answers); toast('Exported results.csv'); }}>Export CSV</button>
             <button className="btn-ghost" onClick={() => exportStateJSON(questions, answers, mode, points)}>Export State</button>
@@ -579,7 +608,7 @@ function Quiz() {
           <div className="chips">
             {(() => {
               const map = new Map();
-              rows.forEach((r, i) => {
+              rows.forEach((r) => {
                 const tags = (r.tags || '').split(',').map(s=>s.trim()).filter(Boolean);
                 if (tags.length===0) tags.push('(none)');
                 tags.forEach((t) => {
@@ -595,7 +624,6 @@ function Quiz() {
         </div>
         <div style={{display:'flex',gap:'8px',flexWrap:'wrap', marginTop:8}}>
           <button onClick={restart}>Restart</button>
-          <button onClick={() => retryIncorrect(questions, answers)}>Retry Incorrect Only</button>
           <button onClick={() => { window.location.href = '/review'; }}>Open Review</button>
           <button onClick={share}>Share</button>
         </div>
@@ -728,28 +756,6 @@ function exportResultsCSV(questions, answers){
   const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='results.csv'; a.click();
 }
 
-function retryIncorrect(questions, answers){
-  const incorrectIdx = questions.map((q,i)=>{
-    // Normalize correct answers from various question shapes
-    const corr = Array.isArray(q.correct)
-      ? q.correct
-      : Array.isArray(q.answers)
-      ? q.answers
-      : Array.isArray(q.answer)
-      ? q.answer
-      : Number.isFinite(q.answer)
-      ? [q.answer]
-      : [];
-    const sel=new Set(answers[i]||[]); const cor=new Set(corr);
-    const ok= sel.size===cor.size && [...cor].every(n=>sel.has(n));
-    return ok?null:i;
-  }).filter((i)=>i!==null);
-  if(incorrectIdx.length===0){ alert('No incorrect answers to retry.'); return; }
-  localStorage.setItem('retryIds', JSON.stringify(incorrectIdx.map(i=>questions[i].id)));
-  // Force a navigation so buildQuestions picks up retryIds
-  window.location.replace(`/quiz?mode=practice&retry=${Date.now()}`);
-}
-
 function exportStateJSON(questions, answers, mode, points){
   const data={
     mode,
@@ -760,17 +766,6 @@ function exportStateJSON(questions, answers, mode, points){
   };
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='mcq-state.json'; a.click();
-}
-
-// Minimal Markdown renderer (bold, italic, code, links)
-function renderMarkdown(text=''){
-  let html = String(text)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  html = html.replace(/\*(.+?)\*/g,'<em>$1</em>');
-  html = html.replace(/`([^`]+)`/g,'<code>$1</code>');
-  html = html.replace(/\[(.*?)\]\((https?:[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-  return html;
 }
 
 function formatTime(sec = 0){
