@@ -40,6 +40,10 @@ function LandingPage() {
           <strong>Challenge</strong>
           <span className="muted">Points, speed bonus</span>
         </Link>
+        <Link to="/repeat" className="menu-card">
+          <strong>Repeat</strong>
+          <span className="muted">Adaptive drills with mastery</span>
+        </Link>
         <Link to="/review" className="menu-card">
           <strong>Review</strong>
           <span className="muted">Browse, search, filter, retry incorrect</span>
