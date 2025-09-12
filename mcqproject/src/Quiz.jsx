@@ -61,6 +61,7 @@ function Quiz() {
       const url = new URL(window.location.href);
       const setId = url.searchParams.get('setId');
       const hard = url.searchParams.get('hard') === 'true';
+      const tagsParam = url.searchParams.get('tags');
       const countParam = parseInt(url.searchParams.get('count'), 10);
       if (setId === 'bookmarks') {
         try {
@@ -77,6 +78,12 @@ function Quiz() {
             arr = arr.filter((q) => idSet.has(q.id));
           }
         } catch { /* ignore */ }
+      }
+      if (tagsParam) {
+        const tags = tagsParam.split(',').map((t) => t.trim()).filter(Boolean);
+        if (tags.length) {
+          arr = arr.filter((q) => Array.isArray(q.tags) && q.tags.some((t) => tags.includes(t)));
+        }
       }
       if (hard) {
         try {
@@ -163,6 +170,7 @@ function Quiz() {
       try {
         const url = new URL(window.location.href);
         const source = url.searchParams.get('source');
+        const tagsParam = url.searchParams.get('tags');
         if (source === 'lastWrong') {
           const sess = JSON.parse(localStorage.getItem('mcqSession')||'{}');
           const wrongIdx = (sess.results||[]).filter(r=>!r.isCorrect).map(r=>r.index||0);
@@ -172,6 +180,9 @@ function Quiz() {
           const stats = JSON.parse(localStorage.getItem('repeatStats')||'{}');
           pool = questions.filter(q => (stats[q.id]?.wrong||0) > 0).map(q=>q.id);
           setRepeatSourceLabel('All-time wrong');
+        } else if (source === 'byTags') {
+          pool = questions.map(q=>q.id);
+          setRepeatSourceLabel(tagsParam ? `Tags: ${tagsParam}` : 'Selected tags');
         } else {
           pool = questions.map(q=>q.id);
           setRepeatSourceLabel('Entire pool');

@@ -61,7 +61,7 @@ function App() {
               Home
             </NavLink>
             <NavLink to="/quiz">Quiz</NavLink>
-            <NavLink to="/quiz?mode=repeat&source=lastWrong">Repeat</NavLink>
+            <NavLink to="/repeat">Repeat</NavLink>
             <NavLink to="/review">Review</NavLink>
             <NavLink to="/review?bookmarks=1">Bookmarks</NavLink>
             <NavLink to="/settings">Settings</NavLink>
