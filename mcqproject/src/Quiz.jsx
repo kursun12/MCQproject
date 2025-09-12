@@ -527,7 +527,7 @@ function Quiz() {
         <div className="card" style={{overflow:'auto', marginTop:8, position:'relative'}}>
           <div style={{position:'sticky', top:0, background:'var(--card-bg)', padding:'8px', display:'flex', gap:'8px', zIndex:1, borderBottom:'1px solid var(--border-color)', alignItems:'center', flexWrap:'wrap'}}>
             <button onClick={restart}>Restart</button>
-            <button onClick={() => retryIncorrect(questions, answers, setCurrent, setFinished)}>Retry Incorrect</button>
+            <button onClick={() => retryIncorrect(questions, answers)}>Retry Incorrect</button>
             <button onClick={() => { window.location.href = '/review'; }}>Open Review</button>
             <button className="btn-ghost" onClick={() => { exportResultsCSV(questions, answers); toast('Exported results.csv'); }}>Export CSV</button>
             <button className="btn-ghost" onClick={() => exportStateJSON(questions, answers, mode, points)}>Export State</button>
@@ -595,7 +595,7 @@ function Quiz() {
         </div>
         <div style={{display:'flex',gap:'8px',flexWrap:'wrap', marginTop:8}}>
           <button onClick={restart}>Restart</button>
-          <button onClick={() => retryIncorrect(questions, answers, setCurrent, setFinished)}>Retry Incorrect Only</button>
+          <button onClick={() => retryIncorrect(questions, answers)}>Retry Incorrect Only</button>
           <button onClick={() => { window.location.href = '/review'; }}>Open Review</button>
           <button onClick={share}>Share</button>
         </div>
@@ -728,16 +728,26 @@ function exportResultsCSV(questions, answers){
   const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='results.csv'; a.click();
 }
 
-function retryIncorrect(questions, answers, setCurrent, setFinished){
+function retryIncorrect(questions, answers){
   const incorrectIdx = questions.map((q,i)=>{
-    const corr=Array.isArray(q.answers)?q.answers:Array.isArray(q.answer)?q.answer:[q.answer];
+    // Normalize correct answers from various question shapes
+    const corr = Array.isArray(q.correct)
+      ? q.correct
+      : Array.isArray(q.answers)
+      ? q.answers
+      : Array.isArray(q.answer)
+      ? q.answer
+      : Number.isFinite(q.answer)
+      ? [q.answer]
+      : [];
     const sel=new Set(answers[i]||[]); const cor=new Set(corr);
     const ok= sel.size===cor.size && [...cor].every(n=>sel.has(n));
     return ok?null:i;
   }).filter((i)=>i!==null);
   if(incorrectIdx.length===0){ alert('No incorrect answers to retry.'); return; }
   localStorage.setItem('retryIds', JSON.stringify(incorrectIdx.map(i=>questions[i].id)));
-  setCurrent(0); setFinished(false); window.location.href='/quiz?mode=practice';
+  // Force a navigation so buildQuestions picks up retryIds
+  window.location.replace(`/quiz?mode=practice&retry=${Date.now()}`);
 }
 
 function exportStateJSON(questions, answers, mode, points){
