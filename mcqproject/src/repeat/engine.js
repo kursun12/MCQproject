@@ -1,14 +1,20 @@
 import { loadRepeatSettings } from './settings';
 
 export class RepeatEngine {
-  constructor(allQuestions, poolIds) {
+  // opts.filterMastered controls whether items already marked as mastered
+  // are excluded from the initial queue. Defaults to true for backward
+  // compatibility but can be disabled when the caller wants to include
+  // previously mastered items (e.g. when a fixed count of questions is
+  // requested).
+  constructor(allQuestions, poolIds, opts = {}) {
     this.all = allQuestions;
     this.byId = new Map(allQuestions.map(q => [q.id, q]));
     this.settings = loadRepeatSettings();
     this.stats = loadStats();
+    const filterMastered = opts.filterMastered !== false;
     const masterFilter = (id) => !(this.stats[id]?.mastered);
     const base = (poolIds && poolIds.length ? poolIds : allQuestions.map(q=>q.id)).filter(id => this.byId.has(id));
-    this.queue = base.filter(masterFilter);
+    this.queue = filterMastered ? base.filter(masterFilter) : [...base];
     this.due = new Map();
     const now = Date.now();
     this.queue.forEach(id => this.due.set(id, now));

@@ -4,7 +4,7 @@ import { loadRepeatSettings, saveRepeatSettings } from './repeat/settings';
 
 export default function RepeatBuilder() {
   const navigate = useNavigate();
-  const [source, setSource] = useState('lastWrong');
+  const [source, setSource] = useState('entire');
   const [setId, setSetId] = useState('');
   const [tags, setTags] = useState([]);
   const [count, setCount] = useState('10');
@@ -42,9 +42,9 @@ export default function RepeatBuilder() {
         <div className="grid-2">
           <div className="card" style={{padding:'12px'}}>
             <h3 style={{marginTop:0}}>Source</h3>
+            <label><input type="radio" name="src" checked={source==='entire'} onChange={()=>setSource('entire')} /> Entire set/pool</label><br />
             <label><input type="radio" name="src" checked={source==='lastWrong'} onChange={()=>setSource('lastWrong')} /> Wrong from last session</label><br />
             <label><input type="radio" name="src" checked={source==='everWrong'} onChange={()=>setSource('everWrong')} /> Wrong ever</label><br />
-            <label><input type="radio" name="src" checked={source==='entire'} onChange={()=>setSource('entire')} /> Entire set/pool</label><br />
             <label><input type="radio" name="src" checked={source==='byTags'} onChange={()=>setSource('byTags')} /> By tags</label>
             {source==='byTags' && (
               <div style={{marginTop:8}}>
@@ -58,12 +58,15 @@ export default function RepeatBuilder() {
               </div>
             )}
             <div style={{marginTop:8}}>
-              <label>Choose set (optional)
-                <select value={setId} onChange={(e)=>setSetId(e.target.value)}>
-                  <option value="">All sets</option>
-                  {allSets.map(s => (<option key={s.id} value={s.id}>{s.name} ({(s.questionIds||[]).length})</option>))}
-                </select>
-              </label>
+              <label style={{display:'block', marginBottom:4}}>Choose set</label>
+              <div className="chips">
+                <button type="button" className={`chip ${!setId ? 'accent' : ''}`} onClick={()=>setSetId('')}>All sets</button>
+                {allSets.map(s => (
+                  <button type="button" key={s.id} className={`chip ${String(setId)===String(s.id)?'accent':''}`} onClick={()=>setSetId(s.id)}>
+                    {s.name} ({(s.questionIds||[]).length})
+                  </button>
+                ))}
+              </div>
             </div>
             <div style={{marginTop:8}}>
               <label>Count <input type="number" min="1" value={count} onChange={(e)=>setCount(e.target.value)} /></label>

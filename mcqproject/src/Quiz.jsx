@@ -169,6 +169,7 @@ function Quiz() {
     byIdRef.current = new Map(questions.map(q => [q.id, q]));
     if (mode === 'repeat') {
       let pool = [];
+      let filterMastered = true;
       try {
         const url = new URL(window.location.href);
         const source = url.searchParams.get('source');
@@ -190,15 +191,20 @@ function Quiz() {
           pool = questions.map(q => q.id);
           setRepeatSourceLabel('Entire pool');
         }
-        if (Number.isFinite(countParam) && countParam > 0 && pool.length > countParam) {
-          shuffleArray(pool);
-          pool = pool.slice(0, countParam);
+        if (Number.isFinite(countParam) && countParam > 0) {
+          const stats = JSON.parse(localStorage.getItem('repeatStats') || '{}');
+          const unmastered = pool.filter(id => !(stats[id]?.mastered));
+          const mastered = pool.filter(id => stats[id]?.mastered);
+          shuffleArray(unmastered);
+          shuffleArray(mastered);
+          pool = unmastered.concat(mastered).slice(0, countParam);
+          filterMastered = false; // we intentionally included mastered items if needed
         }
       } catch {
         pool = questions.map(q => q.id);
         setRepeatSourceLabel('Entire pool');
       }
-      const eng = new RepeatEngine(questions, pool);
+      const eng = new RepeatEngine(questions, pool, { filterMastered });
       engineRef.current = eng;
       setRepeatAttempted(0);
       setFinished(false);
