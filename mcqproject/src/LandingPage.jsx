@@ -53,7 +53,7 @@ function LandingPage() {
           <span className="muted">Display, shuffle, partial credit</span>
         </Link>
       </div>
-      {sets?.length>0 && (
+      {(sets?.length>0 || bmCount>0) && (
         <div className="card" style={{marginTop:12,padding:'12px'}}>
           <div className="section-title"><strong>Quick sets</strong><span className="muted">Jump straight into a topic</span></div>
           <div className="chips">
@@ -70,11 +70,21 @@ function LandingPage() {
                 </button>
               );
             })}
+            {bmCount>0 && (
+              <button
+                key="bookmarks"
+                type="button"
+                className={`chip ${selectedSet==='bookmarks'?'accent':''}`}
+                onClick={()=>setSelectedSet(selectedSet==='bookmarks'?null:'bookmarks')}
+              >
+                Bookmarks • {bmCount}
+              </button>
+            )}
           </div>
           {selectedSet && (
             <div className="chips" style={{marginTop:8}}>
               {countOptions
-                .filter(n => n <= (sets.find(x=>x.id===selectedSet)?.questionIds?.length || 0))
+                .filter(n => n <= (selectedSet==='bookmarks' ? bmCount : (sets.find(x=>x.id===selectedSet)?.questionIds?.length || 0)))
                 .map(n => (
                   <button
                     key={n}
