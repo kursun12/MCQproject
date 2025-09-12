@@ -91,10 +91,13 @@ function ImportQuestions() {
     };
   };
 
-  const persistQuestions = (arr) => {
-    setQuestions(arr);
-    localStorage.setItem('questions', JSON.stringify(arr));
-    pruneSets(arr);
+  const persistQuestions = (updater) => {
+    setQuestions((prev) => {
+      const arr = typeof updater === 'function' ? updater(prev) : updater;
+      localStorage.setItem('questions', JSON.stringify(arr));
+      pruneSets(arr);
+      return arr;
+    });
   };
 
   const persistSets = (arr) => {
@@ -122,9 +125,10 @@ function ImportQuestions() {
         const questionsWithIds = parsed.map((q, idx) =>
           normalizeQuestion({ ...q, id: q.id ?? Date.now() + idx })
         );
-        persistQuestions(questionsWithIds);
+        // Append to existing questions instead of replacing
+        persistQuestions((prev) => [...prev, ...questionsWithIds]);
         setError('');
-        toast('Imported questions');
+        toast(`Imported ${questionsWithIds.length} questions`);
       } catch (err) {
         console.error(err);
         setError('Failed to parse JSON file');
@@ -151,7 +155,8 @@ function ImportQuestions() {
       const questionsWithIds = parsed.map((q, idx) =>
         normalizeQuestion({ ...q, id: q.id ?? Date.now() + idx })
       );
-      persistQuestions(questionsWithIds);
+      // Append to existing questions rather than replace
+      persistQuestions((prev) => [...prev, ...questionsWithIds]);
       setPasteError('');
       setShowPaste(false);
       setPasteText('');
