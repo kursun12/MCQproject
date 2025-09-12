@@ -730,7 +730,16 @@ function exportResultsCSV(questions, answers){
 
 function retryIncorrect(questions, answers, setCurrent, setFinished){
   const incorrectIdx = questions.map((q,i)=>{
-    const corr=Array.isArray(q.answers)?q.answers:Array.isArray(q.answer)?q.answer:[q.answer];
+    // Normalize correct answers from various question shapes
+    const corr = Array.isArray(q.correct)
+      ? q.correct
+      : Array.isArray(q.answers)
+      ? q.answers
+      : Array.isArray(q.answer)
+      ? q.answer
+      : Number.isFinite(q.answer)
+      ? [q.answer]
+      : [];
     const sel=new Set(answers[i]||[]); const cor=new Set(corr);
     const ok= sel.size===cor.size && [...cor].every(n=>sel.has(n));
     return ok?null:i;
