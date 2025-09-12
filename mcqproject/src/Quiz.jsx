@@ -109,7 +109,6 @@ function Quiz() {
   const [questions, setQuestions] = useState(() => buildQuestions());
   const engineRef = useRef(null);
   const byIdRef = useRef(new Map());
-  const [repeatTotal, setRepeatTotal] = useState(0);
   const [repeatAttempted, setRepeatAttempted] = useState(0);
   const [repeatSourceLabel, setRepeatSourceLabel] = useState('');
   const [current, setCurrent] = useState(0);
@@ -146,6 +145,9 @@ function Quiz() {
     try { return JSON.parse(localStorage.getItem('notes') || '{}'); } catch { return {}; }
   });
   const audioCtxRef = useRef(null);
+
+  const repeatRemaining = engineRef.current ? engineRef.current.queue.length : 0;
+  const repeatDynamicTotal = repeatAttempted + repeatRemaining;
 
   // Persist initial session skeleton
   useEffect(() => {
@@ -190,7 +192,6 @@ function Quiz() {
       } catch { pool = questions.map(q=>q.id); }
       const eng = new RepeatEngine(questions, pool);
       engineRef.current = eng;
-      setRepeatTotal(eng.queue.length);
       setRepeatAttempted(0);
       const first = eng.next();
       if (first && questions[0]?.id !== first) {
@@ -649,7 +650,7 @@ function Quiz() {
       <div className="progress">
         <div
           className="progress-bar"
-          style={{ width: mode==='repeat' ? `${(repeatAttempted / Math.max(1, repeatTotal)) * 100}%` : `${(current / questions.length) * 100}%` }}
+          style={{ width: mode==='repeat' ? `${(repeatAttempted / Math.max(1, repeatDynamicTotal)) * 100}%` : `${(current / questions.length) * 100}%` }}
         ></div>
       </div>
       <div className="scoreboard">
@@ -658,8 +659,8 @@ function Quiz() {
         <span>Best: {maxStreak}</span>
         {mode==='repeat' && engineRef.current && (
           <>
-            <span>Total: {repeatTotal}</span>
-            <span>Remaining: {engineRef.current.queue.length}</span>
+            <span>Progress: {repeatAttempted}/{repeatDynamicTotal}</span>
+            <span>Remaining: {repeatRemaining}</span>
           </>
         )}
       </div>
@@ -668,7 +669,7 @@ function Quiz() {
       )}
       <div className="muted" style={{marginTop:4}}>
         {mode==='repeat' ? (
-          <>Repeat set: {repeatSourceLabel || 'Custom'}. Progress {repeatAttempted}/{Math.max(1, repeatTotal)}. Cooldown and anti back‑to‑back applied.</>
+          <>Repeat set: {repeatSourceLabel || 'Custom'}. Progress {repeatAttempted}/{Math.max(1, repeatDynamicTotal)}. Cooldown and anti back‑to‑back applied.</>
         ) : (
           <>Feedback: {mode==='test' ? 'Hidden until end' : (feedbackTrigger==='onNext' ? 'Reveal, then Next' : (isMulti ? 'Reveal when all chosen' : 'Reveal on select'))}{instantReveal && mode!=='test' ? ' • Explanation after reveal' : ''}</>
         )}
@@ -677,7 +678,7 @@ function Quiz() {
       {!noQuestions && (
       <h2>
         {mode==='repeat' ? (
-          <>Item {repeatAttempted + 1} of {Math.max(1, repeatTotal)}</>
+          <>Item {repeatAttempted + 1} of {Math.max(1, repeatDynamicTotal)}</>
         ) : (
           <>Question {current + 1} of {questions.length}</>
         )}
