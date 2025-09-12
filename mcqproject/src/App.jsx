@@ -9,6 +9,7 @@ import Review from './Review.jsx';
 import RepeatBuilder from './RepeatBuilder.jsx';
 import Toaster from './components/Toaster.jsx';
 import HelpOverlay from './components/HelpOverlay.jsx';
+import { loadKeymap } from './utils/keymap.js';
 
 function ModeBadge() {
   const location = useLocation();
@@ -39,8 +40,9 @@ function App() {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === '?') setShowHelp(true);
-      if (e.key === 'Escape') setShowHelp(false);
+      const keymap = loadKeymap();
+      if (e.key === keymap.help) setShowHelp(true);
+      if (e.key === keymap.close) setShowHelp(false);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

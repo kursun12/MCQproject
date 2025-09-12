@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from './utils/toast.js';
 import { loadRepeatSettings, saveRepeatSettings } from './repeat/settings';
+import { loadKeymap, saveKeymap, defaultKeymap } from './utils/keymap.js';
 
 function Settings() {
   const [numQuestions, setNumQuestions] = useState(3);
@@ -12,6 +13,7 @@ function Settings() {
   const [testNoChange, setTestNoChange] = useState(() => localStorage.getItem('testNoChange') === 'true');
   const [partialCredit, setPartialCredit] = useState(() => localStorage.getItem('partialCredit') === 'true');
   const [repeatCfg, setRepeatCfg] = useState(() => loadRepeatSettings());
+  const [keymap, setKeymap] = useState(() => loadKeymap());
 
   useEffect(() => {
     localStorage.setItem('shuffleQs', shuffleQs);
@@ -37,6 +39,7 @@ function Settings() {
     localStorage.setItem('testNoChange', testNoChange);
   }, [testNoChange]);
   useEffect(() => { saveRepeatSettings(repeatCfg); }, [repeatCfg]);
+  useEffect(() => { saveKeymap(keymap); }, [keymap]);
 
   const count = (() => {
     try {
@@ -127,8 +130,91 @@ function Settings() {
           <div className="chips" style={{marginTop:8}}>
             <label className="toggle"><input type="checkbox" checked={repeatCfg.strictMultiAnswer} onChange={(e)=>setRepeatCfg({...repeatCfg, strictMultiAnswer:e.target.checked})} /> Strict multi-answer</label>
             <label className="toggle"><input type="checkbox" checked={repeatCfg.partialCreditMode} onChange={(e)=>setRepeatCfg({...repeatCfg, partialCreditMode:e.target.checked})} /> Partial credit</label>
-            <label className="toggle"><input type="checkbox" checked={repeatCfg.autoRevealExplanationOnError} onChange={(e)=>setRepeatCfg({...repeatCfg, autoRevealExplanationOnError:e.target.checked})} /> Auto-show explanation on wrong</label>
+          <label className="toggle"><input type="checkbox" checked={repeatCfg.autoRevealExplanationOnError} onChange={(e)=>setRepeatCfg({...repeatCfg, autoRevealExplanationOnError:e.target.checked})} /> Auto-show explanation on wrong</label>
           </div>
+        </div>
+        <div className="card" style={{padding:'12px'}}>
+          <h3 style={{marginTop:0}}>Keyboard</h3>
+          <p className="muted" style={{marginTop:-6}}>Click a field then press a key.</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
+            {keymap.options.map((k, i) => (
+              <label key={i}>Option {i + 1}
+                <input
+                  type="text"
+                  value={k}
+                  onKeyDown={(e) => {
+                    e.preventDefault();
+                    const opts = [...keymap.options];
+                    opts[i] = e.key;
+                    setKeymap({ ...keymap, options: opts });
+                    toast('Shortcut updated');
+                  }}
+                  onChange={() => {}}
+                />
+              </label>
+            ))}
+            <label>Next
+              <input
+                type="text"
+                value={keymap.next}
+                onKeyDown={(e) => {
+                  e.preventDefault();
+                  setKeymap({ ...keymap, next: e.key });
+                  toast('Shortcut updated');
+                }}
+                onChange={() => {}}
+              />
+            </label>
+            <label>Prev
+              <input
+                type="text"
+                value={keymap.prev}
+                onKeyDown={(e) => {
+                  e.preventDefault();
+                  setKeymap({ ...keymap, prev: e.key });
+                  toast('Shortcut updated');
+                }}
+                onChange={() => {}}
+              />
+            </label>
+            <label>Alt Next
+              <input
+                type="text"
+                value={keymap.nextAlt}
+                onKeyDown={(e) => {
+                  e.preventDefault();
+                  setKeymap({ ...keymap, nextAlt: e.key });
+                  toast('Shortcut updated');
+                }}
+                onChange={() => {}}
+              />
+            </label>
+            <label>Help
+              <input
+                type="text"
+                value={keymap.help}
+                onKeyDown={(e) => {
+                  e.preventDefault();
+                  setKeymap({ ...keymap, help: e.key });
+                  toast('Shortcut updated');
+                }}
+                onChange={() => {}}
+              />
+            </label>
+            <label>Close
+              <input
+                type="text"
+                value={keymap.close}
+                onKeyDown={(e) => {
+                  e.preventDefault();
+                  setKeymap({ ...keymap, close: e.key });
+                  toast('Shortcut updated');
+                }}
+                onChange={() => {}}
+              />
+            </label>
+          </div>
+          <button className="btn-ghost" style={{marginTop:8}} onClick={() => { setKeymap(defaultKeymap); toast('Shortcuts reset'); }}>Reset Defaults</button>
         </div>
       </div>
     </div>

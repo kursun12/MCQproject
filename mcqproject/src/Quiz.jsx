@@ -6,6 +6,7 @@ import { ensureKatex, renderMDKaTeX } from './utils/katex';
 import Hotspot from './components/Hotspot.jsx';
 import defaultQuestions from './questions';
 import { RepeatEngine } from './repeat/engine';
+import { loadKeymap } from './utils/keymap.js';
 
 // Shuffle helpers need to be defined before they're used in buildQuestions.
 // Previously these were declared later in the component which meant enabling
@@ -379,30 +380,31 @@ function Quiz() {
     toast(value ? 'Note saved' : 'Note cleared');
   };
 
-  // Keyboard shortcuts: 1–9 select/toggle, Enter submit/next
+  // Keyboard shortcuts are customizable via Settings
   useEffect(() => {
     const onKey = (e) => {
       if (!question) return;
-      if (['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
-      const num = parseInt(e.key, 10);
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      const keymap = loadKeymap();
       const optsLen = Array.isArray(question.options) ? question.options.length : 0;
-      const order = (Array.isArray(question._order) && question._order.length===optsLen && question._order.every(i => Number.isInteger(i) && i>=0 && i<optsLen))
+      const order = (Array.isArray(question._order) && question._order.length === optsLen && question._order.every(i => Number.isInteger(i) && i >= 0 && i < optsLen))
         ? question._order
         : [...Array(optsLen).keys()];
-      if (num >= 1 && num <= Math.min(9, optsLen)) {
-        const optIdx = order[num - 1];
+      const idx = keymap.options.indexOf(e.key);
+      if (idx !== -1 && idx < optsLen) {
+        const optIdx = order[idx];
         handleOption(optIdx);
-      } else if (e.key === 'Enter') {
+      } else if (e.key === keymap.next) {
         handleNext();
-      } else if (e.key === 'ArrowRight') {
-        if (selected.length>0) handleNext();
-      } else if (e.key === 'ArrowLeft') {
-        if (current>0) { setCurrent(current-1); setSelected([]); }
+      } else if (e.key === keymap.nextAlt) {
+        if (selected.length > 0) handleNext();
+      } else if (e.key === keymap.prev) {
+        if (current > 0) { setCurrent(current - 1); setSelected([]); }
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [question, selected, handleNext]);
+  }, [question, selected, handleNext, current]);
 
   const restart = () => {
     setCurrent(0);
