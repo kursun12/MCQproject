@@ -164,7 +164,7 @@ function Quiz() {
   useEffect(() => {
     if (current >= questions.length) setCurrent(0);
   }, [questions.length]);
-  // Initialize Repeat Engine if needed
+  // Initialize Repeat Engine when session parameters change
   useEffect(() => {
     byIdRef.current = new Map(questions.map(q => [q.id, q]));
     if (mode === 'repeat') {
@@ -174,37 +174,46 @@ function Quiz() {
         const source = url.searchParams.get('source');
         const tagsParam = url.searchParams.get('tags');
         if (source === 'lastWrong') {
-          const sess = JSON.parse(localStorage.getItem('mcqSession')||'{}');
-          const wrongIdx = (sess.results||[]).filter(r=>!r.isCorrect).map(r=>r.index||0);
-          pool = wrongIdx.map(i => (questions[i]||{}).id).filter(Boolean);
+          const sess = JSON.parse(localStorage.getItem('mcqSession') || '{}');
+          const wrongIdx = (sess.results || []).filter(r => !r.isCorrect).map(r => r.index || 0);
+          pool = wrongIdx.map(i => (questions[i] || {}).id).filter(Boolean);
           setRepeatSourceLabel('Last session (wrong)');
         } else if (source === 'everWrong') {
-          const stats = JSON.parse(localStorage.getItem('repeatStats')||'{}');
-          pool = questions.filter(q => (stats[q.id]?.wrong||0) > 0).map(q=>q.id);
+          const stats = JSON.parse(localStorage.getItem('repeatStats') || '{}');
+          pool = questions.filter(q => (stats[q.id]?.wrong || 0) > 0).map(q => q.id);
           setRepeatSourceLabel('All-time wrong');
         } else if (source === 'byTags') {
-          pool = questions.map(q=>q.id);
+          pool = questions.map(q => q.id);
           setRepeatSourceLabel(tagsParam ? `Tags: ${tagsParam}` : 'Selected tags');
         } else {
-          pool = questions.map(q=>q.id);
+          pool = questions.map(q => q.id);
           setRepeatSourceLabel('Entire pool');
         }
-      } catch { pool = questions.map(q=>q.id); }
+      } catch {
+        pool = questions.map(q => q.id);
+        setRepeatSourceLabel('Entire pool');
+      }
       const eng = new RepeatEngine(questions, pool);
       engineRef.current = eng;
       setRepeatAttempted(0);
+      setFinished(false);
       const first = eng.next();
-      if (first && questions[0]?.id !== first) {
+      if (first) {
         const qobj = byIdRef.current.get(first);
         if (qobj) {
           setQuestions([qobj]);
           setCurrent(0);
+          eng.onShow(first);
+        } else {
+          setFinished(true);
         }
+      } else {
+        setFinished(true);
       }
-      if (first) eng.onShow(first);
+    } else {
+      engineRef.current = null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [mode, location.search]);
 
   const question = questions[current];
   const noQuestions = !question;
