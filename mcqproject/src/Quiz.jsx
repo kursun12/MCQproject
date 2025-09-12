@@ -94,7 +94,7 @@ function Quiz() {
       const shuffleQs = localStorage.getItem('shuffleQs') === 'true';
       if (shuffleQs) arr = shuffleCopy(arr);
       const limit = Number.isFinite(countParam) && countParam > 0 ? countParam : null;
-      if (limit) arr = arr.slice(0, limit);
+      if (limit && mode !== 'repeat') arr = arr.slice(0, limit);
     } catch { /* ignore */ }
 
     const shuffleOpts = localStorage.getItem('shuffleOpts') === 'true';
@@ -173,6 +173,7 @@ function Quiz() {
         const url = new URL(window.location.href);
         const source = url.searchParams.get('source');
         const tagsParam = url.searchParams.get('tags');
+        const countParam = parseInt(url.searchParams.get('count'), 10);
         if (source === 'lastWrong') {
           const sess = JSON.parse(localStorage.getItem('mcqSession') || '{}');
           const wrongIdx = (sess.results || []).filter(r => !r.isCorrect).map(r => r.index || 0);
@@ -188,6 +189,10 @@ function Quiz() {
         } else {
           pool = questions.map(q => q.id);
           setRepeatSourceLabel('Entire pool');
+        }
+        if (Number.isFinite(countParam) && countParam > 0 && pool.length > countParam) {
+          shuffleArray(pool);
+          pool = pool.slice(0, countParam);
         }
       } catch {
         pool = questions.map(q => q.id);
