@@ -32,10 +32,10 @@ export function ensureKatex() {
 export function renderMDKaTeX(text = '') {
   let html = String(text)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1<\/strong>')
-             .replace(/\*(.+?)\*/g, '<em>$1<\/em>')
-             .replace(/`([^`]+)`/g, '<code>$1<\/code>')
-             .replace(/\[(.*?)\]\((https?:[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1<\/a>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+             .replace(/\*(.+?)\*/g, '<em>$1</em>')
+             .replace(/`([^`]+)`/g, '<code>$1</code>')
+             .replace(/\[(.*?)\]\((https?:[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
   // KaTeX inline $...$
   const parts = html.split(/\$(.+?)\$/g); // keep content groups
   if (parts.length > 1 && window.katex) {

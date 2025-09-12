@@ -557,6 +557,7 @@ function Quiz() {
         <div className="card" style={{overflow:'auto', marginTop:8, position:'relative'}}>
           <div style={{position:'sticky', top:0, background:'var(--card-bg)', padding:'8px', display:'flex', gap:'8px', zIndex:1, borderBottom:'1px solid var(--border-color)', alignItems:'center', flexWrap:'wrap'}}>
             <button onClick={restart}>Restart</button>
+            <button onClick={retryIncorrect}>Retry Incorrect</button>
             <button onClick={() => { window.location.href = '/review'; }}>Open Review</button>
             <button className="btn-ghost" onClick={() => { exportResultsCSV(questions, answers); toast('Exported results.csv'); }}>Export CSV</button>
             <button className="btn-ghost" onClick={() => exportStateJSON(questions, answers, mode, points)}>Export State</button>

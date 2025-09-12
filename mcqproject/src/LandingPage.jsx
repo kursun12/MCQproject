@@ -44,6 +44,10 @@ function LandingPage() {
           <strong>Review</strong>
           <span className="muted">Browse, search, filter, retry incorrect</span>
         </Link>
+        <Link to="/review?bookmarks=1" className="menu-card">
+          <strong>Bookmarks</strong>
+          <span className="muted">View and manage saved questions</span>
+        </Link>
         <Link to="/import" className="menu-card">
           <strong>Questions</strong>
           <span className="muted">Library • Editor • Sets</span>
