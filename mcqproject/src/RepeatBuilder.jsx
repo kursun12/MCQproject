@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loadRepeatSettings, saveRepeatSettings } from './repeat/settings';
 
@@ -21,7 +21,6 @@ export default function RepeatBuilder() {
     } catch { setAllTags([]); }
   }, []);
 
-  const tagParam = useMemo(()=> encodeURIComponent(tags.join(',')), [tags]);
 
   const start = (e) => {
     e.preventDefault();

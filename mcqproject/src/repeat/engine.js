@@ -97,5 +97,5 @@ export class RepeatEngine {
 function baseStats(){ return { seen:0, wrong:0, correctStreak:0, lastOutcome:null, lastSeenAt:0, mastered:false, leech:false, leechCount:0, window:[] }; }
 
 function loadStats(){ try { return JSON.parse(localStorage.getItem('repeatStats')||'{}'); } catch { return {}; } }
-function saveStats(obj){ try { localStorage.setItem('repeatStats', JSON.stringify(obj)); } catch {} }
+function saveStats(obj){ try { localStorage.setItem('repeatStats', JSON.stringify(obj)); } catch { /* empty */ } }
 

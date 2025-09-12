@@ -24,6 +24,6 @@ export function loadRepeatSettings() {
 }
 
 export function saveRepeatSettings(s) {
-  try { localStorage.setItem('repeatAdaptiveSettings', JSON.stringify(s)); } catch {}
+  try { localStorage.setItem('repeatAdaptiveSettings', JSON.stringify(s)); } catch { /* empty */ }
 }
 

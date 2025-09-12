@@ -268,16 +268,16 @@ function ImportQuestions() {
     try {
       const saved = JSON.parse(localStorage.getItem('draftNewQuestion') || 'null');
       if (saved) setRestoreDraftAvailable(true);
-    } catch {}
+    } catch { /* empty */ }
   }, []);
   useEffect(() => {
-    try { localStorage.setItem('draftNewQuestion', JSON.stringify(newQ)); } catch {}
+    try { localStorage.setItem('draftNewQuestion', JSON.stringify(newQ)); } catch { /* empty */ }
   }, [newQ]);
   const restoreDraft = () => {
     try {
       const saved = JSON.parse(localStorage.getItem('draftNewQuestion') || 'null');
       if (saved) setNewQ(saved);
-    } catch {}
+    } catch { /* empty */ }
   };
 
   // ----- Batch selection helpers (Library) -----

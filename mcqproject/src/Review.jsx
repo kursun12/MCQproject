@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { toast } from './utils/toast.js';
 import { ensureKatex, renderMDKaTeX } from './utils/katex';
 
@@ -7,10 +8,14 @@ function loadSession() {
 }
 
 export default function Review() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const initialBookmarked = params.get('bookmarks') === '1' || params.get('bookmarks') === 'true';
+
   const [session, setSession] = useState(loadSession());
   const [query, setQuery] = useState('');
   const [tag, setTag] = useState('');
-  const [onlyBookmarked, setOnlyBookmarked] = useState(false);
+  const [onlyBookmarked, setOnlyBookmarked] = useState(initialBookmarked);
 
   useEffect(() => {
     const h = () => setSession(loadSession());
@@ -31,7 +36,7 @@ export default function Review() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return allQuestions.filter((it, idx) => {
+    return allQuestions.filter((it) => {
       if (onlyBookmarked && !bookmarks.has(it.id)) return false;
       if (tag && !(it.tags || []).includes(tag)) return false;
       if (!q) return true;
@@ -42,10 +47,33 @@ export default function Review() {
     });
   }, [allQuestions, bookmarks, onlyBookmarked, tag, query]);
 
+  const toggleBookmark = (id) => {
+    setSession((prev) => {
+      const set = new Set(prev.bookmarks || []);
+      if (set.has(id)) set.delete(id);
+      else set.add(id);
+      const updated = { ...prev, bookmarks: [...set] };
+      try {
+        localStorage.setItem('bookmarks', JSON.stringify(updated.bookmarks));
+        localStorage.setItem('mcqSession', JSON.stringify(updated));
+      } catch {
+        /* ignore */
+      }
+      return updated;
+    });
+  };
+
   const retryIncorrect = () => {
-    const ids = (results || []).filter((r) => !r.isCorrect).map((r) => allQuestions[r.index]?.id).filter(Boolean);
-    localStorage.setItem('retryIds', JSON.stringify(ids));
-    toast('Retry Incorrect prepared. Open Practice to start.');
+    const ids = (results || [])
+      .filter((r) => !r.isCorrect)
+      .map((r) => allQuestions[r.index]?.id)
+      .filter(Boolean);
+    if (ids.length === 0) {
+      toast('No incorrect questions to retry.');
+      return;
+    }
+    try { localStorage.setItem('retryIds', JSON.stringify(ids)); } catch { /* ignore */ }
+    window.location.href = `/quiz?mode=${encodeURIComponent(session.mode || 'practice')}`;
   };
 
   const exportCSV = () => {
@@ -67,7 +95,7 @@ export default function Review() {
 
   return (
     <div className="card">
-      <h2>Review</h2>
+      <h2>{onlyBookmarked ? 'Bookmarks' : 'Review'}</h2>
       <div className="toolbar" style={{marginBottom:'8px'}}>
         <input placeholder="Search" value={query} onChange={(e)=>setQuery(e.target.value)} />
         <select value={tag} onChange={(e)=>setTag(e.target.value)}>
@@ -81,7 +109,7 @@ export default function Review() {
         <button className="btn-ghost" onClick={exportJSON}>Export JSON</button>
       </div>
       <ul style={{listStyle:'none',padding:0,margin:0,display:'flex',flexDirection:'column',gap:'10px'}}>
-        {filtered.map((q, i) => {
+        {filtered.map((q) => {
           const idx = allQuestions.findIndex((x) => x.id === q.id);
           const res = results[idx];
           const your = (res?.selected || []).map((n) => q.options[n]).join(', ');
@@ -89,7 +117,17 @@ export default function Review() {
           return (
             <li key={q.id} className={`card ${res?.isCorrect? 'status-correct':'status-incorrect'}`} style={{padding:'12px'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <strong>Q{idx+1}. <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(q.question)}}></span></strong>
+                <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
+                  <strong>Q{idx+1}. <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(q.question)}}></span></strong>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => toggleBookmark(q.id)}
+                    title="Toggle bookmark"
+                  >
+                    {bookmarks.has(q.id) ? '★' : '☆'}
+                  </button>
+                </div>
                 <span className="badge">{(q.tags||[]).join(', ')||'—'}</span>
               </div>
               <div style={{marginTop:'6px'}}>
