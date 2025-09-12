@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { gradePartial, gradeStrict, toPoints } from './utils/scoring';
+import { gradePartial, gradeStrict, gradeLenient, toPoints } from './utils/scoring';
 import { toast } from './utils/toast.js';
 import { ensureKatex, renderMDKaTeX } from './utils/katex';
 import Hotspot from './components/Hotspot.jsx';
@@ -129,6 +129,7 @@ function Quiz() {
   const instantReveal = useMemo(() => localStorage.getItem('instantReveal') === 'true', []);
   const feedbackTrigger = useMemo(() => localStorage.getItem('feedbackTrigger') || 'onNext', []);
   const [revealed, setRevealed] = useState(false);
+  const [forceExplain, setForceExplain] = useState(false);
   const testQuick = useMemo(() => localStorage.getItem('testQuick') === 'true', []);
   const testNoChange = useMemo(() => localStorage.getItem('testNoChange') === 'true', []);
   const [expandedRows, setExpandedRows] = useState({});
@@ -273,7 +274,15 @@ function Quiz() {
       const nextSel = Array.from(set).sort((a, b) => a - b);
       setSelected(nextSel);
       if (feedbackTrigger === 'onSelect' && mode !== 'test') {
-        if (nextSel.length === correct.length) setRevealed(true);
+        if (nextSel.length === correct.length) {
+          if (mode === 'repeat') {
+            const settings = engineRef.current?.settings || {};
+            const strictMode = settings.strictMultiAnswer !== false;
+            const ok = strictMode ? gradeStrict(nextSel, correct) : gradeLenient(nextSel, correct);
+            if (!ok && settings.autoRevealExplanationOnError) setForceExplain(true);
+          }
+          setRevealed(true);
+        }
       }
     } else {
       setSelected([index]);
@@ -282,7 +291,15 @@ function Quiz() {
         setTimeout(() => handleNext(), 10);
         return;
       }
-      if (feedbackTrigger === 'onSelect' && mode !== 'test') setRevealed(true);
+      if (feedbackTrigger === 'onSelect' && mode !== 'test') {
+        if (mode === 'repeat') {
+          const settings = engineRef.current?.settings || {};
+          const strictMode = settings.strictMultiAnswer !== false;
+          const ok = strictMode ? gradeStrict([index], correct) : gradeLenient([index], correct);
+          if (!ok && settings.autoRevealExplanationOnError) setForceExplain(true);
+        }
+        setRevealed(true);
+      }
     }
   };
 
@@ -316,7 +333,17 @@ function Quiz() {
 
   const handleNext = () => {
     if (!selected || selected.length === 0) return;
+    const settings = mode === 'repeat' ? (engineRef.current?.settings || {}) : {};
+    const strictMode = mode === 'repeat' ? settings.strictMultiAnswer !== false : true;
+    const strict = strictMode ? gradeStrict(selected, correct) : gradeLenient(selected, correct);
+    const partialMode = mode === 'repeat'
+      ? !!settings.partialCreditMode
+      : localStorage.getItem('partialCredit') === 'true';
+    const partial = partialMode ? gradePartial(selected, correct) : strict;
     if (!revealed && feedbackTrigger === 'onNext' && mode !== 'test') {
+      if (mode === 'repeat' && strict === 0 && settings.autoRevealExplanationOnError) {
+        setForceExplain(true);
+      }
       setRevealed(true);
       return;
     }
@@ -325,9 +352,6 @@ function Quiz() {
       const dt = Math.max(0, (performance.now() - qStart) / 1000);
       setTimes((t) => [...t, dt]);
     } catch { /* ignore */ }
-    const strict = gradeStrict(selected, correct);
-    const partialMode = localStorage.getItem('partialCredit') === 'true';
-    const partial = partialMode ? gradePartial(selected, correct) : strict;
     if (mode !== 'test') {
       if (strict === 1) {
         setScore(score + 1);
@@ -358,6 +382,7 @@ function Quiz() {
     setAnswers(nextAnswers);
     setSelected([]);
     setRevealed(false);
+    setForceExplain(false);
     if (mode === 'repeat') {
       const eng = engineRef.current;
       if (eng) {
@@ -762,7 +787,7 @@ function Quiz() {
         })()}
       </ul>
       )}
-      {!noQuestions && revealed && instantReveal && mode!=='test' && (
+      {!noQuestions && revealed && mode!=='test' && (instantReveal || forceExplain) && (
         <p className="explanation" dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.explanation||'')}}></p>
       )}
       {!noQuestions && (

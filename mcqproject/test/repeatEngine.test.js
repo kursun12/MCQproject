@@ -4,7 +4,7 @@ import { RepeatEngine } from '../src/repeat/engine.js';
 import { DEFAULT_REPEAT_SETTINGS, saveRepeatSettings } from '../src/repeat/settings.js';
 
 // Minimal localStorage mock for Node environment
-global.localStorage = {
+globalThis.localStorage = {
   _data: {},
   getItem(key) { return this._data[key] || null; },
   setItem(key, val) { this._data[key] = String(val); },
