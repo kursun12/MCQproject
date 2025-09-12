@@ -46,6 +46,6 @@ export function renderMDKaTeX(text = '') {
     }
     html = parts.join('');
   }
-  return html;
+  return html.replace(/\r?\n/g, '<br />');
 }
 
