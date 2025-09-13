@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import Modal from './components/Modal.jsx';
 import { toast } from './utils/toast.js';
+import { generateId } from './utils/id.js';
 
 function ImportQuestions() {
   const location = useLocation();
@@ -34,6 +35,19 @@ function ImportQuestions() {
   const [showPaste, setShowPaste] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [pasteError, setPasteError] = useState('');
+  const questionAssignments = useMemo(() => {
+    const map = new Map();
+    sets.forEach((s) => {
+      (s.questionIds || []).forEach((id) => {
+        if (!map.has(id)) map.set(id, []);
+        map.get(id).push(s.id);
+      });
+    });
+    return map;
+  }, [sets]);
+  const [importBuffer, setImportBuffer] = useState([]);
+  const [importSetIds, setImportSetIds] = useState([]);
+  const [showImportAssign, setShowImportAssign] = useState(false);
 
   const moveItem = (arr, from, to) => {
     const next = [...arr];
@@ -83,7 +97,7 @@ function ImportQuestions() {
       (i) => Number.isInteger(i) && i >= 0 && i < (q.options?.length || 0)
     );
     return {
-      id: q.id ?? Date.now(),
+      id: q.id ?? generateId(),
       question: q.question ?? '',
       options: q.options || [],
       answers: validAnswers,
@@ -124,13 +138,13 @@ function ImportQuestions() {
       try {
         const parsed = JSON.parse(reader.result);
         if (!Array.isArray(parsed)) throw new Error('Invalid format');
-        const questionsWithIds = parsed.map((q, idx) =>
-          normalizeQuestion({ ...q, id: q.id ?? Date.now() + idx })
+        const questionsWithIds = parsed.map((q) =>
+          normalizeQuestion({ ...q, id: q.id ?? generateId() })
         );
-        // Append to existing questions instead of replacing
-        persistQuestions((prev) => [...prev, ...questionsWithIds]);
+        setImportBuffer(questionsWithIds);
+        setImportSetIds([]);
+        setShowImportAssign(true);
         setError('');
-        toast(`Imported ${questionsWithIds.length} questions`);
       } catch (err) {
         console.error(err);
         setError('Failed to parse JSON file');
@@ -163,15 +177,15 @@ function ImportQuestions() {
     try {
       const parsed = JSON.parse(pasteText);
       if (!Array.isArray(parsed)) throw new Error('JSON must be an array of question objects');
-      const questionsWithIds = parsed.map((q, idx) =>
-        normalizeQuestion({ ...q, id: q.id ?? Date.now() + idx })
+      const questionsWithIds = parsed.map((q) =>
+        normalizeQuestion({ ...q, id: q.id ?? generateId() })
       );
-      // Append to existing questions rather than replace
-      persistQuestions((prev) => [...prev, ...questionsWithIds]);
+      setImportBuffer(questionsWithIds);
+      setImportSetIds([]);
+      setShowImportAssign(true);
       setPasteError('');
       setShowPaste(false);
       setPasteText('');
-      toast(`Imported ${questionsWithIds.length} questions`);
     } catch (err) {
       console.error(err);
       setPasteError(err.message || 'Failed to parse JSON');
@@ -201,7 +215,7 @@ function ImportQuestions() {
   };
 
   const addQuestion = () => {
-    const id = Date.now();
+    const id = generateId();
     const q = normalizeQuestion({ ...newQ, id });
     const updated = [...questions, q];
     persistQuestions(updated);
@@ -220,7 +234,7 @@ function ImportQuestions() {
   const addSet = () => {
     const name = newSetName.trim();
     if (!name) return;
-    const id = Date.now();
+    const id = generateId();
     const newSets = [...sets, { id, name, questionIds: [] }];
     persistSets(newSets);
     setNewSetName('');
@@ -259,20 +273,18 @@ function ImportQuestions() {
   const filteredQuestions = useMemo(() => {
     const term = search.trim().toLowerCase();
     return questions.filter((q) => {
-      const isAssigned = sets.some(s => (s.questionIds||[]).includes(q.id));
+      const assignedTo = questionAssignments.get(q.id) || [];
+      const isAssigned = assignedTo.length > 0;
       if (assignFilter === 'assigned' && !isAssigned) return false;
       if (assignFilter === 'unassigned' && isAssigned) return false;
-      if (filterSet) {
-        const s = sets.find((x) => x.id === Number(filterSet));
-        if (!s || !(s.questionIds || []).includes(q.id)) return false;
-      }
+      if (filterSet && !assignedTo.includes(Number(filterSet))) return false;
       if (!term) return true;
       return (
         q.question.toLowerCase().includes(term) ||
-        (q.options||[]).some((o) => String(o).toLowerCase().includes(term))
+        (q.options || []).some((o) => String(o).toLowerCase().includes(term))
       );
     });
-  }, [search, filterSet, questions, sets, assignFilter]);
+  }, [search, filterSet, questions, questionAssignments, assignFilter]);
 
   // ----- Draft autosave for New Question modal -----
   useEffect(() => {
@@ -329,6 +341,36 @@ function ImportQuestions() {
     const opts = newQ.options.filter((_, i) => i !== idx);
     const ans = newQ.answers.filter((i) => i !== idx).map((i) => (i > idx ? i - 1 : i));
     setNewQ({ ...newQ, options: opts, answers: ans });
+  };
+
+  const toggleImportSet = (setId) => {
+    const next = new Set(importSetIds);
+    if (next.has(setId)) next.delete(setId); else next.add(setId);
+    setImportSetIds(Array.from(next));
+  };
+
+  const confirmImport = () => {
+    if (importBuffer.length === 0) return;
+    persistQuestions((prev) => [...prev, ...importBuffer]);
+    if (importSetIds.length > 0) {
+      const updatedSets = sets.map((s) => {
+        if (!importSetIds.includes(s.id)) return s;
+        const current = new Set(s.questionIds || []);
+        importBuffer.forEach((q) => current.add(q.id));
+        return { ...s, questionIds: Array.from(current) };
+      });
+      persistSets(updatedSets);
+    }
+    toast(`Imported ${importBuffer.length} questions`);
+    setImportBuffer([]);
+    setImportSetIds([]);
+    setShowImportAssign(false);
+  };
+
+  const cancelImport = () => {
+    setImportBuffer([]);
+    setImportSetIds([]);
+    setShowImportAssign(false);
   };
 
   return (
@@ -638,6 +680,30 @@ function ImportQuestions() {
           <span className="muted">{pasteText.length} chars</span>
           {pasteError && <span style={{color:'var(--danger)'}}>{pasteError}</span>}
         </div>
+      </Modal>
+
+      <Modal
+        open={showImportAssign}
+        onClose={cancelImport}
+        title="Assign imported questions"
+        footer={[
+          <button key="import" onClick={confirmImport}>Import</button>,
+          <button key="cancel" className="btn-ghost" onClick={cancelImport}>Cancel</button>
+        ]}
+      >
+        <p className="muted" style={{marginTop:0}}>Imported {importBuffer.length} question(s). Assign to set(s) or leave unassigned.</p>
+        {sets.length>0 ? (
+          <div className="chips">
+            {sets.map(s => {
+              const active = importSetIds.includes(s.id);
+              return (
+                <button key={s.id} className={`chip ${active?'accent':''}`} onClick={()=>toggleImportSet(s.id)}>{s.name}</button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="muted">No sets available</p>
+        )}
       </Modal>
     </div>
   );
