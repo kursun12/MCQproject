@@ -351,17 +351,33 @@ function ImportQuestions() {
 
   const confirmImport = () => {
     if (importBuffer.length === 0) return;
+    // Store questions first
     persistQuestions((prev) => [...prev, ...importBuffer]);
+
+    // Assign imported questions to selected set(s)
     if (importSetIds.length > 0) {
-      const updatedSets = sets.map((s) => {
-        if (!importSetIds.includes(s.id)) return s;
-        const current = new Set(s.questionIds || []);
-        importBuffer.forEach((q) => current.add(q.id));
-        return { ...s, questionIds: Array.from(current) };
+      setSets((prev) => {
+        const updated = prev.map((s) => {
+          if (!importSetIds.includes(s.id)) return s;
+          const current = new Set(s.questionIds || []);
+          importBuffer.forEach((q) => current.add(q.id));
+          return { ...s, questionIds: Array.from(current) };
+        });
+        localStorage.setItem('sets', JSON.stringify(updated));
+        return updated;
       });
-      persistSets(updatedSets);
     }
-    toast(`Imported ${importBuffer.length} questions`);
+
+    // Feedback
+    const assignedSets = sets
+      .filter((s) => importSetIds.includes(s.id))
+      .map((s) => s.name)
+      .join(', ');
+    const msg = importSetIds.length > 0
+      ? `Imported ${importBuffer.length} questions into ${assignedSets || 'selected set(s)'}`
+      : `Imported ${importBuffer.length} questions`;
+    toast(msg);
+
     setImportBuffer([]);
     setImportSetIds([]);
     setShowImportAssign(false);
