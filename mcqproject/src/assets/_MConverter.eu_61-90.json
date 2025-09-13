@@ -1,0 +1,364 @@
+[
+{
+  "id": 62,
+  "question": "You have a Microsoft 365 subscription that uses Microsoft Defender XDR.\n\nYou need to implement deception rules. The solution must ensure that you can limit the scope of the rules.\n\nWhat should you create first?",
+  "options": [
+    "device groups",
+    "device tags",
+    "honeytoken entity tags",
+    "sensitive entity tags"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **device tags**. In Microsoft Defender XDR, deception rules (such as honeypots and honeytokens) can be scoped by using device tags. Tags allow you to group devices logically and apply rules only to those tagged devices, ensuring precise targeting and limiting the scope of the rule. \n\n- **Device groups (A):** Used for role-based access control (RBAC) and configuration assignments, not for scoping deception rules.\n- **Device tags (B):** Correct — they let you scope and target deception rules to specific devices.\n- **Honeytoken entity tags (C):** These are used for creating deceptive user accounts or entities, but they require device tags first to define scope.\n- **Sensitive entity tags (D):** Used to mark high-value assets, not to scope deception rules.\n\nReference: [Microsoft Learn – Manage deception rules with device tags](https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/manage-deception-rules)."
+},
+{
+  "id": 63,
+  "question": "You have a Microsoft 365 subscription.\n\nYou have 1,000 Windows devices that have a third-party antivirus product installed and Microsoft Defender Antivirus in passive mode.\n\nAll Windows devices are onboarded to Microsoft Defender for Endpoint.\n\nYou need to ensure that the devices are protected from malicious artifacts that were undetected by the third-party antivirus product.\n\nSolution: You enable Live Response.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **No**. Live Response provides the ability for security teams to run manual investigation and remediation commands on devices, but it is not designed to provide automatic protection against malicious artifacts. \n\nIn this scenario, the right feature to use is **EDR in block mode**, which allows Microsoft Defender for Endpoint to block and remediate threats even when Microsoft Defender Antivirus is running in passive mode alongside a third-party AV. \n\n- **Yes (A):** Incorrect, because enabling Live Response does not continuously protect devices; it only provides manual investigation tools.\n- **No (B):** Correct, because Live Response does not address the stated goal. The required configuration is enabling **EDR in block mode**.\n\nReference: [Microsoft Learn – EDR in block mode](https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/edr-in-block-mode)."
+},
+{
+  "id": 64,
+  "question": "You have a Microsoft 365 E5 subscription.\n\nYou plan to perform cross-domain investigations by using Microsoft 365 Defender.\n\nYou need to create an advanced hunting query to identify devices affected by a malicious email attachment.\n\nHow should you complete the query? To answer, select the appropriate options in the answer area.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "First blank: extend",
+    "First blank: join",
+    "First blank: project",
+    "First blank: union",
+    "Second blank: extend",
+    "Second blank: join",
+    "Second blank: project",
+    "Second blank: union",
+    "Third blank: extend",
+    "Third blank: join",
+    "Third blank: project",
+    "Third blank: union"
+  ],
+  "answer": [1, 6, 10],
+  "explanation": "The correct query joins **EmailAttachmentInfo** with **DeviceFileEvents** on SHA256, and then projects the required fields:\n\n```kql\nEmailAttachmentInfo\n| where SenderFromAddress =~ \"MaliciousSender@example.com\"\n| where isnotempty(SHA256)\n| join DeviceFileEvents on SHA256\n| project Timestamp, FileName, SHA256, DeviceName, DeviceId, NetworkMessageId, SenderFromAddress, RecipientEmailAddress\n```\n\n- First blank = **join** → Used to correlate EmailAttachmentInfo with DeviceFileEvents on SHA256.\n- Second blank = **project** → Selects FileName and SHA256 from DeviceFileEvents.\n- Third blank = **project** → Projects the final set of output fields.\n\nReferences:\n- [Advanced hunting cross-domain queries](https://learn.microsoft.com/en-us/microsoft-365/security/defender/advanced-hunting-cross-domain)\n- [Advanced hunting schema reference](https://learn.microsoft.com/en-us/microsoft-365/security/defender/advanced-hunting-schema-tables)"
+},
+{
+  "id": 65,
+  "question": "You have the following advanced hunting query in Microsoft 365 Defender:\n\nDeviceProcessEvents\n| where Timestamp > ago(24h)\n  and InitiatingProcessFileName =~ \"rundll32.exe\"\n  and InitiatingProcessCommandLine contains \"s\" and InitiatingProcessCommandLine !~ \"\"\n  and FileName in~ (\"schtasks.exe\")\n  and ProcessCommandLine has \"change\" and ProcessCommandLine has \"systemrestore\"\n  and ProcessCommandLine has \"disable\"\n| project Timestamp, AccountName, ProcessCommandLine\n\nYou need to receive an alert when any process disables System Restore on a device managed by Microsoft Defender during the last 24 hours.\n\nWhich two actions should you perform? Each correct answer presents part of the solution.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Create a detection rule.",
+    "Create a suppression rule.",
+    "Add | order by Timestamp to the query.",
+    "Replace DeviceProcessEvents with DeviceNetworkEvents.",
+    "Add DeviceId and ReportId to the output of the query."
+  ],
+  "answer": [0, 4],
+  "explanation": "The correct actions are:\n\n- **A. Create a detection rule** → Advanced hunting queries don’t generate alerts by themselves. To receive an alert when the query condition is met, you must save the query as a detection rule in Microsoft 365 Defender.\n- **E. Add DeviceId and ReportId to the output of the query** → Detection rules require these identifiers to scope actions and correlate results back to devices and incidents. Without them, the rule cannot properly trigger or act on a device.\n\nWhy others are wrong:\n- **B. Create a suppression rule:** This hides alerts rather than generating them, so it doesn’t meet the goal.\n- **C. Add | order by Timestamp:** Sorting may improve readability but doesn’t affect alerting.\n- **D. Replace DeviceProcessEvents with DeviceNetworkEvents:** Wrong table, because this scenario is about disabling System Restore (a process event), not network activity.\n\nReference: [Microsoft Learn – Create custom detection rules in Microsoft 365 Defender](https://learn.microsoft.com/en-us/microsoft-365/security/defender/custom-detection-rules)."
+},
+{
+  "id": 66,
+  "question": "You are investigating a potential attack that deploys a new ransomware strain.\n\nYou have three custom device groups. The groups contain devices that store highly sensitive information.\n\nYou plan to perform automated actions on all devices.\n\nYou need to be able to temporarily group the machines to perform actions on the devices.\n\nWhich three actions should you perform? Each correct answer presents part of the solution.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Assign a tag to the device group.",
+    "Add the device users to the admin role.",
+    "Add a tag to the machines.",
+    "Create a new device group that has a rank of 1.",
+    "Create a new admin role.",
+    "Create a new device group that has a rank of 4."
+  ],
+  "answer": [0, 2, 3],
+  "explanation": "The correct actions are:\n\n- **A. Assign a tag to the device group** → Tags let you categorize and dynamically scope devices.\n- **C. Add a tag to the machines** → You must apply tags to the machines themselves so they can be grouped based on those tags.\n- **D. Create a new device group that has a rank of 1** → Device groups are ranked, and a rank of 1 ensures the new temporary group has the highest priority for applying rules and actions.\n\nWhy the others are wrong:\n- **B. Add the device users to the admin role:** Irrelevant to device grouping; it affects RBAC permissions.\n- **E. Create a new admin role:** Unnecessary; grouping is about devices, not roles.\n- **F. Create a new device group that has a rank of 4:** Too low a priority to override the existing groups; it would not guarantee actions apply as intended.\n\nReference: [Microsoft Learn – Manage device groups in Microsoft Defender](https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/machine-groups)."
+},
+{
+  "id": 67,
+  "question": "You use Azure Security Center.\n\nYou receive a security alert in Security Center.\n\nYou need to view recommendations to resolve the alert in Security Center.\n\nSolution: From Security alerts, you select the alert, select Take Action, and then expand the Prevent future attacks section.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **No**. The 'Take Action' → 'Prevent future attacks' section provides mitigation steps and best practices, but it does not show the official **recommendations** that Security Center (now Microsoft Defender for Cloud) generates. Recommendations are part of the **Recommendations blade** in Defender for Cloud, where security posture management and compliance suggestions are listed. \n\n- **Yes (A):** Incorrect because the proposed steps only show mitigation actions for the alert, not the broader security recommendations.\n- **No (B):** Correct — to see recommendations, you must go to the **Recommendations** page in Defender for Cloud.\n\nReference: [Microsoft Learn – Security alerts in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/security-alerts) and [Recommendations in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/recommendations-reference)."
+},
+{
+  "id": 68,
+  "question": "You use Azure Security Center.\n\nYou receive a security alert in Security Center.\n\nYou need to view recommendations to resolve the alert in Security Center.\n\nSolution: From Regulatory compliance, you download the report.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **No**. The Regulatory compliance dashboard in Microsoft Defender for Cloud (formerly Azure Security Center) provides compliance posture and mapping against standards such as ISO, NIST, or CIS. It does not provide direct recommendations to resolve an individual alert. \n\nTo view recommendations to resolve an alert, you must go to the **Recommendations blade** or view the alert details in **Security alerts**, not Regulatory compliance.\n\n- **Yes (A):** Incorrect, because downloading compliance reports shows compliance status, not alert-specific recommendations.\n- **No (B):** Correct, because the right place to view alert remediation recommendations is in the Security Center alert or recommendations blade.\n\nReference: [Microsoft Learn – Security alerts in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/security-alerts) and [Regulatory compliance in Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/regulatory-compliance-dashboard)."
+},
+{
+  "id": 69,
+  "question": "You use Azure Security Center.\n\nYou receive a security alert in Security Center.\n\nYou need to view recommendations to resolve the alert in Security Center.\n\nSolution: From Security alerts, you select the alert, select Take Action, and then expand the Mitigate the threat section.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 0,
+  "explanation": "The correct answer is **Yes**. In Microsoft Defender for Cloud (formerly Azure Security Center), when you select a security alert and choose **Take Action**, the portal provides detailed remediation steps under the **Mitigate the threat** section. These steps are effectively the recommendations for resolving that alert.\n\n- **Yes (A):** Correct, because the 'Mitigate the threat' section contains the remediation guidance tied to the alert.\n- **No (B):** Incorrect, because mitigation steps are indeed available directly from the alert page.\n\nReference: [Microsoft Learn – Security alerts in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/security-alerts)."
+},
+{
+  "id": 70,
+  "question": "You have an Azure subscription that has Azure Defender enabled for all supported resource types.\n\nYou need to configure the continuous export of high-severity alerts to enable their retrieval from a third-party security information and event management (SIEM) solution.\n\nTo which service should you export the alerts?",
+  "options": [
+    "Azure Cosmos DB",
+    "Azure Event Grid",
+    "Azure Event Hubs",
+    "Azure Data Lake"
+  ],
+  "answer": 2,
+  "explanation": "The correct answer is **Azure Event Hubs**. Microsoft Defender for Cloud supports continuous export of alerts and recommendations to Event Hubs, Log Analytics, or Storage. Event Hubs is the correct option for forwarding alerts to third-party SIEMs because it acts as a real-time data ingestion service that integrates well with SIEM tools.\n\n- **A. Azure Cosmos DB:** Not designed for streaming security alerts.\n- **B. Azure Event Grid:** Used for event-based automation within Azure, not for continuous SIEM integration.\n- **C. Azure Event Hubs:** Correct — recommended for SIEM integration and external log analytics platforms.\n- **D. Azure Data Lake:** Useful for storage and analytics at scale, but not for real-time alert forwarding to SIEMs.\n\nReference: [Microsoft Learn – Stream security alerts to Event Hubs](https://learn.microsoft.com/en-us/azure/defender-for-cloud/continuous-export?tabs=azure-portal#stream-alerts-using-event-hubs)."
+},
+{
+  "id": 71,
+  "question": "You are responsible for responding to Azure Defender for Key Vault alerts.\n\nDuring an investigation of an alert, you discover unauthorized attempts to access a key vault from a Tor exit node.\n\nWhat should you configure to mitigate the threat?",
+  "options": [
+    "Key Vault firewalls and virtual networks",
+    "Azure Active Directory (Azure AD) permissions",
+    "role-based access control (RBAC) for the key vault",
+    "the access policy settings of the key vault"
+  ],
+  "answer": 0,
+  "explanation": "The correct answer is **Key Vault firewalls and virtual networks**. To prevent unauthorized access from malicious sources such as Tor exit nodes, you can configure network restrictions on the Key Vault. This includes limiting access to specific trusted networks and blocking traffic from untrusted IP ranges.\n\n- **A. Key Vault firewalls and virtual networks:** Correct — enables network-level restrictions, mitigating threats from unauthorized IPs or anonymous sources like Tor.\n- **B. Azure AD permissions:** Controls identity-based access, but it does not stop network-based unauthorized attempts.\n- **C. RBAC for the key vault:** Used for managing access at the resource level but cannot block malicious traffic from untrusted networks.\n- **D. Access policy settings:** Define which identities can access keys/secrets but do not block malicious connections at the network layer.\n\nReference: [Microsoft Learn – Configure Azure Key Vault firewalls and virtual networks](https://learn.microsoft.com/en-us/azure/key-vault/general/network-security)."
+},
+{
+  "id": 72,
+  "question": "HOTSPOT -\n\nYou need to use an Azure Resource Manager template to create a workflow automation that will trigger an automatic remediation when specific security alerts are received by Azure Security Center.\n\nHow should you complete the portion of the template that will provision the required Azure resources? To answer, select the appropriate options in the answer area.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Microsoft.Automation",
+    "Microsoft.Logic",
+    "Microsoft.Security"
+  ],
+  "answer": [2, 1],
+  "explanation": "The correct resource types are:\n\n- **First blank → Microsoft.Security** → In the ARM template, the automation resource for Azure Security Center (Defender for Cloud) is defined under the `Microsoft.Security/automations` resource type.\n- **Second blank → Microsoft.Logic** → The workflow action connects to an Azure Logic App, so the correct provider for workflows/triggers is `Microsoft.Logic`.\n\nWhy not the others:\n- **Microsoft.Automation:** This refers to Azure Automation runbooks, not Security Center automations.\n- **Microsoft.Logic:** Correct for Logic Apps, but not for the automation definition itself.\n- **Microsoft.Security:** Correct for Security Center automation resource type.\n\nReference: [Microsoft Learn – Quickstart: Create and manage automation for Azure Security Center alerts](https://docs.microsoft.com/en-us/azure/security-center/quickstart-automation-alert)."
+},
+{
+  "id": 73,
+  "question": "You have an Azure subscription that contains a Log Analytics workspace.\n\nYou need to enable just-in-time (JIT) VM access and network detections for Azure resources.\n\nWhere should you enable Azure Defender?",
+  "options": [
+    "at the subscription level",
+    "at the workspace level",
+    "at the resource level"
+  ],
+  "answer": 0,
+  "explanation": "The correct answer is **at the subscription level**. Features such as just-in-time (JIT) VM access and adaptive network hardening are part of Microsoft Defender for Cloud (formerly Azure Security Center). These capabilities are enabled by turning on **Microsoft Defender plans at the subscription level**.\n\n- **A. at the subscription level:** Correct — Defender for Cloud protections are enabled per subscription, applying to all resources under that subscription.\n- **B. at the workspace level:** Incorrect — workspaces are used for log collection and analysis, not enabling Defender plans.\n- **C. at the resource level:** Incorrect — you cannot enable Defender per resource; it must be at the subscription scope.\n\nReference: [Microsoft Learn – Enable Microsoft Defender for Cloud plans](https://learn.microsoft.com/en-us/azure/defender-for-cloud/enable-enhanced-security)."
+},
+{
+  "id": 74,
+  "question": "You use Azure Defender.\n\nYou have an Azure Storage account that contains sensitive information.\n\nYou need to run a PowerShell script if someone accesses the storage account from a suspicious IP address.\n\nWhich two actions should you perform? Each correct answer presents part of the solution.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "From Azure Security Center, enable workflow automation.",
+    "Create an Azure logic app that has a manual trigger.",
+    "Create an Azure logic app that has an Azure Security Center alert trigger.",
+    "Create an Azure logic app that has an HTTP trigger.",
+    "From Azure Active Directory (Azure AD), add an app registration."
+  ],
+  "answer": [0, 2],
+  "explanation": "The correct actions are:\n\n- **A. From Azure Security Center, enable workflow automation** → Workflow automation allows you to automatically trigger actions in response to alerts generated by Defender for Cloud (formerly Security Center).\n- **C. Create an Azure logic app that has an Azure Security Center alert trigger** → The workflow automation must be linked to a Logic App that is triggered by Security Center alerts. The Logic App can then run the PowerShell script.\n\nWhy the others are wrong:\n- **B. Manual trigger:** Requires user input to start the Logic App, not automatic.\n- **D. HTTP trigger:** Could be used in other automation cases, but not directly tied to Security Center alerts.\n- **E. Azure AD app registration:** Not necessary in this scenario, since automation is handled via Security Center and Logic Apps.\n\nReference: [Microsoft Learn – Automate responses to Microsoft Defender for Cloud alerts](https://learn.microsoft.com/en-us/azure/defender-for-cloud/workflow-automation)."
+},
+{
+  "id": 75,
+  "question": "You manage the security posture of an Azure subscription that contains two virtual machines named vm1 and vm2.\n\nThe secure score in Azure Security Center is shown in the Security Center exhibit.\nAzure Policy assignments are configured as shown in the Policies exhibit.\n\nFor each of the following statements, select Yes if the statement is true. Otherwise, select No.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Both virtual machines have inbound rules that allow access from either Any or Internet ranges. → Yes",
+    "Both virtual machines have inbound rules that allow access from either Any or Internet ranges. → No",
+    "Both virtual machines have management ports exposed directly to the internet. → Yes",
+    "Both virtual machines have management ports exposed directly to the internet. → No",
+    "If you enable just-in-time network access controls on all virtual machines, you will increase the secure score by four point. → Yes",
+    "If you enable just-in-time network access controls on all virtual machines, you will increase the secure score by four point. → No"
+  ],
+  "answer": [0, 2, 5],
+  "explanation": "✔ Statement 1: Yes → Both VMs have unauthorized inbound access (2 of 2 unhealthy).\n✔ Statement 2: Yes → Both VMs expose management ports directly to the internet (2 of 2 unhealthy).\n✘ Statement 3: No → Enabling JIT would increase secure score by +9, not +4.\n\nReferences:\n- https://techcommunity.microsoft.com/t5/azure-security-center/security-control-restrict-unauthorized-network-access-ba-p/1593833\n- https://techcommunity.microsoft.com/t5/azure-security-center/security-control-secure-management-ports-ba-p/1505770"
+},
+{
+  "id": 76,
+  "question": "You are informed of a new common vulnerabilities and exposures (CVE) vulnerability that affects your environment.\n\nYou need to use Microsoft Defender Security Center to request remediation from the team responsible for the affected systems if there is a documented active exploit available.\n\nWhich three actions should you perform in sequence? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.\n\nSelect and Place:",
+  "options": [
+    "From Device Inventory, search for the CVE.",
+    "Open the Threat Protection report.",
+    "From Threat & Vulnerability Management, select Weaknesses, and search for the CVE.",
+    "From Advanced hunting, search for CveId in the DeviceTvmSoftwareInventoryVulnerabilities table.",
+    "Create the remediation request.",
+    "Select Security recommendations."
+  ],
+  "answer": [2, 5, 4],
+  "explanation": "The correct sequence is:\n\n1. **From Threat & Vulnerability Management, select Weaknesses, and search for the CVE** → This is the entry point for finding vulnerabilities in Microsoft Defender Security Center.\n2. **Select Security recommendations** → Recommendations provide actionable insights and remediation options related to the CVE.\n3. **Create the remediation request** → This sends the remediation task to the responsible team for patching or mitigating the vulnerability.\n\nWhy not the others:\n- **From Device Inventory, search for the CVE:** More suited for checking device-level details, not initiating remediation.\n- **Open the Threat Protection report:** Provides reporting, not remediation.\n- **From Advanced hunting...**: Useful for custom detection, but not the workflow for CVE remediation requests.\n\nReference: [Microsoft TechCommunity – Remediate apps using MEM](https://techcommunity.microsoft.com/t5/core-infrastructure-and-security/microsoft-defender-atp-remediate-apps-using-mem/ba-p/1599271)."
+},
+{
+  "id": 77,
+  "question": "You use Azure Security Center.\n\nYou receive a security alert in Security Center.\n\nYou need to view recommendations to resolve the alert in Security Center.\n\nWhat should you do?",
+  "options": [
+    "From Security alerts, select the alert, select Take Action, and then expand the Prevent future attacks section.",
+    "From Security alerts, select Take Action, and then expand the Mitigate the threat section.",
+    "From Regulatory compliance, download the report.",
+    "From Recommendations, download the CSV report."
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **B. From Security alerts, select Take Action, and then expand the Mitigate the threat section**. This section provides actionable recommendations to remediate the specific alert.\n\n- **A. Prevent future attacks section:** Focuses on proactive measures, not resolving the current alert.\n- **B. Mitigate the threat section:** Correct — this provides recommendations for resolving the alert.\n- **C. Regulatory compliance report:** Displays compliance with standards, not alert remediation.\n- **D. Recommendations CSV report:** Exports recommendations but does not provide the immediate remediation guidance.\n\nReference: [Microsoft Learn – Security alerts in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/security-alerts)."
+},
+{
+  "id": 78,
+  "question": "You receive an alert from Azure Defender for Key Vault.\n\nYou discover that the alert is generated from multiple suspicious IP addresses.\n\nYou need to reduce the potential of Key Vault secrets being leaked while you investigate the issue. The solution must be implemented as soon as possible and must minimize the impact on legitimate users.\n\nWhat should you do first?",
+  "options": [
+    "Modify the access control settings for the key vault.",
+    "Enable the Key Vault firewall.",
+    "Create an application security group.",
+    "Modify the access policy for the key vault."
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **Enable the Key Vault firewall**. This immediately restricts access to the Key Vault so that only requests from trusted networks or IP ranges are allowed. This action reduces the potential for secret leakage while still allowing legitimate users (from trusted ranges) to continue accessing it.\n\n- **A. Modify access control settings:** Identity-based control, but does not address the network-level attack vector from suspicious IPs.\n- **B. Enable the Key Vault firewall:** Correct — it’s the fastest way to block untrusted IPs and minimize impact on legitimate users.\n- **C. Create an application security group:** Relevant for network traffic management in virtual networks, not for Key Vault access control.\n- **D. Modify access policies:** Controls what authenticated users can access but doesn’t block malicious IP traffic.\n\nReference: [Microsoft Learn – Configure Azure Key Vault firewalls and virtual networks](https://learn.microsoft.com/en-us/azure/key-vault/general/network-security)."
+},
+{
+  "id": 79,
+  "question": "You have a suppression rule in Azure Security Center for 10 virtual machines that are used for testing. The virtual machines run Windows Server.\n\nYou are troubleshooting an issue on the virtual machines.\n\nIn Security Center, you need to view the alerts generated by the virtual machines during the last five days.\n\nWhat should you do?",
+  "options": [
+    "Change the rule expiration date of the suppression rule.",
+    "Change the state of the suppression rule to Disabled.",
+    "Modify the filter for the Security alerts page.",
+    "View the Windows event logs on the virtual machines."
+  ],
+  "answer": 2,
+  "explanation": "The correct answer is **Modify the filter for the Security alerts page**. Suppression rules in Azure Security Center (now Microsoft Defender for Cloud) hide alerts from view but do not delete them. To review the suppressed alerts, you can change the filter settings on the Security alerts page to include suppressed alerts.\n\n- **A. Change the rule expiration date:** Extends the suppression but does not display past suppressed alerts.\n- **B. Disable the suppression rule:** Prevents future suppression but does not restore visibility of already suppressed alerts.\n- **C. Modify the filter for the Security alerts page:** Correct — this allows you to see suppressed alerts for troubleshooting.\n- **D. View Windows event logs:** Event logs may contain related data, but the question explicitly asks about viewing alerts in Security Center.\n\nReference: [Microsoft Learn – Suppress alerts in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/suppress-alerts)."
+},
+{
+  "id": 80,
+  "question": "You have an Azure Storage account that will be accessed by multiple Azure Function apps during the development of an application.\n\nYou need to hide Azure Defender alerts for the storage account.\n\nWhich entity type and field should you use in a suppression rule? To answer, select the appropriate options in the answer area.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Entity type: IP address",
+    "Entity type: Azure Resource",
+    "Entity type: Host",
+    "Entity type: User account",
+    "Field: Name",
+    "Field: Resource Id",
+    "Field: Address",
+    "Field: Command line"
+  ],
+  "answer": [1, 5],
+  "explanation": "The correct configuration is **Entity type = Azure Resource** and **Field = Resource Id**. Suppression rules in Microsoft Defender for Cloud can be scoped by entity type. Since the alerts are tied to a specific storage account resource, the suppression must be defined at the resource level using the Resource Id.\n\n- **Entity type: Azure Resource** → Correct, because the suppression is applied to the storage account.\n- **Field: Resource Id** → Correct, because it uniquely identifies the storage account resource.\n\nThe other options (IP address, Host, User account, Name, Address, Command line) do not provide the precise scoping required to suppress alerts tied to an Azure Storage account.\n\nReference: [Microsoft TechCommunity – Suppression rules for Azure Security Center alerts](https://techcommunity.microsoft.com/t5/azure-security-center/suppression-rules-for-azure-security-center-alerts-are-now/ba-p/1404920)."
+},
+{
+  "id": 81,
+  "question": "You create an Azure subscription.\n\nYou enable Azure Defender for the subscription.\n\nYou need to use Azure Defender to protect on-premises computers.\n\nWhat should you do on the on-premises computers?",
+  "options": [
+    "Install the Log Analytics agent.",
+    "Install the Dependency agent.",
+    "Configure the Hybrid Runbook Worker role.",
+    "Install the Connected Machine agent."
+  ],
+  "answer": 0,
+  "explanation": "The correct answer is **Install the Log Analytics agent**. To onboard on-premises computers into Azure Defender (Defender for Cloud), the Log Analytics agent (Microsoft Monitoring Agent) is required. This agent collects security data from the machines and sends it to the Log Analytics workspace connected to Defender for Cloud.\n\n- **A. Install the Log Analytics agent:** Correct — required to onboard on-premises servers to Azure Defender.\n- **B. Install the Dependency agent:** Used for Service Map (dependency visualization) but not required for Defender protection.\n- **C. Configure the Hybrid Runbook Worker role:** Related to Azure Automation runbooks, not Defender for Cloud.\n- **D. Install the Connected Machine agent:** Used for Azure Arc onboarding, not Defender for Cloud's default agent onboarding.\n\nReference: [Microsoft Learn – Connect machines to Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/enable-data-collection)."
+},
+{
+  "id": 82,
+  "question": "A security administrator receives email alerts from Azure Defender for activities such as potential malware uploaded to a storage account and potential successful brute force attacks.\n\nThe security administrator does NOT receive email alerts for activities such as antimalware action failed and suspicious network activity. The alerts appear in Azure Security Center.\n\nYou need to ensure that the security administrator receives email alerts for all the activities.\n\nWhat should you configure in the Security Center settings?",
+  "options": [
+    "the severity level of email notifications",
+    "a cloud connector",
+    "the Azure Defender plans",
+    "the integration settings for Threat detection"
+  ],
+  "answer": 0,
+  "explanation": "The correct answer is **the severity level of email notifications**. By default, Microsoft Defender for Cloud (formerly Security Center) only sends email notifications for high-severity alerts. If the administrator wants to also receive notifications for medium- or low-severity alerts (such as 'antimalware action failed' or 'suspicious network activity'), the severity level setting for email notifications must be adjusted.\n\n- **A. the severity level of email notifications:** Correct — widening the scope to include low and medium severity alerts ensures all alerts are emailed.\n- **B. a cloud connector:** Used to connect non-Azure environments (AWS, GCP) to Defender, unrelated to email notification scope.\n- **C. the Azure Defender plans:** Determines what resources are covered (VMs, storage, SQL, etc.), not notification levels.\n- **D. the integration settings for Threat detection:** Refers to exporting alerts to SIEM/SOAR solutions, not email notification settings.\n\nReference: [Microsoft Learn – Configure email notifications for Microsoft Defender for Cloud alerts](https://learn.microsoft.com/en-us/azure/defender-for-cloud/security-alert-email-notifications)."
+},
+{
+  "id": 83,
+  "question": "You have an Azure Functions app that generates thousands of alerts in Azure Security Center each day for normal activity.\n\nYou need to hide the alerts automatically in Security Center.\n\nWhich three actions should you perform in sequence in Security Center? Each correct answer presents part of the solution.\n\nNOTE: Each correct selection is worth one point.\n\nSelect and Place:",
+  "options": [
+    "Select Pricing & settings.",
+    "Select IP as the entity type and specify the IP address.",
+    "Select Azure Resource as the entity type and specify the Resource ID.",
+    "Select Security policy.",
+    "Select Security alerts.",
+    "Select Suppression rules, and then select Create new suppression rule."
+  ],
+  "answer": [4, 5, 2],
+  "explanation": "The correct sequence is:\n\n1. **Select Security alerts** → Start from the Security alerts blade in Defender for Cloud.\n2. **Select Suppression rules, and then select Create new suppression rule** → This is where you define the logic to hide alerts automatically.\n3. **Select Azure Resource as the entity type and specify the Resource ID** → Ensures the suppression is scoped specifically to the Azure Function app resource.\n\nWhy not the others:\n- **Pricing & settings:** Used for enabling Defender plans, not for suppression.\n- **Security policy:** Defines security compliance requirements, not suppression rules.\n- **IP as entity type:** Not applicable here, since alerts are tied to an Azure resource, not an IP.\n\nReference: [Microsoft TechCommunity – Suppression rules for Azure Security Center alerts](https://techcommunity.microsoft.com/t5/azure-security-center/suppression-rules-for-azure-security-center-alerts-are-now/ba-p/1404920)."
+},
+{
+  "id": 84,
+  "question": "You have an Azure subscription.\n\nYou need to delegate permissions to meet the following requirements:\n- Enable and disable Azure Defender.\n- Apply security recommendations to a resource.\n\nThe solution must use the principle of least privilege.\n\nWhich Azure Security Center role should you use for each requirement? To answer, drag the appropriate roles to the correct requirements. Each role may be used once, more than once, or not at all.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Security Admin",
+    "Resource Group Owner",
+    "Subscription Contributor",
+    "Subscription Owner"
+  ],
+  "answer": [0, 1],
+  "explanation": "The correct mapping is:\n\n- **Enable and disable Azure Defender → Security Admin** → The Security Admin role has the minimum required permissions to enable or disable Defender for Cloud without needing full subscription ownership.\n- **Apply security recommendations to a resource → Resource Group Owner** → This role has the necessary rights to apply changes and remediation at the resource group scope.\n\nWhy not the others:\n- **Subscription Contributor:** Provides broader rights but exceeds least privilege.\n- **Subscription Owner:** Full access, but not aligned with least privilege for these tasks.\n\nReference: [Microsoft Learn – Roles and permissions in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/permissions)."
+},
+{
+  "id": 85,
+  "question": "You have an Azure subscription that uses Azure Defender.\n\nYou plan to use Azure Security Center workflow automation to respond to Azure Defender threat alerts.\n\nYou need to create an Azure policy that will perform threat remediation automatically.\n\nWhat should you include in the solution? To answer, select the appropriate options in the answer area.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Set available effects to: Append",
+    "Set available effects to: DeployIfNotExists",
+    "Set available effects to: EnforceRegoPolicy",
+    "To perform remediation use: An Azure Automation runbook that has a webhook",
+    "To perform remediation use: An Azure Logic Apps app that has the trigger set to When an Azure Security Center Alert is created or triggered",
+    "To perform remediation use: An Azure Logic Apps app that has the trigger set to When a response to an Azure Security Center alert is triggered"
+  ],
+  "answer": [1, 4],
+  "explanation": "The correct configuration is:\n\n- **Effect: DeployIfNotExists** → This policy effect ensures that remediation resources (like automation or configuration) are deployed if they don’t already exist. It is the standard effect for Azure Policy remediations.\n- **Remediation: Azure Logic Apps app with Security Center alert trigger** → Workflow automation in Microsoft Defender for Cloud (formerly Security Center) relies on Logic Apps triggered when alerts are created or triggered.\n\nWhy not the others:\n- **Append:** Only appends fields, not suitable for automation.\n- **EnforceRegoPolicy:** Not a valid effect in Azure Policy.\n- **Automation runbook with webhook:** Possible for custom integrations, but the native solution in Defender for Cloud is via Logic Apps.\n- **Logic App with 'response to alert':** Incorrect wording; the correct trigger is 'When an Azure Security Center alert is created or triggered'.\n\nReferences:\n- [Azure Policy effects](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/effects)\n- [Workflow automation in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/security-center/workflow-automation)"
+},
+{
+  "id": 86,
+  "question": "You have Linux virtual machines on Amazon Web Services (AWS).\n\nYou deploy Azure Defender and enable auto-provisioning.\n\nYou need to monitor the virtual machines by using Azure Defender.\n\nSolution: You enable Azure Arc and onboard the virtual machines to Azure Arc.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 0,
+  "explanation": "The correct answer is **Yes**. Azure Arc enables you to onboard non-Azure machines (including AWS and GCP VMs) into Azure. Once onboarded, these machines can be monitored and protected by Microsoft Defender for Cloud (formerly Azure Security Center / Azure Defender). Auto-provisioning ensures that the required agents (Log Analytics agent / Azure Monitor agent) are installed.\n\n- **Yes:** Correct — Azure Arc is the supported way to bring AWS Linux VMs under Defender for Cloud monitoring.\n- **No:** Incorrect, because Azure Arc is exactly the feature that extends Defender to hybrid and multi-cloud environments.\n\nReference: [Microsoft Learn – Connect hybrid machines to Defender for Cloud using Azure Arc](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-machines)."
+},
+{
+  "id": 87,
+  "question": "You have Linux virtual machines on Amazon Web Services (AWS).\n\nYou deploy Azure Defender and enable auto-provisioning.\n\nYou need to monitor the virtual machines by using Azure Defender.\n\nSolution: You manually install the Log Analytics agent on the virtual machines.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **No**. To onboard non-Azure machines such as AWS VMs into Azure Defender (Defender for Cloud), you must first enable **Azure Arc** and onboard the machines to Azure Arc. Installing the Log Analytics agent manually is not sufficient because Defender requires the machine to be Arc-enabled for proper management and security integration.\n\n- **Yes:** Incorrect, because simply installing the Log Analytics agent does not bring AWS VMs into Defender for Cloud monitoring.\n- **No:** Correct, because the required step is enabling Azure Arc and onboarding the machines.\n\nReference: [Microsoft Learn – Connect hybrid machines to Defender for Cloud using Azure Arc](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-machines)."
+},
+{
+  "id": 88,
+  "question": "You have an Azure subscription that has Azure Defender enabled for all supported resource types.\n\nYou create an Azure Logic app named LA1.\n\nYou plan to use LA1 to automatically remediate security risks detected in Azure Security Center.\n\nYou need to test LA1 in Security Center.\n\nWhat should you do? To answer, select the appropriate options in the answer area.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Set the LA1 trigger to: When an Azure Security Center Recommendation is created or triggered",
+    "Set the LA1 trigger to: When an Azure Security Center Alert is created or triggered",
+    "Set the LA1 trigger to: When a response to an Azure Security Center alert is triggered",
+    "Trigger the execution of LA1 from: Recommendations",
+    "Trigger the execution of LA1 from: Workflow automation",
+    "Trigger the execution of LA1 from: Security alerts"
+  ],
+  "answer": [0, 3],
+  "explanation": "The correct configuration is:\n\n- **Set the LA1 trigger to: When an Azure Security Center Recommendation is created or triggered** → Logic Apps can be triggered directly when Security Center (Defender for Cloud) generates a recommendation.\n- **Trigger the execution of LA1 from: Recommendations** → To test remediation workflows tied to recommendations, you trigger from the Recommendations blade in Defender for Cloud.\n\nWhy not the others:\n- **Alert trigger:** Tied to alert handling, not recommendation-based remediation.\n- **Response to alert trigger:** Incorrect wording, not used in Defender integration.\n- **Workflow automation:** This is the overarching feature, but the execution test happens specifically from Recommendations.\n- **Security alerts:** Would test alert-driven workflows, not recommendation remediation.\n\nReference: [Microsoft Learn – Workflow automation in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/security-center/workflow-automation)."
+},
+{
+  "id": 89,
+  "question": "You have five on-premises Linux servers.\n\nYou have an Azure subscription that uses Microsoft Defender for Cloud.\n\nYou need to use Defender for Cloud to protect the Linux servers.\n\nWhat should you install on the servers first?",
+  "options": [
+    "the Dependency agent",
+    "the Log Analytics agent",
+    "the Azure Connected Machine agent",
+    "the Guest Configuration extension"
+  ],
+  "answer": 2,
+  "explanation": "The correct answer is **the Azure Connected Machine agent**. For on-premises or non-Azure servers, Microsoft Defender for Cloud requires onboarding via **Azure Arc**. The Connected Machine agent (Azure Arc agent) establishes the connection between the on-premises machine and Azure Arc. Once connected, Defender for Cloud can provision additional agents like the Log Analytics agent for monitoring.\n\n- **A. Dependency agent:** Used for Service Map, but not sufficient for onboarding.\n- **B. Log Analytics agent:** Needed for telemetry, but it requires Azure Arc onboarding first.\n- **C. Azure Connected Machine agent:** Correct — this is the first step to connect on-premises Linux servers to Azure Arc and enable Defender for Cloud.\n- **D. Guest Configuration extension:** Used for compliance policies, not onboarding for Defender for Cloud.\n\nReference: [Microsoft Learn – Connect hybrid machines to Defender for Cloud using Azure Arc](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-machines)."
+},
+{
+  "id": 90,
+  "question": "You have an Azure subscription. The subscription contains 10 virtual machines that are onboarded to Microsoft Defender for Cloud.\n\nYou need to ensure that when Defender for Cloud detects digital currency mining behavior on a virtual machine, you receive an email notification. The solution must generate a test email.\n\nWhich three actions should you perform in sequence? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.\n\nSelect and Place:",
+  "options": [
+    "From Workflow automation in Defender for Cloud, change the status of the workflow automation.",
+    "From Logic App Designer, run a trigger.",
+    "From Security alerts in Defender for Cloud, view a sample alert.",
+    "From Logic App Designer, create a logic app.",
+    "From Workflow automation in Defender for Cloud, add a workflow automation."
+  ],
+  "answer": [3, 1, 4],
+  "explanation": "The correct sequence is:\n\n1. **From Logic App Designer, create a logic app** → Build the Logic App that will handle the automated workflow (sending email notifications).\n2. **From Logic App Designer, run a trigger** → Define and test the trigger (e.g., when a security alert is created).\n3. **From Workflow automation in Defender for Cloud, add a workflow automation** → Link the Logic App to Defender for Cloud alerts so it runs automatically when alerts are generated.\n\nWhy not the others:\n- **Change workflow automation status:** Only used to enable/disable existing workflows.\n- **View a sample alert:** Useful for testing, but not part of the required sequence to configure automation.\n\nReference: [Microsoft Learn – Workflow automation in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/workflow-automation)."
+}
+
+]

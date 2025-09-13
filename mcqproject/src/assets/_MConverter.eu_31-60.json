@@ -1,0 +1,366 @@
+[
+{
+  "id": 31,
+  "question": "You have an Azure subscription that contains the users shown in the following table:\n- User1: Security administrator\n- User2: Security reader\n- User3: Contributor\n\nYou need to delegate the following tasks:\n1. Enable Microsoft Defender for Servers on virtual machines.\n2. Review security recommendations and enable server vulnerability scans.\n\nThe solution must use the principle of least privilege. Which user should perform each task?",
+  "options": [
+    "Enable Microsoft Defender for Servers on virtual machines: User1; Review security recommendations and enable server vulnerability scans: User1",
+    "Enable Microsoft Defender for Servers on virtual machines: User3; Review security recommendations and enable server vulnerability scans: User1",
+    "Enable Microsoft Defender for Servers on virtual machines: User1; Review security recommendations and enable server vulnerability scans: User3",
+    "Enable Microsoft Defender for Servers on virtual machines: User2; Review security recommendations and enable server vulnerability scans: User3"
+  ],
+  "answer": 2,
+  "explanation": "Enabling Microsoft Defender for Servers on VMs requires security administrator privileges at the subscription level, which User1 has. Reviewing security recommendations and enabling vulnerability assessments requires contributor or higher privileges. User3 (Contributor) can apply security recommendations and enable vulnerability scanning, whereas User2 (Security Reader) only has read-only access. Therefore, the correct mapping is User1 for enabling Defender for Servers and User3 for reviewing recommendations and enabling scans. Reference: Microsoft Learn – 'Permissions in Microsoft Defender for Cloud' (https://learn.microsoft.com/en-us/azure/defender-for-cloud/permissions)."
+},
+{
+  "id": 32,
+  "question": "HOTSPOT – You have a Microsoft 365 E5 subscription. You need to create a hunting query that will return every email that contains an attachment named Document.pdf. The query must meet the following requirements:\n- Only show emails sent during the last hour.\n- Optimize query performance.\n\nHow should you complete the query?",
+  "options": [
+    "EmailAttachmentInfo | join DeviceFileEvents on SHA256 | where Timestamp > ago(1h) | where Subject == \"Document Attachment\" and FileName == \"Document.pdf\"",
+    "EmailAttachmentInfo | join kind=inner (DeviceFileEvents | where Timestamp > ago(1h)) on SHA256 | where Timestamp > ago(1h) | where FileName == \"Document.pdf\"",
+    "EmailAttachmentInfo | join kind=inner (DeviceFileEvents | where Timestamp > ago(1h)) on SHA256 | where FileName == \"Document.pdf\"",
+    "EmailAttachmentInfo | join DeviceFileEvents on SHA256 | where FileName == \"Document.pdf\" | where Timestamp > ago(1h)"
+  ],
+  "answer": 2,
+  "explanation": "The correct approach is to filter as early as possible to optimize query performance. Using 'join kind=inner (DeviceFileEvents | where Timestamp > ago(1h)) on SHA256' ensures that only DeviceFileEvents from the last hour are joined with EmailAttachmentInfo, reducing unnecessary data. Then filtering on FileName == 'Document.pdf' narrows the results further. Placing the time filter outside the join or joining without filtering first would process more rows and hurt performance. Reference: Microsoft Learn – 'Advanced hunting query best practices' (https://learn.microsoft.com/en-us/microsoft-365/security/defender/advanced-hunting-best-practices)."
+},
+{
+  "id": 33,
+  "question": "Your company has an on-premises network that uses Microsoft Defender for Identity. The Microsoft Secure Score for the company includes a security assessment associated with unsecure Kerberos delegation. You need to remediate the security risk. What should you do?",
+  "options": [
+    "Disable legacy protocols on the computers listed as exposed entities.",
+    "Enforce LDAP signing on the computers listed as exposed entities.",
+    "Modify the properties of the computer objects listed as exposed entities.",
+    "Install the Local Administrator Password Solution (LAPS) extension on the computers listed as exposed entities."
+  ],
+  "answer": 2,
+  "explanation": "The correct action is to modify the properties of the computer objects listed as exposed entities to remediate the risk of unsecure Kerberos delegation. Unconstrained Kerberos delegation allows a compromised account or computer to impersonate users and access resources across the domain. Mitigation involves reconfiguring the delegation settings on the affected computer objects in Active Directory. LDAP signing (B) addresses LDAP channel binding, not Kerberos delegation. Disabling legacy protocols (A) and deploying LAPS (D) improve security but do not directly mitigate unconstrained Kerberos delegation. Reference: Microsoft Learn – 'Unsecure Kerberos delegation' in Defender for Identity security assessments (https://learn.microsoft.com/en-us/defender-for-identity/security-assessment-unsecure-kerberos-delegation)."
+},
+{
+  "id": 34,
+  "question": "Your company uses line-of-business apps that contain Microsoft Office VBA macros. You need to prevent users from downloading and running additional payloads from the Office VBA macros as additional child processes. Which two commands can you run to achieve the goal? Each correct answer presents a complete solution.",
+  "options": [
+    "Add-MpPreference -AttackSurfaceReductionRules_Ids D4F940AB-401B-4EFC-AADC-AD5F3C50688A -AttackSurfaceReductionRules_Actions Enabled",
+    "Set-MpPreference -AttackSurfaceReductionRules_Ids D4F940AB-401B-4EFC-AADC-AD5F3C50688A -AttackSurfaceReductionRules_Actions AuditMode",
+    "Add-MpPreference -AttackSurfaceReductionRules_Ids D4F940AB-401B-4EFC-AADC-AD5F3C50688A -AttackSurfaceReductionRules_Actions AuditMode",
+    "Set-MpPreference -AttackSurfaceReductionRules_Ids D4F940AB-401B-4EFC-AADC-AD5F3C50688A -AttackSurfaceReductionRules_Actions Enabled"
+  ],
+  "answer": [0, 3],
+  "explanation": "The correct commands are the ones that enable the attack surface reduction (ASR) rule that blocks Office applications from creating child processes, which prevents VBA macros from launching additional payloads. The GUID D4F940AB-401B-4EFC-AADC-AD5F3C50688A corresponds to the ASR rule 'Block all Office applications from creating child processes.' Using 'Enabled' enforces the rule, while 'AuditMode' only logs events without enforcement. Therefore, A (Add-MpPreference with Enabled) and D (Set-MpPreference with Enabled) are correct. References: Microsoft Learn – 'Attack surface reduction rules' (https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/attack-surface-reduction)."
+},
+{
+  "id": 35,
+  "question": "You have a Microsoft 365 subscription that uses Microsoft 365 Defender. A remediation action for an automated investigation quarantines a file across multiple devices. You need to mark the file as safe and remove the file from quarantine on the devices. What should you use in the Microsoft 365 Defender portal?",
+  "options": [
+    "From the History tab in the Action center, revert the actions.",
+    "From the investigation page, review the AIR processes.",
+    "From Quarantine from the Review page, modify the rules.",
+    "From Threat tracker, review the queries."
+  ],
+  "answer": 0,
+  "explanation": "When an automated investigation and response (AIR) in Microsoft 365 Defender quarantines a file, the correct way to mark the file as safe and restore it is through the Action center. The History tab allows security administrators to review and revert remediation actions taken by AIR, effectively unquarantining the file. Reviewing AIR processes (B) provides details but does not revert actions. Quarantine in the Review page (C) is used for email quarantine in Defender for Office 365, not device file quarantine. Threat tracker (D) provides insights on active campaigns but does not manage remediation actions. Reference: Microsoft Learn – 'Use the Action center in Microsoft 365 Defender' (https://learn.microsoft.com/en-us/microsoft-365/security/defender/action-center)."
+},
+{
+  "id": 36,
+  "question": "You have a Microsoft 365 E5 subscription that uses Microsoft 365 Defender. You need to review new attack techniques discovered by Microsoft and identify vulnerable resources in the subscription. The solution must minimize administrative effort. Which blade should you use in the Microsoft 365 Defender portal?",
+  "options": [
+    "Advanced hunting",
+    "Threat analytics",
+    "Incidents & alerts",
+    "Learning hub"
+  ],
+  "answer": 1,
+  "explanation": "The correct option is 'Threat analytics'. The Threat analytics blade in Microsoft 365 Defender provides intelligence on emerging threats, vulnerabilities, and attack techniques observed by Microsoft. It also shows the impact on your environment by identifying exposed or at-risk resources, helping prioritize remediation with minimal administrative overhead. 'Advanced hunting' is used for custom KQL investigations, not for curated threat intelligence. 'Incidents & alerts' show current alerts but not proactive intelligence on new attack techniques. 'Learning hub' is for training resources, not threat detection. Reference: Microsoft Learn – 'Threat analytics in Microsoft 365 Defender' (https://learn.microsoft.com/en-us/microsoft-365/security/defender/threat-analytics)."
+},
+{
+  "id": 38,
+  "question": "HOTSPOT – You have a Microsoft 365 E5 subscription that uses Microsoft Defender 365. Your network contains an on-premises Active Directory Domain Services (AD DS) domain that syncs with Azure AD. You need to identify the 100 most recent sign-in attempts recorded on devices and AD DS domain controllers. How should you complete the KQL query?",
+  "options": [
+    "Use DeviceLogonEvents and IdentityLogonEvents with 'union', take 100, order by Timestamp",
+    "Use DeviceLogonEvents and IdentityLogonEvents with 'join kind=inner', take 100, order by Timestamp",
+    "Use DeviceLogonEvents and IdentityLogonEvents with 'join kind=full outer', take 100, order by Timestamp",
+    "Use DeviceLogonEvents and IdentityQueryEvents with 'union', take 100, order by Timestamp"
+  ],
+  "answer": 0,
+  "explanation": "The correct solution is to use DeviceLogonEvents and IdentityLogonEvents with 'union'. DeviceLogonEvents covers device logon activity, while IdentityLogonEvents covers AD DS domain controller sign-ins. Combining both with 'union' provides a consolidated view of sign-in attempts. 'join' would attempt to match rows, which is not appropriate here since events from different sources may not align by keys. Taking 100 ensures only the most recent 100 events are returned, and ordering by Timestamp ensures chronological accuracy. Reference: Microsoft Learn – 'Advanced hunting table reference for Microsoft 365 Defender' (https://learn.microsoft.com/en-us/microsoft-365/security/defender/advanced-hunting-schema-tables)."
+},
+{
+  "id": 39,
+  "question": "HOTSPOT – You have a Microsoft 365 E5 subscription that uses Microsoft Defender 365. Your network contains an on-premises Active Directory Domain Services (AD DS) domain that syncs with Azure AD. You need to identify LDAP requests by AD DS users to enumerate AD DS objects. How should you complete the KQL query?",
+  "options": [
+    "IdentityDirectoryEvents | where contains(AccountSid)",
+    "IdentityDirectoryEvents | where has(AccountSid)",
+    "IdentityQueryEvents | where isnotempty(AccountSid)",
+    "IdentityInfo | where has(AccountSid)"
+  ],
+  "answer": 2,
+  "explanation": "The correct solution is to query the IdentityQueryEvents table with 'isnotempty(AccountSid)'. The IdentityQueryEvents table contains LDAP queries and related activity. Filtering on non-empty AccountSid values allows you to identify user-based LDAP enumeration requests. IdentityDirectoryEvents logs directory changes, not queries. IdentityInfo provides account properties, not LDAP requests. 'contains' or 'has' are string operators, but AccountSid requires checking for existence. Reference: Microsoft Learn – 'Advanced hunting schema: IdentityQueryEvents' (https://learn.microsoft.com/en-us/microsoft-365/security/defender/advanced-hunting-identityqueryevents-table)."
+},
+{
+  "id": 40,
+  "question": "You have a Microsoft 365 E5 subscription that uses Microsoft Defender 365. You need to ensure that you can investigate threats by using data in the unified audit log of Microsoft Defender for Cloud Apps. What should you configure first?",
+  "options": [
+    "The User enrichment settings",
+    "The Azure connector",
+    "The Office 365 connector",
+    "The Automatic log upload settings"
+  ],
+  "answer": 2,
+  "explanation": "To use the unified audit log in Microsoft Defender for Cloud Apps (formerly Microsoft Cloud App Security), you must first configure the Office 365 connector. This connector enables the ingestion of audit logs from Microsoft 365 services such as Exchange Online, SharePoint Online, and Teams into Defender for Cloud Apps. The Azure connector brings in Azure activity logs, not unified audit logs. User enrichment settings are additional context settings but not required to collect audit data. Automatic log upload applies to third-party apps, not Office 365. Reference: Microsoft Learn – 'Connect Office 365 to Microsoft Defender for Cloud Apps' (https://learn.microsoft.com/en-us/defender-cloud-apps/connect-office-365-to-microsoft-cloud-app-security)."
+},
+{
+  "id": 41,
+  "question": "You have a custom detection rule that runs the provided KQL and returns columns including RecipientEmailAddress, DeviceId, and SHA256. For each statement below, decide if the custom detection rule could automatically perform the described action based on the returned column. Which option is correct?\n\nStatements:\n1) Automate deletion of email messages from a user's mailbox based on RecipientEmailAddress.\n2) Automatically restrict app execution based on DeviceId.\n3) Automate deletion of a file based on the SHA256 value.",
+  "options": [
+    "Only statement 1 is true",
+    "Only statement 2 is true",
+    "Only statement 3 is true",
+    "Statements 1 and 2 are true",
+    "Statements 1 and 3 are true",
+    "Statements 2 and 3 are true",
+    "All three statements are true",
+    "None of the statements are true"
+  ],
+  "answer": 1,
+  "explanation": "Only statement 2 is true. In Microsoft 365 Defender custom detection rules, supported response actions include **device-level actions** such as **Restrict app execution**, **Isolate device**, or **Run AV scan** when you have the **DeviceId** — so (2) is feasible. Email purge actions target specific **messages** (e.g., Move to Deleted items/Soft delete/Hard delete) and require message identifiers like **NetworkMessageId**, not just a recipient address — so (1) is not supported. File deletion is not a supported custom-detection action; while you can create an indicator or take device actions, you cannot directly delete a file by **SHA256** from a custom detection — so (3) is not supported."
+},
+{
+  "id": 42,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Servers Plan 1 and contains a server named Server1. You enable agentless scanning. You need to prevent Server1 from being scanned. The solution must minimize administrative effort. What should you do?",
+  "options": [
+    "Create an exclusion tag.",
+    "Upgrade the subscription to Defender for Servers Plan 2.",
+    "Create a governance rule.",
+    "Create an exclusion group."
+  ],
+  "answer": 0,
+  "explanation": "The correct option is 'Create an exclusion tag.' Once agentless scanning is enabled, you can exclude specific machines by applying exclusion tags in Defender for Cloud. This minimizes administrative effort because tags are simple key-value pairs that can be reused and managed centrally. Upgrading to Plan 2 (Option B) is unnecessary if agentless scanning is already enabled. Governance rules (Option C) and exclusion groups (Option D) are not used to exempt machines from agentless scanning. Reference: Microsoft Learn – 'Exclude machines from agentless scanning' (https://learn.microsoft.com/en-us/azure/defender-for-cloud/enable-agentless-scanning-vms#exclude-machines-from-scanning) ."
+},
+{
+  "id": 43,
+  "question": "You need to configure Microsoft Defender for Cloud Apps to generate alerts and trigger remediation actions in response to external sharing of confidential files. Which two actions should you perform in the Microsoft 365 Defender portal? Each correct answer presents part of the solution.",
+  "options": [
+    "From Settings, select Information Protection, select Azure Information Protection, and then select Only scan files for Azure Information Protection classification labels and content inspection warnings from this tenant.",
+    "From Cloud apps, select Files, and then filter File Type to Document. From Settings, select Information Protection, select Files, and then enable file monitoring.",
+    "From Cloud apps, select Files, and then filter App to Office 365.",
+    "From Cloud apps, select Files, and then select New policy from search.",
+    "From Settings, select Information Protection, select Azure Information Protection, and then select Automatically scan new files for Azure Information Protection classification labels and content inspection warnings."
+  ],
+  "answer": [1, 4],
+  "explanation": "The correct configuration steps are: (1) From Settings, select Information Protection → Files → enable file monitoring, and (2) From Settings, select Information Protection → Azure Information Protection → Automatically scan new files. File monitoring ensures file inspection is ongoing, while automatic scanning for classification labels detects confidential files and triggers alerts. Option A limits scanning, which reduces visibility. Options C and D allow investigation or ad hoc policy creation but do not enable proactive alerting and remediation. Reference: Microsoft Learn – 'File policies in Microsoft Defender for Cloud Apps' (https://learn.microsoft.com/en-us/defender-cloud-apps/governance-actions)."
+},
+{
+  "id": 44,
+  "question": "HOTSPOT – Your network contains an on-premises Active Directory Domain Services (AD DS) domain that syncs with Azure AD. You have a Microsoft 365 E5 subscription that uses Microsoft Defender 365. You need to identify all the interactive authentication attempts by users in the finance department. How should you complete the KQL query?\n\n<choose the source table, then the table to join on AccountObjectId>",
+  "options": [
+    "Source: IdentityInfo; Join: SignInLogs",
+    "Source: IdentityInfo; Join: IdentityLogonEvents",
+    "Source: BehaviorAnalytics; Join: SignInLogs",
+    "Source: IdentityQueryEvents; Join: SignInLogs"
+  ],
+  "answer": 0,
+  "explanation": "Use **IdentityInfo** to filter users by department (Department == \"Finance\") and project AccountObjectId. Interactive sign-ins are recorded in **SignInLogs** (Azure AD sign-ins). Join on **AccountObjectId** to list interactive authentication attempts for those users. IdentityLogonEvents covers device/AD DS logons, not Azure AD interactive sign-ins; the other source tables don’t expose the Department attribute needed for filtering."
+},
+{
+  "id": 45,
+  "question": "Your company uses Microsoft Defender for Endpoint.\n\nThe company has Microsoft Word documents that contain macros. The documents are used frequently on the devices of the company's accounting team.\n\nYou need to hide false positive in the Alerts queue, while maintaining the existing security posture.\n\nWhich three actions should you perform? Each correct answer presents part of the solution.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Resolve the alert automatically.",
+    "Hide the alert.",
+    "Create a suppression rule scoped to any device.",
+    "Create a suppression rule scoped to a device group.",
+    "Generate the alert."
+  ],
+  "answer": [1, 3, 4],
+  "explanation": "Hide the current false-positive alert (B), and create a suppression rule scoped to the accounting team’s device group (D) so future, similar alerts on those devices are suppressed without impacting the rest of the environment. Keep the alert generation (E) so detections still occur but are suppressed for the specified scope—maintaining overall security posture. Broadly suppressing across \"any device\" (C) would reduce visibility, and auto-resolving (A) doesn’t hide the alert in the queue. References: Microsoft Learn – Manage alerts in Microsoft 365 Defender and suppression rules (manage alerts & create suppression rules; scope by device group; choose hide vs resolve)."
+},
+{
+  "id": 46,
+  "question": "You have a Microsoft 365 E5 subscription that uses Microsoft Defender for Endpoint.\n\nYou need to identify any devices that triggered a malware alert and collect evidence related to the alert. The solution must ensure that you can use the results to initiate device isolation for the affected devices.\n\nWhat should you use in the Microsoft 365 Defender portal?",
+  "options": [
+    "Incidents",
+    "Remediation",
+    "Investigations",
+    "Advanced hunting"
+  ],
+  "answer": 0,
+  "explanation": "In Microsoft 365 Defender, Incidents aggregate related alerts across devices, users, and mailboxes. From an incident, you can see which devices triggered alerts, collect evidence, and take response actions such as isolating a device. Advanced hunting is for querying telemetry but does not directly allow isolation. Investigations are automated evidence gathering, and Remediation is for applying fixes. Correct answer: Incidents."
+},
+{
+  "id": 47,
+  "question": "You have a Microsoft 365 E5 subscription that uses Microsoft Purview and contains a user named User1.\n\nUser1 shares a Microsoft Power BI report file from the Microsoft OneDrive folder of your company to an external user by using Microsoft Teams.\n\nYou need to identify which Power BI report file was shared.\n\nHow should you configure the search? To answer, select the appropriate options in the answer area.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Activities: Copied file",
+    "Activities: Downloaded files to computer",
+    "Activities: Share file, folder, or site",
+    "Activities: Shared Power BI report",
+    "Record type: MicrosoftTeams",
+    "Record type: OneDrive",
+    "Record type: PowerBiAudit",
+    "Record type: Shared Power BI report",
+    "Workload: MicrosoftTeams",
+    "Workload: OneDrive",
+    "Workload: PowerBi",
+    "Workload: SharePoint"
+  ],
+  "answer": [
+    2,
+    5,
+    8
+  ],
+  "explanation": "To track the external sharing of a Power BI report stored in OneDrive but shared via Teams, the correct configuration is: Activity = 'Share file, folder, or site'; Record type = 'OneDrive'; Workload = 'MicrosoftTeams'."
+},
+{
+  "id": 49,
+  "question": "You have a Microsoft 365 subscription that uses Microsoft Purview and Microsoft Teams.\n\nYou have a team named Team1 that has a project named Project1.\n\nYou need to identify any Project1 files that were stored on the team site of Team1 between February 1, 2023, and February 10, 2023.\n\nWhich KQL query should you run?",
+  "options": [
+    "(cc)(Project1)(date=(2023-02-01)..(2023-02-10))",
+    "AuditLogs | where Timestamp between (datetime(2023-02-01)..datetime(2023-02-10)) | where FileName contains \"Project1\"",
+    "Project1(cc)(date=2023-02-01..2023-02-10)",
+    "AuditLogs | where Timestamp > ago(10d) | where FileName contains \"Project1\""
+  ],
+  "answer": 2,
+  "explanation": "Use Microsoft Search KQL for Purview Content search scoped to the Team1 SharePoint site (Teams files are stored in the connected SharePoint site). A date range in KQL uses the '..' operator (e.g., date=2023-02-01..2023-02-10). Options B and D use Kusto queries against AuditLogs (audit searches actions, not documents), which is not appropriate for locating files on a SharePoint/Teams site. Therefore the correct choice is the KQL form with the date range and keyword 'Project1'. (Refs: KQL syntax for SharePoint search and date ranges; Teams files stored in SharePoint sites.)"
+},
+{
+  "id": 50,
+  "question": "You have a Microsoft 365 E5 subscription that uses Microsoft Defender for Endpoint.\n\nYou need to create a query that will link the AlertInfo, AlertEvidence, and DeviceLogonEvents tables. The solution must return all the rows in the tables.\n\nWhich operator should you use?",
+  "options": [
+    "search *",
+    "union kind = inner",
+    "join kind = inner",
+    "evaluate hint.remote ="
+  ],
+  "answer": 1,
+  "explanation": "To combine multiple tables and return all rows, you use the 'union' operator. 'union kind=inner' combines rows from multiple tables. 'join' correlates rows based on matching keys and does not return all rows, only matches. 'search *' performs a keyword search but does not combine tables. 'evaluate hint.remote' is used for remote queries. Therefore, the correct operator here is 'union kind=inner'."
+},
+{
+  "id": 51,
+  "question": "You have a Microsoft 365 E5 subscription that contains 100 Windows 10 devices.\n\nYou onboard the devices to Microsoft Defender 365.\n\nYou need to ensure that you can initiate remote shell connections to the onboarded devices from the Microsoft 365 Defender portal.\n\nWhat should you do first?",
+  "options": [
+    "Modify the permissions for Microsoft 365 Defender.",
+    "Create a device group.",
+    "From Advanced features in the Endpoints settings of the Microsoft 365 Defender portal, enable automated investigation.",
+    "Configure role-based access control (RBAC)."
+  ],
+  "answer": 3,
+  "explanation": "To use Microsoft Defender for Endpoint's 'Live Response' (remote shell sessions), you must first configure RBAC in the Microsoft 365 Defender portal. This ensures that the right roles (such as Security Operations) have permission to initiate remote response actions. The shown answer (C) is incorrect because enabling automated investigation does not enable remote shell. Device groups are relevant for scoping policies but not a prerequisite for initiating a shell. Permissions (A) is too vague, while RBAC (D) is the explicit required step.\n\nReference: https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/live-response?view=o365-worldwide"
+},
+{
+  "id": 52,
+  "question": "HOTSPOT -\n\nYou have a Microsoft 365 E5 subscription that uses Microsoft Defender for Endpoint.\n\nYou need to create a detection rule that meets the following requirements:\n• Is triggered when a device that has critical software vulnerabilities was active during the last hour\n• Limits the number of duplicate results\n\nHow should you complete the KQL query? To answer, select the appropriate options in the answer area.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "First blank: distinct CveId",
+    "First blank: distinct DeviceId",
+    "First blank: project-away CveId",
+    "First blank: project-keep DeviceId",
+    "Second blank: distinct DeviceId",
+    "Second blank: distinct DeviceId, ReportId",
+    "Second blank: project Timestamp, DeviceId, ReportId",
+    "Second blank: summarize count() by DeviceId, ReportId"
+  ],
+  "answer": [1, 6],
+  "explanation": "Start from DeviceTvmSoftwareVulnerabilities and filter to Critical. To avoid duplicate rows per device, select **distinct DeviceId** before joining to DeviceInfo. Join to DeviceInfo on DeviceId and filter **Timestamp between (now(-1h)..now())** to ensure the device was active in the last hour. Finally, **project Timestamp, DeviceId, ReportId** to output minimal fields suited for the alert and deduplication."
+},
+{
+  "id": 53,
+  "question": "HOTSPOT -\n\nYou have a Microsoft 365 E5 subscription that uses Microsoft Teams.\n\nYou need to perform a content search of Teams chats for a user by using the Microsoft Purview compliance portal. The solution must minimize the scope of the search.\n\nHow should you configure the content search? To answer, select the appropriate options in the answer area.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Locations: Exchange mailboxes",
+    "Locations: Exchange public folders",
+    "Locations: SharePoint sites",
+    "Keywords: Category",
+    "Keywords: ItemClass",
+    "Keywords: Kind"
+  ],
+  "answer": [
+    0,
+    5
+  ],
+  "explanation": "Teams chat messages are stored in the users’ Exchange Online mailboxes, so the correct location is 'Exchange mailboxes'. To minimize scope, you filter with the 'Kind' keyword, which allows you to restrict results specifically to instant messages (Teams chats). Using Exchange public folders or SharePoint sites would return unrelated data, and Category/ItemClass are not precise filters for Teams chat.\n\nReference: https://learn.microsoft.com/en-us/microsoft-365/compliance/ediscovery-teams-content?view=o365-worldwide"
+},
+{
+  "id": 54,
+  "question": "You have a Microsoft 365 E5 subscription that contains 100 Linux devices. The devices are onboarded to Microsoft Defender 365.\n\nYou need to initiate the collection of investigation packages from the devices by using the Microsoft 365 Defender portal.\n\nWhich response action should you use?",
+  "options": [
+    "Run antivirus scan",
+    "Initiate Automated Investigation",
+    "Collect investigation package",
+    "Initiate Live Response Session"
+  ],
+  "answer": 2,
+  "explanation": "The 'Collect investigation package' action in Microsoft 365 Defender gathers a package of forensic data from a device (such as running processes, network connections, registry info, persistence mechanisms, etc.). This action is available for both Windows and Linux onboarded devices and is specifically designed for evidence collection. Running an antivirus scan (A) detects/removes malware but does not collect investigation data. Automated Investigation (B) analyzes alerts and remediates threats but is not equivalent to gathering a full investigation package. Live Response Session (D) gives an interactive shell to run commands but requires manual actions, not a prebuilt investigation package.\n\nReference: https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/respond-machine-alerts#collect-investigation-package"
+},
+{
+  "id": 55,
+  "question": "You need to configure Microsoft Defender for Cloud Apps to generate alerts and trigger remediation actions in response to external sharing of confidential files.\n\nWhich two actions should you perform in the Microsoft 365 Defender portal? Each correct answer presents part of the solution.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "A. From Settings, select Cloud App, select Microsoft Information Protection, and then select Only scan files for Microsoft Information Protection sensitivity labels and content inspection warnings from this tenant.",
+    "B. From Cloud apps, select Files, and then filter File Type to Document.",
+    "C. From Settings, select Cloud App, select Microsoft Information Protection, select Files, and then enable file monitoring.",
+    "D. From Cloud apps, select Files, and then filter App to Office 365.",
+    "E. From Cloud apps, select Files, and then select New policy from search.",
+    "F. From Settings, select Cloud App, select Microsoft Information Protection, and then select Automatically scan new files for Microsoft Information Protection sensitivity labels and content inspection warnings."
+  ],
+  "answer": [2, 5],
+  "explanation": "To detect and respond to external sharing of confidential files in Microsoft Defender for Cloud Apps, you must: (1) enable file monitoring under Microsoft Information Protection settings (C), and (2) configure automatic scanning of new files for sensitivity labels and inspection (F). Filtering by file type or app (B, D) does not generate alerts or remediation actions. Option A limits scanning and would miss new files. Option E allows you to create a custom policy, but the requirement is to configure sensitivity label scanning and monitoring, which is covered by C and F.\n\nReference: https://learn.microsoft.com/en-us/defender-cloud-apps/information-protection"
+},
+{
+  "id": 56,
+  "question": "DRAG DROP -\n\nYou open the Cloud App Security portal as shown in the exhibit.\n\nYour environment does NOT have Microsoft Defender for Endpoint enabled.\n\nYou need to remediate the risk for the Launchpad app.\n\nWhich four actions should you perform in sequence? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.\n\nSelect and Place:",
+  "options": [
+    "Tag the app as Unsanctioned.",
+    "Run the script on the source appliance.",
+    "Run the script in Azure Cloud Shell.",
+    "Select the app.",
+    "Tag the app as Sanctioned.",
+    "Generate a block script."
+  ],
+  "answer": [3, 0, 5, 1],
+  "explanation": "Step 1: Select the app. Step 2: Tag the app as Unsanctioned. Step 3: Generate a block script. Step 4: Run the script on the source appliance. This is the correct remediation flow when Defender for Endpoint is not enabled.\n\nReference: https://learn.microsoft.com/en-us/cloud-app-security/governance-discovery"
+},
+{
+  "id": 57,
+  "question": "You have a Microsoft 365 subscription that uses Microsoft Purview.\n\nYour company has a project named Project1.\n\nYou need to identify all the email messages that have the word Project1 in the subject line. The solution must search only the mailboxes of users that worked on Project1.\n\nWhat should you do?",
+  "options": [
+    "Perform a user data search.",
+    "Create a records management disposition.",
+    "Perform an audit search.",
+    "Perform a content search."
+  ],
+  "answer": 3,
+  "explanation": "The correct action is to perform a Content Search in the Microsoft Purview compliance portal. Content Search allows you to query email messages, documents, and other data across specified user mailboxes or locations. This supports filtering by subject line and scoping to only the mailboxes of relevant users. A user data search (A) is not an option in Purview. Records management disposition (B) is for lifecycle management of records, not for querying messages. An audit search (C) tracks activities and operations but cannot be used to search email content.\n\nReference: https://learn.microsoft.com/en-us/microsoft-365/compliance/content-search?view=o365-worldwide"
+},
+{
+  "id": 58,
+  "question": "You have a Microsoft 365 subscription that uses Microsoft Defender XDR.\n\nYou discover that when Microsoft Defender for Endpoint generates alerts for a commonly used executable file, it causes alert fatigue.\n\nYou need to tune the alerts.\n\nWhich two actions can an alert tuning rule perform for the alerts? Each correct answer presents a complete solution.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "delete",
+    "hide",
+    "resolve",
+    "merge",
+    "assign"
+  ],
+  "answer": [1, 2],
+  "explanation": "In Microsoft Defender XDR, alert tuning rules can help reduce alert fatigue by applying actions to alerts that match specific criteria. Supported actions include 'Hide' (suppresses the alert from showing in the portal) and 'Resolve' (marks the alert as resolved automatically). 'Delete' is not available, as alerts cannot be deleted. 'Merge' is not a supported tuning action, and 'Assign' is for manual handling of alerts by analysts, not for automatic tuning.\n\nReference: https://learn.microsoft.com/en-us/microsoft-365/security/defender-xdr/alerts-tuning-rules"
+},
+{
+  "id": 59,
+  "question": "You have a Microsoft 365 subscription.\n\nYou have 1,000 Windows devices that have a third-party antivirus product installed and Microsoft Defender Antivirus in passive mode.\n\nYou need to ensure that the devices are protected from malicious artifacts that were undetected by the third-party antivirus product.\n\nSolution: You configure endpoint detection and response (EDR) in block mode.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 0,
+  "explanation": "Yes. Configuring EDR in block mode allows Microsoft Defender for Endpoint to block and remediate threats even if Microsoft Defender Antivirus is in passive mode. This ensures protection against artifacts that a third-party antivirus may miss. Without EDR in block mode, Defender Antivirus in passive mode will only detect but not remediate threats.\n\nReference: https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/edr-in-block-mode"
+},
+{
+  "id": 60,
+  "question": "You have a Microsoft 365 subscription.\n\nYou have 1,000 Windows devices that have a third-party antivirus product installed and Microsoft Defender Antivirus in passive mode.\n\nYou need to ensure that the devices are protected from malicious artifacts that were undetected by the third-party antivirus product.\n\nSolution: You configure Controlled folder access.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 1,
+  "explanation": "No. Controlled folder access is a ransomware mitigation feature that restricts which applications can access protected folders. It does not provide protection against malicious artifacts undetected by third-party antivirus. The correct feature for this scenario is EDR in block mode, which allows Microsoft Defender for Endpoint to block threats even when Defender Antivirus is in passive mode.\n\nReference: https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/edr-in-block-mode"
+}
+]
