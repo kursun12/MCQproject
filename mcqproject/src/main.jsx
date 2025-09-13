@@ -39,5 +39,8 @@ createRoot(document.getElementById('root')).render(
 )
 // PWA: basic service worker registration (production only)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+  window.addEventListener('load', () => {
+    const swUrl = `/sw.js?ts=${Date.now()}`;
+    navigator.serviceWorker.register(swUrl);
+  });
 }
