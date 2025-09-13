@@ -48,6 +48,8 @@ function ImportQuestions() {
   const [importBuffer, setImportBuffer] = useState([]);
   const [importSetIds, setImportSetIds] = useState([]);
   const [showImportAssign, setShowImportAssign] = useState(false);
+  const [serverSets, setServerSets] = useState([]);
+  const [selectedServerSet, setSelectedServerSet] = useState('');
 
   const moveItem = (arr, from, to) => {
     const next = [...arr];
@@ -82,6 +84,15 @@ function ImportQuestions() {
     } catch {
       setSets([]);
     }
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/questionsets')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setServerSets(data);
+      })
+      .catch(() => {});
   }, []);
 
   const normalizeQuestion = (q) => {
@@ -169,6 +180,23 @@ function ImportQuestions() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const importFromServer = async () => {
+    if (showImportAssign || !selectedServerSet) return;
+    try {
+      const res = await fetch(`/api/questionsets/${selectedServerSet}`);
+      const parsed = await res.json();
+      if (!Array.isArray(parsed)) throw new Error('Invalid format');
+      const prepared = prepareImport(parsed);
+      setImportBuffer(prepared);
+      setImportSetIds([]);
+      setShowImportAssign(true);
+      setError('');
+    } catch (err) {
+      console.error(err);
+      setError('Failed to import from server');
+    }
   };
 
   const startEdit = (q) => {
@@ -424,6 +452,15 @@ function ImportQuestions() {
             <button className="btn-outline" onClick={() => document.querySelector('#fileJson').click()}>📁 Import JSON</button>
             <input id="fileJson" type="file" accept=".json" onChange={handleFile} style={{display:'none'}} />
             <button className="btn-outline" onClick={()=>{ setShowPaste(true); setPasteError(''); }}>📋 Paste JSON</button>
+            {serverSets.length>0 && (
+              <>
+                <select value={selectedServerSet} onChange={(e)=>setSelectedServerSet(e.target.value)}>
+                  <option value="">Select set</option>
+                  {serverSets.map((s)=>(<option key={s} value={s}>{s}</option>))}
+                </select>
+                <button className="btn-outline" onClick={importFromServer} disabled={!selectedServerSet}>🌐 Import</button>
+              </>
+            )}
             <input type="search" placeholder="Search questions" value={search} onChange={(e)=>setSearch(e.target.value)} />
             {sets.length>0 && (
               <select value={filterSet} onChange={(e)=>setFilterSet(e.target.value)}>
