@@ -242,3 +242,29 @@ body.dark .card table tbody tr:nth-child(odd){ background: rgba(255,255,255,.04)
 
 /* Tabs active underline */
 .tabs .tab.active{ box-shadow: inset 0 -2px 0 var(--accent-color); }
+
+/* Settings page adjustments */
+.settings label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.settings label.toggle {
+  flex-direction: row;
+}
+
+.keymap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 900px){
+  .keymap-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px){
+  .keymap-grid { grid-template-columns: 1fr; }
+}
