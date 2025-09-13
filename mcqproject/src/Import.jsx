@@ -107,6 +107,25 @@ function ImportQuestions() {
     };
   };
 
+  const ensureUniqueIds = (arr) => {
+    const seen = new Set(questions.map((q) => String(q.id)));
+    const unique = [];
+    arr.forEach((item) => {
+      let id = item.id;
+      while (!id || seen.has(String(id))) {
+        id = generateId();
+      }
+      seen.add(String(id));
+      unique.push({ ...item, id });
+    });
+    return unique;
+  };
+
+  const prepareImport = (arr) =>
+    ensureUniqueIds(
+      arr.map((q) => normalizeQuestion({ ...q, id: q.id ?? generateId() }))
+    );
+
   const persistQuestions = (updater) => {
     setQuestions((prev) => {
       const arr = typeof updater === 'function' ? updater(prev) : updater;
@@ -131,6 +150,7 @@ function ImportQuestions() {
   };
 
   const handleFile = (e) => {
+    if (showImportAssign) return;
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
@@ -138,10 +158,8 @@ function ImportQuestions() {
       try {
         const parsed = JSON.parse(reader.result);
         if (!Array.isArray(parsed)) throw new Error('Invalid format');
-        const questionsWithIds = parsed.map((q) =>
-          normalizeQuestion({ ...q, id: q.id ?? generateId() })
-        );
-        setImportBuffer(questionsWithIds);
+        const prepared = prepareImport(parsed);
+        setImportBuffer(prepared);
         setImportSetIds([]);
         setShowImportAssign(true);
         setError('');
@@ -174,13 +192,13 @@ function ImportQuestions() {
   }, [location.search, questions, editingId]);
 
   const importFromText = () => {
+    if (showImportAssign) return;
     try {
       const parsed = JSON.parse(pasteText);
-      if (!Array.isArray(parsed)) throw new Error('JSON must be an array of question objects');
-      const questionsWithIds = parsed.map((q) =>
-        normalizeQuestion({ ...q, id: q.id ?? generateId() })
-      );
-      setImportBuffer(questionsWithIds);
+      if (!Array.isArray(parsed))
+        throw new Error('JSON must be an array of question objects');
+      const prepared = prepareImport(parsed);
+      setImportBuffer(prepared);
       setImportSetIds([]);
       setShowImportAssign(true);
       setPasteError('');
@@ -351,8 +369,10 @@ function ImportQuestions() {
 
   const confirmImport = () => {
     if (importBuffer.length === 0) return;
+    const uniqueBuffer = ensureUniqueIds(importBuffer);
+
     // Store questions first
-    persistQuestions((prev) => [...prev, ...importBuffer]);
+    persistQuestions((prev) => [...prev, ...uniqueBuffer]);
 
     // Assign imported questions to selected set(s)
     if (importSetIds.length > 0) {
@@ -360,7 +380,7 @@ function ImportQuestions() {
         const updated = prev.map((s) => {
           if (!importSetIds.includes(s.id)) return s;
           const current = new Set(s.questionIds || []);
-          importBuffer.forEach((q) => current.add(q.id));
+          uniqueBuffer.forEach((q) => current.add(q.id));
           return { ...s, questionIds: Array.from(current) };
         });
         localStorage.setItem('sets', JSON.stringify(updated));
@@ -374,8 +394,8 @@ function ImportQuestions() {
       .map((s) => s.name)
       .join(', ');
     const msg = importSetIds.length > 0
-      ? `Imported ${importBuffer.length} questions into ${assignedSets || 'selected set(s)'}`
-      : `Imported ${importBuffer.length} questions`;
+      ? `Imported ${uniqueBuffer.length} questions into '${assignedSets || 'selected set(s)'}'`
+      : `Imported ${uniqueBuffer.length} questions (Unassigned)`;
     toast(msg);
 
     setImportBuffer([]);
