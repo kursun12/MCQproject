@@ -139,8 +139,15 @@ textarea { min-height: 90px; resize: vertical; }
 .toggle input[type="checkbox"]:checked::after { transform: translateX(18px); }
 
 /* Grids */
-.grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-.grid-3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:12px; }
+.grid-2 { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+.grid-3 { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; }
+@media (max-width: 900px){
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px){
+  .grid-2 { grid-template-columns: 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+}
 
 /* Tabs */
 .tabs { display:flex; gap:6px; border-bottom:1px solid var(--border-color); margin-bottom:10px; }

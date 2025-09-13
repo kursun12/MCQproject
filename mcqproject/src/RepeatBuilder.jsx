@@ -103,8 +103,8 @@ export default function RepeatBuilder() {
             </div>
           </div>
         </div>
-        <div style={{display:'flex',gap:8,marginTop:12}}>
-          <button type="submit">Start Repeat</button>
+        <div style={{display:'flex',flexWrap:'wrap',gap:8,marginTop:12}}>
+          <button type="submit" style={{flex:1,minWidth:140}}>Start Repeat</button>
         </div>
       </form>
     </div>
