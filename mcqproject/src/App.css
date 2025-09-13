@@ -243,3 +243,25 @@ body.dark .nav {
   border-radius: 4px;
   background: rgba(255, 215, 0, 0.2);
 }
+
+/* Mobile tweaks for navigation and layout */
+@media (max-width: 600px) {
+  .app {
+    padding: 0.75rem;
+  }
+  .nav {
+    grid-template-columns: 1fr;
+    row-gap: 0.5rem;
+  }
+  .nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .mode-and-progress {
+    justify-content: center;
+  }
+  .top-progress {
+    width: 100%;
+  }
+}
