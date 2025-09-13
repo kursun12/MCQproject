@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { gradePartial, gradeStrict, gradeLenient, toPoints } from './utils/scoring';
 import { toast } from './utils/toast.js';
 import { ensureKatex, renderMDKaTeX } from './utils/katex';
@@ -23,8 +23,113 @@ function shuffleArray(arr) {
 function shuffleCopy(arr) {
   return shuffleArray([...arr]);
 }
+function QuizSetup({ mode }) {
+  const navigate = useNavigate();
+  const [selectedSet, setSelectedSet] = useState(null);
+  const countOptions = [10, 20, 25, 30];
+  let sets = [];
+  let qCount = 0;
+  let bmCount = 0;
+  try {
+    qCount = JSON.parse(localStorage.getItem('questions') || '[]').length;
+  } catch {
+    /* ignore */
+  }
+  try {
+    sets = JSON.parse(localStorage.getItem('sets') || '[]');
+  } catch {
+    /* ignore */
+  }
+  try {
+    bmCount = JSON.parse(localStorage.getItem('bookmarks') || '[]').length;
+  } catch {
+    /* ignore */
+  }
+  const availableCount =
+    selectedSet === 'all'
+      ? qCount
+      : selectedSet === 'bookmarks'
+      ? bmCount
+      : (sets.find((s) => String(s.id) === String(selectedSet))?.questionIds?.length || 0);
+  return (
+    <div>
+      <div className="card" style={{ padding: '12px' }}>
+        <h2 style={{ marginTop: 0 }}>Choose set</h2>
+        <div className="chips">
+          <button
+            type="button"
+            className={`chip ${selectedSet === 'all' ? 'accent' : ''}`}
+            onClick={() => setSelectedSet(selectedSet === 'all' ? null : 'all')}
+          >
+            All • {qCount}
+          </button>
+          {sets.map((s) => {
+            const count = (s.questionIds || []).length;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                className={`chip ${selectedSet === String(s.id) ? 'accent' : ''}`}
+                onClick={() =>
+                  setSelectedSet(selectedSet === String(s.id) ? null : String(s.id))
+                }
+              >
+                {s.name} • {count}
+              </button>
+            );
+          })}
+          {bmCount > 0 && (
+            <button
+              type="button"
+              className={`chip ${selectedSet === 'bookmarks' ? 'accent' : ''}`}
+              onClick={() =>
+                setSelectedSet(selectedSet === 'bookmarks' ? null : 'bookmarks')
+              }
+            >
+              Bookmarks • {bmCount}
+            </button>
+          )}
+        </div>
+        {selectedSet && (
+          <div className="chips" style={{ marginTop: 8 }}>
+            {countOptions
+              .filter((n) => n <= availableCount)
+              .map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className="chip"
+                  onClick={() => {
+                    const sp = new URLSearchParams();
+                    sp.set('mode', mode);
+                    sp.set('setId', selectedSet);
+                    sp.set('count', n);
+                    navigate(`/quiz?${sp.toString()}`);
+                  }}
+                >
+                  {n}
+                </button>
+              ))}
+            <button
+              type="button"
+              className="chip"
+              onClick={() => {
+                const sp = new URLSearchParams();
+                sp.set('mode', mode);
+                sp.set('setId', selectedSet);
+                navigate(`/quiz?${sp.toString()}`);
+              }}
+            >
+              All
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
-function Quiz() {
+function QuizMain() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const mode = params.get('mode') || 'practice'; // practice | test | challenge
@@ -69,7 +174,7 @@ function Quiz() {
           const idSet = new Set(bm);
           arr = arr.filter((q) => idSet.has(q.id));
         } catch { /* ignore */ }
-      } else if (setId) {
+      } else if (setId && setId !== 'all') {
         try {
           const setsLS = JSON.parse(localStorage.getItem('sets') || '[]');
           const s = setsLS.find((x) => String(x.id) === String(setId));
@@ -837,6 +942,17 @@ function Quiz() {
       )}
     </div>
   );
+}
+
+function Quiz() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const mode = params.get('mode') || 'practice';
+  const setParam = params.get('setId');
+  if (!setParam) {
+    return <QuizSetup mode={mode} />;
+  }
+  return <QuizMain />;
 }
 
 export default Quiz;
