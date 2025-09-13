@@ -18,6 +18,13 @@ export default function Review() {
   const [onlyBookmarked, setOnlyBookmarked] = useState(initialBookmarked);
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setOnlyBookmarked(
+      params.get('bookmarks') === '1' || params.get('bookmarks') === 'true'
+    );
+  }, [location.search]);
+
+  useEffect(() => {
     const h = () => setSession(loadSession());
     window.addEventListener('storage', h);
     return () => window.removeEventListener('storage', h);
