@@ -171,13 +171,18 @@ th.sortable.desc:after{content:'\25BE'}
   aside#sidebar{order:2}
 }
 @media (max-width:600px){
-  header{grid-template-columns:1fr auto;padding:8px 12px;}
-  .shell-right{flex-wrap:wrap;gap:4px;}
+  header{grid-template-columns:1fr;padding:8px 12px;row-gap:8px;}
+  .shell-right{flex-wrap:wrap;gap:4px;width:100%;justify-content:flex-start;}
+  main{padding:12px;}
   .drawer{width:100%;right:-100%;}
   .drawer.open{right:0;}
   .modal .box{width:90%;max-width:none;}
   .btn,.icon-btn,input,select{padding:10px 14px;}
   footer{flex-direction:column;align-items:stretch;}
+}
+@media (max-width:480px){
+  header h1{font-size:16px;}
+  .badge{font-size:10px;padding:2px 6px;}
 }
 @media (prefers-reduced-motion: reduce){
   *{transition:none!important}
