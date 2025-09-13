@@ -20,7 +20,13 @@
   #controls{margin-top:15px;display:flex;gap:10px;}
   #result{text-align:center;}
   .hidden{display:none;}
-  @media(max-width:600px){body{padding:10px;}}
+  @media(max-width:600px){
+    body{padding:10px;}
+    #controls{flex-direction:column;width:100%;}
+    #controls button{width:100%;}
+    .option{padding:12px;}
+    #fileInput{margin-bottom:12px;width:100%;}
+  }
 </style>
 </head>
 <body>
