@@ -170,6 +170,15 @@ th.sortable.desc:after{content:'\25BE'}
   main{grid-template-columns:1fr}
   aside#sidebar{order:2}
 }
+@media (max-width:600px){
+  header{grid-template-columns:1fr auto;padding:8px 12px;}
+  .shell-right{flex-wrap:wrap;gap:4px;}
+  .drawer{width:100%;right:-100%;}
+  .drawer.open{right:0;}
+  .modal .box{width:90%;max-width:none;}
+  .btn,.icon-btn,input,select{padding:10px 14px;}
+  footer{flex-direction:column;align-items:stretch;}
+}
 @media (prefers-reduced-motion: reduce){
   *{transition:none!important}
 }
