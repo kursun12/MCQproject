@@ -126,7 +126,7 @@ export default function Review() {
       return;
     }
     try { localStorage.setItem('retryIds', JSON.stringify(ids)); } catch { /* ignore */ }
-    window.location.href = `quiz?mode=${encodeURIComponent(session.mode || 'practice')}`;
+    window.location.href = `/quiz?mode=${encodeURIComponent(session.mode || 'practice')}`;
   };
 
   const exportCSV = () => {
