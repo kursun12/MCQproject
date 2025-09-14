@@ -664,7 +664,7 @@ function QuizMain() {
   };
 
   const retryIncorrect = () => {
-    const subset = questions.filter((q, i) => {
+    const ids = questions.reduce((acc, q, i) => {
       const corr = Array.isArray(q.correct)
         ? q.correct
         : Array.isArray(q.answers)
@@ -675,15 +675,18 @@ function QuizMain() {
         ? [q.answer]
         : [];
       const sel = Array.isArray(answers[i]) ? answers[i] : [];
-      const ok =
-        sel.length === corr.length && corr.every((n) => sel.includes(n));
-      return !ok;
-    });
-    if (subset.length === 0) {
+      const ok = sel.length === corr.length && corr.every((n) => sel.includes(n));
+      if (!ok) acc.push(q.id);
+      return acc;
+    }, []);
+    if (ids.length === 0) {
       alert('No incorrect answers to retry.');
       return;
     }
-    restart(subset);
+    try { localStorage.setItem('retryIds', JSON.stringify(ids)); } catch {
+      /* ignore */
+    }
+    window.location.href = `/quiz?mode=${encodeURIComponent(mode)}`;
   };
 
   // Auto-finish convenience: if feedback is onSelect and on last question, grade shortly after reveal

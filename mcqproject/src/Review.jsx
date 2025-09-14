@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { toast } from './utils/toast.js';
 import { ensureKatex, renderMDKaTeX } from './utils/katex';
+import defaultQuestions from './questions';
 
 function loadSession() {
   try { return JSON.parse(localStorage.getItem('mcqSession') || '{}'); } catch { return {}; }
@@ -16,6 +17,13 @@ export default function Review() {
   const [query, setQuery] = useState('');
   const [tag, setTag] = useState('');
   const [onlyBookmarked, setOnlyBookmarked] = useState(initialBookmarked);
+  const [bookmarks, setBookmarks] = useState(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]'));
+    } catch {
+      return new Set();
+    }
+  });
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -25,14 +33,35 @@ export default function Review() {
   }, [location.search]);
 
   useEffect(() => {
-    const h = () => setSession(loadSession());
+    const h = () => {
+      setSession(loadSession());
+      try {
+        setBookmarks(new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]')));
+      } catch {
+        /* ignore */
+      }
+    };
     window.addEventListener('storage', h);
     return () => window.removeEventListener('storage', h);
   }, []);
   useEffect(() => { ensureKatex(); }, []);
 
-  const allQuestions = session.questions || [];
-  const bookmarks = new Set(session.bookmarks || []);
+  const allQuestions = useMemo(() => {
+    if (onlyBookmarked) {
+      let dataset = defaultQuestions;
+      try {
+        const raw = localStorage.getItem('questions');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length) dataset = parsed;
+        }
+      } catch {
+        /* keep defaults */
+      }
+      return dataset.map((q, idx) => ({ ...q, id: q.id ?? idx + 1 }));
+    }
+    return session.questions || [];
+  }, [onlyBookmarked, session]);
   const results = session.results || [];
 
   const tags = useMemo(() => {
@@ -55,15 +84,21 @@ export default function Review() {
   }, [allQuestions, bookmarks, onlyBookmarked, tag, query]);
 
   const toggleBookmark = (id) => {
+    setBookmarks((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      try { localStorage.setItem('bookmarks', JSON.stringify([...next])); } catch {
+        /* ignore */
+      }
+      return next;
+    });
     setSession((prev) => {
       const set = new Set(prev.bookmarks || []);
       if (set.has(id)) set.delete(id);
       else set.add(id);
       const updated = { ...prev, bookmarks: [...set] };
-      try {
-        localStorage.setItem('bookmarks', JSON.stringify(updated.bookmarks));
-        localStorage.setItem('mcqSession', JSON.stringify(updated));
-      } catch {
+      try { localStorage.setItem('mcqSession', JSON.stringify(updated)); } catch {
         /* ignore */
       }
       return updated;
