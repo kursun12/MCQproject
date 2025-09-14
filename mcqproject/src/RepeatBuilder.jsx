@@ -69,7 +69,34 @@ export default function RepeatBuilder() {
               </div>
             </div>
             <div style={{marginTop:8}}>
-              <label>Count <input type="number" min="1" value={count} onChange={(e)=>setCount(e.target.value)} /></label>
+              <label style={{display:'block', marginBottom:4}}>Count</label>
+              <div className="chips" style={{alignItems:'center',flexWrap:'wrap'}}>
+                {[10,20].map(n => (
+                  <button
+                    type="button"
+                    key={n}
+                    className={`chip ${count===String(n)?'accent':''}`}
+                    onClick={()=>setCount(String(n))}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className={`chip ${count===''?'accent':''}`}
+                  onClick={()=>setCount('')}
+                >
+                  All
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="Custom"
+                  value={count}
+                  onChange={(e)=>setCount(e.target.value)}
+                  style={{width:80,marginLeft:4}}
+                />
+              </div>
             </div>
           </div>
           <div className="card" style={{padding:'12px'}}>
