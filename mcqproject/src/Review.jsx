@@ -25,6 +25,10 @@ export default function Review() {
   const [session, setSession] = useState(loadSession());
   const [query, setQuery] = useState('');
   const [tag, setTag] = useState('');
+  const [setFilter, setSetFilter] = useState('');
+  const [difficulty, setDifficulty] = useState('');
+  const [compact, setCompact] = useState(false);
+  const [expanded, setExpanded] = useState(new Set());
   const [onlyBookmarked, setOnlyBookmarked] = useState(initialBookmarked);
   const [bookmarks, setBookmarks] = useState(() => {
     try {
@@ -81,18 +85,32 @@ export default function Review() {
     return [''].concat([...s]);
   }, [allQuestions]);
 
+  const sets = useMemo(() => {
+    const s = new Set();
+    allQuestions.forEach((q) => q.set && s.add(q.set));
+    return [''].concat([...s]);
+  }, [allQuestions]);
+
+  const difficulties = useMemo(() => {
+    const s = new Set();
+    allQuestions.forEach((q) => q.difficulty && s.add(q.difficulty));
+    return [''].concat([...s]);
+  }, [allQuestions]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return allQuestions.filter((it) => {
       if (onlyBookmarked && !bookmarks.has(it.id)) return false;
       if (tag && !(it.tags || []).includes(tag)) return false;
+      if (setFilter && it.set !== setFilter) return false;
+      if (difficulty && it.difficulty !== difficulty) return false;
       if (!q) return true;
       return (
         it.question.toLowerCase().includes(q) ||
         (it.options || []).some((o) => String(o).toLowerCase().includes(q))
       );
     });
-  }, [allQuestions, bookmarks, onlyBookmarked, tag, query]);
+  }, [allQuestions, bookmarks, onlyBookmarked, tag, setFilter, difficulty, query]);
 
   const toggleBookmark = (id) => {
     const idNum = Number(id);
@@ -114,6 +132,15 @@ export default function Review() {
         /* ignore */
       }
       return updated;
+    });
+  };
+
+  const toggleExpand = (id) => {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
     });
   };
 
@@ -141,6 +168,31 @@ export default function Review() {
     navigate(`/quiz?mode=${encodeURIComponent(session.mode || 'practice')}&resume=1`);
   };
 
+  const retryOne = (q) => {
+    const payload = {
+      mode: session.mode || 'practice',
+      current: 0,
+      questions: [q],
+      results: [],
+      bookmarks: session.bookmarks || [],
+      notes: session.notes || {},
+      score: 0,
+      points: 0,
+      times: [],
+    };
+    try { localStorage.setItem('mcqSession', JSON.stringify(payload)); } catch { /* ignore */ }
+    navigate(`/quiz?mode=${encodeURIComponent(session.mode || 'practice')}&resume=1`);
+  };
+
+  const exportQuestion = (q) => {
+    const blob = new Blob([JSON.stringify(q, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `q${q.id}.json`;
+    a.click();
+    toast(`Exported q${q.id}.json`);
+  };
+
   const exportCSV = () => {
     let csv = 'Question,YourAnswer,Correct,Explanation,Tags\n';
     (session.questions||[]).forEach((q, i) => {
@@ -158,20 +210,48 @@ export default function Review() {
     toast('Exported review.json');
   };
 
+  const progressBySet = useMemo(() => {
+    const map = {};
+    allQuestions.forEach((q, idx) => {
+      if (!bookmarks.has(q.id)) return;
+      const s = q.set || 'Unknown';
+      if (!map[s]) map[s] = { total: 0, wrong: 0 };
+      map[s].total++;
+      if (results[idx] && !results[idx].isCorrect) map[s].wrong++;
+    });
+    return map;
+  }, [allQuestions, bookmarks, results]);
+
   return (
     <div className="card">
       <h2>{onlyBookmarked ? 'Bookmarks' : 'Review'}</h2>
-      <div className="toolbar" style={{marginBottom:'8px'}}>
+      <div className="toolbar" style={{marginBottom:'8px',display:'flex',flexWrap:'wrap',gap:'6px'}}>
         <input placeholder="Search" value={query} onChange={(e)=>setQuery(e.target.value)} />
         <select value={tag} onChange={(e)=>setTag(e.target.value)}>
           {tags.map((t) => (
             <option key={t} value={t}>{t||'All tags'}</option>
           ))}
         </select>
+        <select value={setFilter} onChange={(e)=>setSetFilter(e.target.value)}>
+          {sets.map((s) => (
+            <option key={s} value={s}>{s||'All sets'}</option>
+          ))}
+        </select>
+        <select value={difficulty} onChange={(e)=>setDifficulty(e.target.value)}>
+          {difficulties.map((d) => (
+            <option key={d} value={d}>{d||'All difficulties'}</option>
+          ))}
+        </select>
         <label className="toggle"><input type="checkbox" checked={onlyBookmarked} onChange={(e)=>setOnlyBookmarked(e.target.checked)} /> Bookmarked</label>
+        <button className="btn-ghost" onClick={()=>setCompact(c=>!c)}>{compact?'Detailed':'Compact'} View</button>
         <button className="btn-outline" onClick={retryIncorrect}>Retry Incorrect Only</button>
         <button className="btn-ghost" onClick={exportCSV}>Export CSV</button>
         <button className="btn-ghost" onClick={exportJSON}>Export JSON</button>
+      </div>
+      <div className="progress-summary" style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'8px'}}>
+        {Object.entries(progressBySet).map(([s,data]) => (
+          <span key={s} className="badge">{`${s}: ${data.total} (${data.wrong} wrong)`}</span>
+        ))}
       </div>
       <ul style={{listStyle:'none',padding:0,margin:0,display:'flex',flexDirection:'column',gap:'10px'}}>
         {filtered.map((q) => {
@@ -179,38 +259,36 @@ export default function Review() {
           const res = results[idx];
           const your = (res?.selected || []).map((n) => q.options[n]).join(', ');
           const corr = (q.correct || []).map((n) => q.options[n]).join(', ');
+          const snippet = q.question.length > 120 ? q.question.slice(0,120)+'…' : q.question;
+          const isExpanded = expanded.has(q.id);
+          const liClass = compact ? 'bookmark-item compact' : 'bookmark-item card';
           return (
-            <li key={q.id} className={`card ${res?.isCorrect? 'status-correct':'status-incorrect'}`} style={{padding:'12px'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <li key={q.id} className={liClass} style={compact?{padding:'6px 0'}:{padding:'12px'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}} onClick={()=>toggleExpand(q.id)}>
                 <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
-                  <strong>Q{idx+1}. <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(q.question)}}></span></strong>
-                  {onlyBookmarked ? (
-                    <button
-                      type="button"
-                      className="icon-btn"
-                      onClick={() => toggleBookmark(q.id)}
-                      title="Remove bookmark"
-                    >
-                      ✕
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="icon-btn"
-                      onClick={() => toggleBookmark(q.id)}
-                      title="Toggle bookmark"
-                    >
-                      {bookmarks.has(q.id) ? '★' : '☆'}
-                    </button>
-                  )}
+                  <strong>Q{idx+1}.</strong>
+                  <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(snippet)}}></span>
                 </div>
-                <span className="badge">{(q.tags||[]).join(', ')||'—'}</span>
+                <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                  {q.set && <span className="badge">{q.set}</span>}
+                  <div style={{display:'flex',gap:'4px'}} onClick={(e)=>e.stopPropagation()}>
+                    {onlyBookmarked ? (
+                      <button type="button" className="icon-btn" onClick={()=>toggleBookmark(q.id)} title="Remove bookmark">✕</button>
+                    ) : (
+                      <button type="button" className="icon-btn" onClick={()=>toggleBookmark(q.id)} title="Toggle bookmark">{bookmarks.has(q.id)?'★':'☆'}</button>
+                    )}
+                    <button type="button" className="icon-btn" onClick={()=>retryOne(q)} title="Retry">↻</button>
+                    <button type="button" className="icon-btn" onClick={()=>exportQuestion(q)} title="Export">⤓</button>
+                  </div>
+                </div>
               </div>
-              <div style={{marginTop:'6px'}}>
-                <div><strong>Your:</strong> <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(your || '—')}}></span></div>
-                <div><strong>Correct:</strong> <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(corr)}}></span></div>
-                {q.explanation && <div style={{marginTop:'6px'}} className="muted" dangerouslySetInnerHTML={{__html: renderMDKaTeX(q.explanation)}}></div>}
-              </div>
+              {isExpanded && (
+                <div style={{marginTop:'6px'}}>
+                  <div><strong>Your:</strong> <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(your || '—')}}></span></div>
+                  <div><strong>Correct:</strong> <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(corr)}}></span></div>
+                  {q.explanation && <div style={{marginTop:'6px'}} className="muted" dangerouslySetInnerHTML={{__html: renderMDKaTeX(q.explanation)}}></div>}
+                </div>
+              )}
             </li>
           );
         })}
