@@ -989,8 +989,9 @@ function Quiz() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const mode = params.get('mode') || 'practice';
+  const resume = params.get('resume') === '1' || params.get('resume') === 'true';
   const setParam = params.get('setId');
-  if (!setParam) {
+  if (!setParam && !resume) {
     return <QuizSetup mode={mode} />;
   }
   return <QuizMain />;
