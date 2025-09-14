@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from './utils/toast.js';
 import { ensureKatex, renderMDKaTeX } from './utils/katex';
 import defaultQuestions from './questions';
@@ -18,6 +18,7 @@ function loadSession() {
 
 export default function Review() {
   const location = useLocation();
+  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const initialBookmarked = params.get('bookmarks') === '1' || params.get('bookmarks') === 'true';
 
@@ -126,7 +127,7 @@ export default function Review() {
       return;
     }
     try { localStorage.setItem('retryIds', JSON.stringify(ids)); } catch { /* ignore */ }
-    window.location.href = `/quiz?mode=${encodeURIComponent(session.mode || 'practice')}`;
+    navigate(`/quiz?mode=${encodeURIComponent(session.mode || 'practice')}`);
   };
 
   const exportCSV = () => {

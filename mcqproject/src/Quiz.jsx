@@ -132,6 +132,7 @@ function QuizSetup({ mode }) {
 
 function QuizMain() {
   const location = useLocation();
+  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const mode = params.get('mode') || 'practice'; // practice | test | challenge
   const resume = params.get('resume') === '1' || params.get('resume') === 'true';
@@ -697,7 +698,7 @@ function QuizMain() {
     try { localStorage.setItem('retryIds', JSON.stringify(ids)); } catch {
       /* ignore */
     }
-    window.location.href = `/quiz?mode=${encodeURIComponent(mode)}`;
+    navigate(`/quiz?mode=${encodeURIComponent(mode)}`);
   };
 
   // Auto-finish convenience: if feedback is onSelect and on last question, grade shortly after reveal
