@@ -863,7 +863,25 @@ function applyUiPrefs(){
 
 function updateSidebar(){
   const ul=document.getElementById('bookmarkList'); if(!ul) return; ul.innerHTML='';
-  questions.forEach((q,i)=>{ if(!q.flagged) return; const li=document.createElement('li'); li.innerHTML=`<button class="btn ghost" style="width:100%;text-align:left">★ Q${i+1} ${q.note?`- ${q.note.replace(/</g,'&lt;')}`:''}</button>`; li.querySelector('button').onclick=()=>{current=i;renderQuestion();}; ul.appendChild(li);});
+  questions.forEach((q,i)=>{
+    if(!q.flagged) return;
+    const li=document.createElement('li');
+    li.innerHTML=`<div style="display:flex;gap:4px">
+      <button class="btn ghost" style="flex:1;text-align:left">★ Q${i+1} ${q.note?`- ${q.note.replace(/</g,'&lt;')}`:''}</button>
+      <button class="btn ghost remove" title="Remove bookmark">✕</button>
+    </div>`;
+    const btn=li.querySelector('button');
+    btn.onclick=()=>{current=i;renderQuestion();};
+    li.querySelector('.remove').onclick=(e)=>{
+      e.stopPropagation();
+      q.flagged=false;
+      if(current===i) renderQuestion();
+      saveState();
+      updateSidebar();
+      toast('Unbookmarked');
+    };
+    ul.appendChild(li);
+  });
 }
 
 const setActive=(id)=>{document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active');};
