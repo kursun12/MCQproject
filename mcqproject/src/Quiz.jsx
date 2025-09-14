@@ -216,15 +216,23 @@ function QuizMain() {
     return mapped.length > 0 ? mapped : defaultQuestions.map((q, idx) => ({ ...q, id: q.id ?? idx + 1, _order: [...Array(q.options.length).keys()] }));
   };
 
+  const allQuestionsRef = useRef([]);
   const [questions, setQuestions] = useState(() => {
-    if (sessionData?.questions?.length) return sessionData.questions;
-    return buildQuestions();
+    if (sessionData?.questions?.length) {
+      allQuestionsRef.current = sessionData.questions;
+      return sessionData.questions;
+    }
+    const initial = buildQuestions();
+    allQuestionsRef.current = initial;
+    return initial;
   });
   useEffect(() => {
     if (resume) return;
     const onStorage = (e) => {
       if (e.key === 'questions') {
-        setQuestions(buildQuestions());
+        const rebuilt = buildQuestions();
+        allQuestionsRef.current = rebuilt;
+        setQuestions(rebuilt);
       }
     };
     window.addEventListener('storage', onStorage);
@@ -302,7 +310,9 @@ function QuizMain() {
   // Rebuild questions on route change (e.g., after toggling settings and navigating back)
   useEffect(() => {
     if (resume) return;
-    setQuestions(buildQuestions());
+    const rebuilt = buildQuestions();
+    allQuestionsRef.current = rebuilt;
+    setQuestions(rebuilt);
     setCurrent(0);
   }, [location.pathname, location.search, resume]);
   useEffect(() => { ensureKatex(); }, []);
@@ -311,7 +321,7 @@ function QuizMain() {
   }, [questions.length]);
   // Initialize Repeat Engine when session parameters change
   useEffect(() => {
-    byIdRef.current = new Map(questions.map(q => [q.id, q]));
+    byIdRef.current = new Map(allQuestionsRef.current.map(q => [q.id, q]));
     if (resume) return;
     if (mode === 'repeat') {
       let pool = [];
@@ -324,17 +334,17 @@ function QuizMain() {
         if (source === 'lastWrong') {
           const sess = JSON.parse(localStorage.getItem('mcqSession') || '{}');
           const wrongIdx = (sess.results || []).filter(r => !r.isCorrect).map(r => r.index || 0);
-          pool = wrongIdx.map(i => (questions[i] || {}).id).filter(Boolean);
+          pool = wrongIdx.map(i => (allQuestionsRef.current[i] || {}).id).filter(Boolean);
           setRepeatSourceLabel('Last session (wrong)');
         } else if (source === 'everWrong') {
           const stats = JSON.parse(localStorage.getItem('repeatStats') || '{}');
-          pool = questions.filter(q => (stats[q.id]?.wrong || 0) > 0).map(q => q.id);
+          pool = allQuestionsRef.current.filter(q => (stats[q.id]?.wrong || 0) > 0).map(q => q.id);
           setRepeatSourceLabel('All-time wrong');
         } else if (source === 'byTags') {
-          pool = questions.map(q => q.id);
+          pool = allQuestionsRef.current.map(q => q.id);
           setRepeatSourceLabel(tagsParam ? `Tags: ${tagsParam}` : 'Selected tags');
         } else {
-          pool = questions.map(q => q.id);
+          pool = allQuestionsRef.current.map(q => q.id);
           setRepeatSourceLabel('Entire pool');
         }
         if (Number.isFinite(countParam) && countParam > 0) {
@@ -347,10 +357,10 @@ function QuizMain() {
           filterMastered = false; // we intentionally included mastered items if needed
         }
       } catch {
-        pool = questions.map(q => q.id);
+        pool = allQuestionsRef.current.map(q => q.id);
         setRepeatSourceLabel('Entire pool');
       }
-      const eng = new RepeatEngine(questions, pool, { filterMastered });
+      const eng = new RepeatEngine(allQuestionsRef.current, pool, { filterMastered });
       engineRef.current = eng;
       setRepeatAttempted(0);
       setFinished(false);
@@ -370,7 +380,7 @@ function QuizMain() {
     } else {
       engineRef.current = null;
     }
-  }, [mode, location.search, resume, questions]);
+  }, [mode, location.search, resume]);
 
   const question = questions[current];
   const noQuestions = !question;
