@@ -13,6 +13,7 @@ import {
   set8,
   set9,
 } from './questions.js';
+import { syncLocalStorage } from './utils/storage.js';
 
 // On first load, populate localStorage with the bundled question sets so
 // users have a ready-to-use library without needing to import anything.
@@ -31,26 +32,7 @@ const allQuestions = [
 const LS_Q_KEY = 'questions';
 const LS_S_KEY = 'sets';
 
-if (!localStorage.getItem(LS_Q_KEY)) {
-  try {
-    localStorage.setItem(LS_Q_KEY, JSON.stringify(allQuestions));
-  } catch {
-    // Ignore write errors (e.g., storage disabled)
-  }
-}
-
-if (!localStorage.getItem(LS_S_KEY)) {
-  try {
-    const sets = Object.entries(defaultSets).map(([name, arr]) => ({
-      id: name,
-      name,
-      questionIds: arr.map((q) => q.id),
-    }));
-    localStorage.setItem(LS_S_KEY, JSON.stringify(sets));
-  } catch {
-    // Ignore write errors
-  }
-}
+syncLocalStorage(defaultSets, allQuestions, localStorage, LS_Q_KEY, LS_S_KEY);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
