@@ -65,7 +65,7 @@ function LandingPage() {
         <div className="card" style={{marginTop:12,padding:'12px'}}>
           <div className="section-title"><strong>Quick sets</strong><span className="muted">Jump straight into a topic</span></div>
           <div className="chips">
-            {sets.slice(0,6).map((s)=>{
+            {sets.map((s)=>{
               const count=(s.questionIds||[]).length;
               return (
                 <button
