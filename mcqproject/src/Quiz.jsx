@@ -697,7 +697,7 @@ function QuizMain() {
     try { localStorage.setItem('retryIds', JSON.stringify(ids)); } catch {
       /* ignore */
     }
-    window.location.href = `/quiz?mode=${encodeURIComponent(mode)}`;
+    window.location.href = `quiz?mode=${encodeURIComponent(mode)}`;
   };
 
   // Auto-finish convenience: if feedback is onSelect and on last question, grade shortly after reveal
@@ -809,7 +809,7 @@ function QuizMain() {
           <div style={{position:'sticky', top:0, background:'var(--card-bg)', padding:'8px', display:'flex', gap:'8px', zIndex:1, borderBottom:'1px solid var(--border-color)', alignItems:'center', flexWrap:'wrap'}}>
             <button onClick={restart}>Restart</button>
             <button onClick={retryIncorrect}>Retry Incorrect</button>
-            <button onClick={() => { window.location.href = '/review'; }}>Open Review</button>
+            <button onClick={() => { window.location.href = 'review'; }}>Open Review</button>
             <button className="btn-ghost" onClick={() => { exportResultsCSV(questions, answers); toast('Exported results.csv'); }}>Export CSV</button>
             <button className="btn-ghost" onClick={() => exportStateJSON(questions, answers, mode, points)}>Export State</button>
             <label className="toggle" style={{marginLeft:'auto'}}>
@@ -876,7 +876,7 @@ function QuizMain() {
         </div>
         <div style={{display:'flex',gap:'8px',flexWrap:'wrap', marginTop:8}}>
           <button onClick={restart}>Restart</button>
-          <button onClick={() => { window.location.href = '/review'; }}>Open Review</button>
+          <button onClick={() => { window.location.href = 'review'; }}>Open Review</button>
           <button onClick={share}>Share</button>
         </div>
       </div>
