@@ -22,7 +22,7 @@
   .hidden{display:none;}
   @media(max-width:600px){
     body{padding:10px;}
-    #controls{flex-direction:column;width:100%;}
+    #controls{flex-direction:column;width:100%;position:sticky;bottom:0;background:#fff;padding:10px 0;}
     #controls button{width:100%;}
     .option{padding:12px;}
     #fileInput{margin-bottom:12px;width:100%;}
@@ -33,6 +33,7 @@
 <h1>MCQ Practice <span style="font-size:.7em;opacity:.7">v2025.09 • Legacy CSV-only</span></h1>
 <p style="margin-top:-8px;color:#555">This legacy page will redirect to the new UI in 2 seconds. If it doesn't, <a href="index.html">click here</a>.</p>
 <input type="file" id="fileInput" accept=".csv" />
+<label style="display:block;margin-top:8px;"><input type="checkbox" id="autoScrollToggle"> Auto-scroll Next on mobile</label>
 <div id="quiz" class="hidden">
   <div id="progressText"></div>
   <div id="progressBar"><div></div></div>
@@ -80,6 +81,14 @@ const resultEl=document.getElementById('result');
 const summaryEl=document.getElementById('summary');
 const restartBtn=document.getElementById('restartBtn');
 const retryBtn=document.getElementById('retryBtn');
+const autoScrollToggle=document.getElementById('autoScrollToggle');
+
+let autoScroll=localStorage.getItem('autoScroll')==='true';
+autoScrollToggle.checked=autoScroll;
+autoScrollToggle.addEventListener('change',e=>{
+  autoScroll=e.target.checked;
+  localStorage.setItem('autoScroll',autoScroll);
+});
 
 // Parse CSV when a file is chosen
 fileInput.addEventListener('change', e=>{
@@ -186,6 +195,9 @@ function selectOption(i){
   explanationEl.classList.remove('hidden');
   scoreEl.textContent=`Score: ${score} / ${quizQuestions.length}`;
   nextBtn.disabled=false;
+  if(autoScroll && window.innerWidth<=600){
+    nextBtn.scrollIntoView({behavior:'smooth',block:'end'});
+  }
 }
 
 // Advance to next question or show results

@@ -4,6 +4,9 @@ import set3 from './assets/_MConverter.eu_61-90.json' with { type: 'json' };
 import set4 from './assets/_MConverter.eu_91-120.json' with { type: 'json' };
 import set5 from './assets/_MConverter.eu_youtube50.json' with { type: 'json' };
 
-// Export each question file as its own default set.
+// Combine all bundled sets into a single array for backward compatibility.
+const defaultQuestions = [...set1, ...set2, ...set3, ...set4, ...set5];
+
+export default defaultQuestions;
 export { set1, set2, set3, set4, set5 };
 

@@ -57,7 +57,7 @@ function Settings() {
   };
 
   return (
-    <div className="card">
+    <div className="card settings">
       <h2 style={{marginTop:0}}>Settings</h2>
       <p className="muted" style={{marginTop:-6}}>Tune your session experience. Changes save automatically.</p>
       <div className="grid-2" style={{marginTop:12}}>
@@ -70,7 +70,6 @@ function Settings() {
                 min="1"
                 value={numQuestions}
                 onChange={(e) => setNumQuestions(e.target.value)}
-                style={{marginLeft:8}}
               />
             </label>
             <label className="toggle"><input type="checkbox" checked={shuffleQs} onChange={(e)=>{ setShuffleQs(e.target.checked); toast('Shuffle questions updated'); }} /> Shuffle questions</label>
@@ -86,7 +85,7 @@ function Settings() {
               Shuffle options
             </label>
             <label>Feedback timing
-              <select value={feedbackTrigger} onChange={(e)=>{ setFeedbackTrigger(e.target.value); toast('Feedback timing updated'); }} style={{marginLeft:8}}>
+              <select value={feedbackTrigger} onChange={(e)=>{ setFeedbackTrigger(e.target.value); toast('Feedback timing updated'); }}>
                 <option value="onSelect">On select (single immediately; multi when all chosen)</option>
                 <option value="onNext">On Next (press to reveal, then continue)</option>
               </select>
@@ -137,7 +136,7 @@ function Settings() {
         <div className="card" style={{padding:'12px'}}>
           <h3 style={{marginTop:0}}>Keyboard</h3>
           <p className="muted" style={{marginTop:-6}}>Click a field then press a key.</p>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'8px'}}>
+          <div className="keymap-grid">
             {keymap.options.map((k, i) => (
               <label key={i}>Option {i + 1}
                 <input
