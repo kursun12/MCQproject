@@ -21,6 +21,13 @@
   transform: translateY(-1px);
 }
 
+/* Bookmark list tweaks */
+.bookmark-item.compact {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
