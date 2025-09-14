@@ -161,14 +161,25 @@ export default function Review() {
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                 <div style={{display:'flex',alignItems:'center',gap:'4px'}}>
                   <strong>Q{idx+1}. <span dangerouslySetInnerHTML={{__html: renderMDKaTeX(q.question)}}></span></strong>
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    onClick={() => toggleBookmark(q.id)}
-                    title="Toggle bookmark"
-                  >
-                    {bookmarks.has(q.id) ? '★' : '☆'}
-                  </button>
+                  {onlyBookmarked ? (
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      onClick={() => toggleBookmark(q.id)}
+                      title="Remove bookmark"
+                    >
+                      ✕
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="icon-btn"
+                      onClick={() => toggleBookmark(q.id)}
+                      title="Toggle bookmark"
+                    >
+                      {bookmarks.has(q.id) ? '★' : '☆'}
+                    </button>
+                  )}
                 </div>
                 <span className="badge">{(q.tags||[]).join(', ')||'—'}</span>
               </div>
