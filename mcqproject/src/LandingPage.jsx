@@ -7,7 +7,10 @@ function LandingPage() {
   const countOptions = [10, 20, 25, 30];
   let qCount = 0, bmCount = 0;
   try { qCount = JSON.parse(localStorage.getItem('questions')||'[]').length; } catch { /* ignore */ }
-  try { bmCount = JSON.parse(localStorage.getItem('bookmarks')||'[]').length; } catch { /* ignore */ }
+  try {
+    const b = JSON.parse(localStorage.getItem('bookmarks')||'[]');
+    bmCount = Array.isArray(b) ? new Set(b.map(Number)).size : 0;
+  } catch { /* ignore */ }
   let session=null; try { session = JSON.parse(localStorage.getItem('mcqSession')||'null'); } catch { /* ignore */ }
   let sets=[]; try { sets = JSON.parse(localStorage.getItem('sets')||'[]'); } catch { /* ignore */ }
   return (

@@ -5,7 +5,15 @@ import { ensureKatex, renderMDKaTeX } from './utils/katex';
 import defaultQuestions from './questions';
 
 function loadSession() {
-  try { return JSON.parse(localStorage.getItem('mcqSession') || '{}'); } catch { return {}; }
+  try {
+    const data = JSON.parse(localStorage.getItem('mcqSession') || '{}');
+    if (data && Array.isArray(data.bookmarks)) {
+      data.bookmarks = data.bookmarks.map(Number);
+    }
+    return data;
+  } catch {
+    return {};
+  }
 }
 
 export default function Review() {
@@ -19,7 +27,8 @@ export default function Review() {
   const [onlyBookmarked, setOnlyBookmarked] = useState(initialBookmarked);
   const [bookmarks, setBookmarks] = useState(() => {
     try {
-      return new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]'));
+      const b = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+      return new Set(Array.isArray(b) ? b.map(Number) : []);
     } catch {
       return new Set();
     }
@@ -36,7 +45,8 @@ export default function Review() {
     const h = () => {
       setSession(loadSession());
       try {
-        setBookmarks(new Set(JSON.parse(localStorage.getItem('bookmarks') || '[]')));
+        const b = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        setBookmarks(new Set(Array.isArray(b) ? b.map(Number) : []));
       } catch {
         /* ignore */
       }
@@ -84,19 +94,20 @@ export default function Review() {
   }, [allQuestions, bookmarks, onlyBookmarked, tag, query]);
 
   const toggleBookmark = (id) => {
+    const idNum = Number(id);
     setBookmarks((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(idNum)) next.delete(idNum);
+      else next.add(idNum);
       try { localStorage.setItem('bookmarks', JSON.stringify([...next])); } catch {
         /* ignore */
       }
       return next;
     });
     setSession((prev) => {
-      const set = new Set(prev.bookmarks || []);
-      if (set.has(id)) set.delete(id);
-      else set.add(id);
+      const set = new Set((prev.bookmarks || []).map(Number));
+      if (set.has(idNum)) set.delete(idNum);
+      else set.add(idNum);
       const updated = { ...prev, bookmarks: [...set] };
       try { localStorage.setItem('mcqSession', JSON.stringify(updated)); } catch {
         /* ignore */
