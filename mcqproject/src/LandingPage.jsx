@@ -21,7 +21,7 @@ function LandingPage() {
         </div>
         {session && session.questions?.length>0 && (
           <div style={{marginTop:12}}>
-            <Link to={`/quiz?mode=${encodeURIComponent(session.mode||'practice')}`}>
+            <Link to={`/quiz?mode=${encodeURIComponent(session.mode||'practice')}&resume=1`}>
               <button>Continue last session</button>
             </Link>
           </div>
