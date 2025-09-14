@@ -41,7 +41,8 @@ function QuizSetup({ mode }) {
     /* ignore */
   }
   try {
-    bmCount = JSON.parse(localStorage.getItem('bookmarks') || '[]').length;
+    const b = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+    bmCount = Array.isArray(b) ? new Set(b.map(Number)).size : 0;
   } catch {
     /* ignore */
   }
@@ -136,7 +137,15 @@ function QuizMain() {
   const resume = params.get('resume') === '1' || params.get('resume') === 'true';
   const sessionData = useMemo(() => {
     if (!resume) return null;
-    try { return JSON.parse(localStorage.getItem('mcqSession') || 'null'); } catch { return null; }
+    try {
+      const data = JSON.parse(localStorage.getItem('mcqSession') || 'null');
+      if (data && Array.isArray(data.bookmarks)) {
+        data.bookmarks = data.bookmarks.map(Number);
+      }
+      return data;
+    } catch {
+      return null;
+    }
   }, [resume]);
   const buildQuestions = () => {
     // Load dataset safely without throwing
@@ -176,7 +185,7 @@ function QuizMain() {
       if (setId === 'bookmarks') {
         try {
           const bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-          const idSet = new Set(bm);
+          const idSet = new Set(Array.isArray(bm) ? bm.map(Number) : []);
           arr = arr.filter((q) => idSet.has(q.id));
         } catch { /* ignore */ }
       } else if (setId && setId !== 'all') {
@@ -274,11 +283,13 @@ function QuizMain() {
   const [resIncorrectOnly, setResIncorrectOnly] = useState(false);
   const [resSearch, setResSearch] = useState('');
   const [bookmarks, setBookmarks] = useState(() => {
-    if (sessionData) return new Set(sessionData.bookmarks || []);
+    if (sessionData) return new Set((sessionData.bookmarks || []).map(Number));
     try {
       const b = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-      return new Set(Array.isArray(b) ? b : []);
-    } catch { return new Set(); }
+      return new Set(Array.isArray(b) ? b.map(Number) : []);
+    } catch {
+      return new Set();
+    }
   });
   const [notes, setNotes] = useState(() => {
     if (sessionData) return sessionData.notes || {};
@@ -589,13 +600,13 @@ function QuizMain() {
   };
 
   const toggleBookmark = () => {
-    const id = question.id;
+    const id = Number(question.id);
     const next = new Set(bookmarks);
     if (next.has(id)) next.delete(id); else next.add(id);
     setBookmarks(next);
     localStorage.setItem('bookmarks', JSON.stringify([...next]));
     localStorage.setItem('mcqSession', JSON.stringify({
-      ...(JSON.parse(localStorage.getItem('mcqSession')||'{}')),
+      ...(JSON.parse(localStorage.getItem('mcqSession') || '{}')),
       bookmarks: [...next],
     }));
     toast(next.has(id) ? 'Bookmarked' : 'Removed bookmark');
