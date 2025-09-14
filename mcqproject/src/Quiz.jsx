@@ -132,7 +132,6 @@ function QuizSetup({ mode }) {
 
 function QuizMain() {
   const location = useLocation();
-  const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const mode = params.get('mode') || 'practice'; // practice | test | challenge
   const resume = params.get('resume') === '1' || params.get('resume') === 'true';
@@ -676,7 +675,7 @@ function QuizMain() {
   };
 
   const retryIncorrect = () => {
-    const ids = questions.reduce((acc, q, i) => {
+    const incorrect = questions.filter((q, i) => {
       const corr = Array.isArray(q.correct)
         ? q.correct
         : Array.isArray(q.answers)
@@ -688,17 +687,13 @@ function QuizMain() {
         : [];
       const sel = Array.isArray(answers[i]) ? answers[i] : [];
       const ok = sel.length === corr.length && corr.every((n) => sel.includes(n));
-      if (!ok) acc.push(q.id);
-      return acc;
-    }, []);
-    if (ids.length === 0) {
+      return !ok;
+    });
+    if (incorrect.length === 0) {
       alert('No incorrect answers to retry.');
       return;
     }
-    try { localStorage.setItem('retryIds', JSON.stringify(ids)); } catch {
-      /* ignore */
-    }
-    navigate(`/quiz?mode=${encodeURIComponent(mode)}`);
+    restart(incorrect);
   };
 
   // Auto-finish convenience: if feedback is onSelect and on last question, grade shortly after reveal

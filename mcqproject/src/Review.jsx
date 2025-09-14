@@ -118,16 +118,27 @@ export default function Review() {
   };
 
   const retryIncorrect = () => {
-    const ids = (results || [])
+    const incorrect = (results || [])
       .filter((r) => !r.isCorrect)
-      .map((r) => allQuestions[r.index]?.id)
+      .map((r) => session.questions?.[r.index])
       .filter(Boolean);
-    if (ids.length === 0) {
+    if (incorrect.length === 0) {
       toast('No incorrect questions to retry.');
       return;
     }
-    try { localStorage.setItem('retryIds', JSON.stringify(ids)); } catch { /* ignore */ }
-    navigate(`/quiz?mode=${encodeURIComponent(session.mode || 'practice')}`);
+    const payload = {
+      mode: session.mode || 'practice',
+      current: 0,
+      questions: incorrect,
+      results: [],
+      bookmarks: session.bookmarks || [],
+      notes: session.notes || {},
+      score: 0,
+      points: 0,
+      times: [],
+    };
+    try { localStorage.setItem('mcqSession', JSON.stringify(payload)); } catch { /* ignore */ }
+    navigate(`/quiz?mode=${encodeURIComponent(session.mode || 'practice')}&resume=1`);
   };
 
   const exportCSV = () => {
