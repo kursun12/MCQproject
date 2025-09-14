@@ -133,6 +133,11 @@ function QuizMain() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const mode = params.get('mode') || 'practice'; // practice | test | challenge
+  const resume = params.get('resume') === '1' || params.get('resume') === 'true';
+  const sessionData = useMemo(() => {
+    if (!resume) return null;
+    try { return JSON.parse(localStorage.getItem('mcqSession') || 'null'); } catch { return null; }
+  }, [resume]);
   const buildQuestions = () => {
     // Load dataset safely without throwing
     let dataset = defaultQuestions;
@@ -211,8 +216,12 @@ function QuizMain() {
     return mapped.length > 0 ? mapped : defaultQuestions.map((q, idx) => ({ ...q, id: q.id ?? idx + 1, _order: [...Array(q.options.length).keys()] }));
   };
 
-  const [questions, setQuestions] = useState(() => buildQuestions());
+  const [questions, setQuestions] = useState(() => {
+    if (sessionData?.questions?.length) return sessionData.questions;
+    return buildQuestions();
+  });
   useEffect(() => {
+    if (resume) return;
     const onStorage = (e) => {
       if (e.key === 'questions') {
         setQuestions(buildQuestions());
@@ -220,19 +229,24 @@ function QuizMain() {
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, []);
+  }, [resume]);
   const engineRef = useRef(null);
   const byIdRef = useRef(new Map());
   const [repeatAttempted, setRepeatAttempted] = useState(0);
   const [repeatSourceLabel, setRepeatSourceLabel] = useState('');
-  const [current, setCurrent] = useState(0);
+  const [current, setCurrent] = useState(() => sessionData?.current || 0);
   // Store selected indices as an array for both single/multi
   const [selected, setSelected] = useState([]);
-  const [score, setScore] = useState(0);
-  const [points, setPoints] = useState(0);
-  const [finished, setFinished] = useState(false);
-  const [answers, setAnswers] = useState([]);
-  const [times, setTimes] = useState([]); // seconds per question
+  const [score, setScore] = useState(() => sessionData?.score || 0);
+  const [points, setPoints] = useState(() => sessionData?.points || 0);
+  const [finished, setFinished] = useState(() => {
+    if (!sessionData) return false;
+    return sessionData.current >= (sessionData.questions?.length || 0);
+  });
+  const [answers, setAnswers] = useState(() =>
+    sessionData?.results?.map((r) => r.selected) || []
+  );
+  const [times, setTimes] = useState(() => sessionData?.times || []); // seconds per question
   const [qStart, setQStart] = useState(() => performance.now());
   const [streak, setStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(() => {
@@ -252,14 +266,27 @@ function QuizMain() {
   const [resIncorrectOnly, setResIncorrectOnly] = useState(false);
   const [resSearch, setResSearch] = useState('');
   const [bookmarks, setBookmarks] = useState(() => {
+    if (sessionData) return new Set(sessionData.bookmarks || []);
     try {
       const b = JSON.parse(localStorage.getItem('bookmarks') || '[]');
       return new Set(Array.isArray(b) ? b : []);
     } catch { return new Set(); }
   });
   const [notes, setNotes] = useState(() => {
+    if (sessionData) return sessionData.notes || {};
     try { return JSON.parse(localStorage.getItem('notes') || '{}'); } catch { return {}; }
   });
+  const [now, setNow] = useState(() => performance.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(performance.now()), 500);
+    return () => clearInterval(id);
+  }, []);
+  const formatDuration = (ms) => {
+    const total = Math.floor(ms / 1000);
+    const m = String(Math.floor(total / 60)).padStart(2, '0');
+    const s = String(total % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  };
   const audioCtxRef = useRef(null);
 
   const repeatRemaining = engineRef.current ? engineRef.current.queue.length : 0;
@@ -267,15 +294,17 @@ function QuizMain() {
 
   // Persist initial session skeleton
   useEffect(() => {
-    const payload = { mode, current, questions, results: [], bookmarks: [...bookmarks], notes };
+    if (resume) return;
+    const payload = { mode, current, questions, results: [], bookmarks: [...bookmarks], notes, times: [] };
     try { localStorage.setItem('mcqSession', JSON.stringify(payload)); } catch { /* ignore */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Rebuild questions on route change (e.g., after toggling settings and navigating back)
   useEffect(() => {
+    if (resume) return;
     setQuestions(buildQuestions());
     setCurrent(0);
-  }, [location.pathname, location.search]);
+  }, [location.pathname, location.search, resume]);
   useEffect(() => { ensureKatex(); }, []);
   useEffect(() => {
     if (current >= questions.length) setCurrent(0);
@@ -283,6 +312,7 @@ function QuizMain() {
   // Initialize Repeat Engine when session parameters change
   useEffect(() => {
     byIdRef.current = new Map(questions.map(q => [q.id, q]));
+    if (resume) return;
     if (mode === 'repeat') {
       let pool = [];
       let filterMastered = true;
@@ -340,7 +370,7 @@ function QuizMain() {
     } else {
       engineRef.current = null;
     }
-  }, [mode, location.search]);
+  }, [mode, location.search, resume, questions]);
 
   const question = questions[current];
   const noQuestions = !question;
@@ -352,6 +382,8 @@ function QuizMain() {
     ? [question.answer]
     : [];
   const isMulti = correct.length > 1;
+  const totalElapsed = times.reduce((s, n) => s + n * 1000, 0) + (now - qStart);
+  const questionElapsed = now - qStart;
 
   // Update header progress CSS var
   const progress = Math.round((current / Math.max(1, questions.length)) * 100);
@@ -428,6 +460,7 @@ function QuizMain() {
       notes,
       score,
       points,
+      times,
       ...nextState,
     };
     localStorage.setItem('mcqSession', JSON.stringify(payload));
@@ -462,11 +495,13 @@ function QuizMain() {
       setRevealed(true);
       return;
     }
+    let newTimes = times;
     if (!awaitingNext) {
       // Record time for current question
       try {
         const dt = Math.max(0, (performance.now() - qStart) / 1000);
-        setTimes((t) => [...t, dt]);
+        newTimes = [...times, dt];
+        setTimes(newTimes);
       } catch { /* ignore */ }
       if (mode !== 'test') {
         if (strict === 1) {
@@ -539,7 +574,8 @@ function QuizMain() {
         setFinished(true);
       }
     }
-    saveSession({ current: Math.min(current + 1, questions.length - 1) });
+    const nextIdx = Math.min(current + 1, questions.length - 1);
+    saveSession({ current: nextIdx, times: newTimes });
   };
 
   const toggleBookmark = () => {
@@ -572,7 +608,7 @@ function QuizMain() {
   const editQuestion = () => {
     const id = question?.id;
     if (!id) return;
-    const url = new URL('/import', window.location.origin);
+    const url = new URL('./import', window.location.href);
     url.searchParams.set('edit', id);
     window.open(url.toString(), '_blank');
   };
@@ -890,6 +926,11 @@ function QuizMain() {
           </button>
         </h2>
         )}
+      {!noQuestions && (
+        <div className="badge" aria-hidden="true" style={{display:'inline-block',marginBottom:'6px'}}>
+          Time {formatDuration(totalElapsed)} · Q {formatDuration(questionElapsed)}
+        </div>
+      )}
       {!noQuestions && isMulti && (
         <div className="badge" aria-hidden="true" style={{display:'inline-block',marginBottom:'6px'}}>Select ALL that apply · Choose {correct.length}</div>
       )}
