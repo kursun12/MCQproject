@@ -1,0 +1,286 @@
+[
+{
+  "id": 181,
+  "question": "Your company uses Azure Sentinel to manage alerts from more than 10,000 IoT devices.\n\nA security manager at the company reports that tracking security threats is increasingly difficult due to the large number of incidents.\n\nYou need to recommend a solution to provide a custom visualization to simplify the investigation of threats and to infer threats by using machine learning.\n\nWhat should you include in the recommendation?",
+  "options": [
+    "built-in queries",
+    "livestream",
+    "notebooks",
+    "bookmarks"
+  ],
+  "answer": [2],
+  "explanation": "The correct answer is C. Notebooks. Notebooks in Microsoft Sentinel allow custom visualizations and advanced investigations using Python and MSTICPy, including machine learning for inference. Built-in queries provide only predefined detections, Livestream runs queries in real time but not for ML or visualization, and Bookmarks are used to save evidence during hunting, not for large-scale analysis."
+},
+{
+  "id": 182,
+  "question": "You have a Microsoft Sentinel workspace.\n\nYou have a query named Query1 as shown in the following exhibit.\n\nYou plan to create a custom parser named Parser1.\n\nYou need to use Query1 in Parser1.\n\nWhat should you do first?",
+  "options": [
+    "Remove line 5.",
+    "Remove line 2.",
+    "In line 3, replace the !contains operator with the !has operator.",
+    "In line 4, remove the TimeGenerated predicate."
+  ],
+  "answer": [1],
+  "explanation": "The correct answer is B. When creating a custom parser in Microsoft Sentinel, you cannot include time filters such as 'where TimeGenerated > ago(7d)'. These make the parser time-dependent, which is not supported. Therefore, you must remove line 2. The other lines are valid in a parser definition and do not need modification."
+},
+{
+  "id": 183,
+  "question": "You have an Azure subscription that uses Microsoft Sentinel.\n\nYou need to create a custom report that will visualise sign-in information over time.\n\nWhat should you create first?",
+  "options": [
+    "a hunting query",
+    "a workbook",
+    "a notebook",
+    "a playbook"
+  ],
+  "answer": [1],
+  "explanation": "The correct answer is B. A workbook. Workbooks in Microsoft Sentinel provide customizable reports and dashboards for visualizing data such as sign-in activity over time. Hunting queries are for manual investigation, notebooks are for advanced ML-based analysis, and playbooks automate responses rather than creating reports."
+},
+{
+  "id": 184,
+  "question": "You have a Microsoft Sentinel workspace.\n\nYou receive multiple alerts for failed sign-in attempts to an account.\n\nYou identify that the alerts are false positives.\n\nYou need to prevent additional failed sign-in alerts from being generated for the account. The solution must meet the following requirements:\n- Ensure that failed sign-in alerts are generated for other accounts.\n- Minimize administrative effort.\n\nWhat should you do?",
+  "options": [
+    "Modify the analytics rule.",
+    "Create a watchlist.",
+    "Add an activity template to the entity behavior.",
+    "Create an automation rule."
+  ],
+  "answer": [0],
+  "explanation": "The correct answer is A. Modifying the analytics rule allows you to adjust the detection query to exclude a specific account from failed sign-in alerts, thereby preventing false positives for that account while continuing to detect alerts for all others. A watchlist only provides reference data, UEBA activity templates are unrelated, and automation rules act after alerts are created rather than preventing them."
+},
+{
+  "id": 185,
+  "question": "You have a Microsoft 365 E5 subscription that contains two users named User1 and User2.\n\nYou have the hunting query shown in the exhibit.\n\nThe users perform the following actions:\n- User1 assigns User2 the Global administrator role.\n- User1 creates a new user named User3 and assigns the user a Microsoft Teams license.\n- User2 creates a new user named User4 and assigns the user the Security reader role.\n- User2 creates a new user named User5 and assigns the user the Security operator role.\n\nBased on the query logic, which of the following results will the query return?",
+  "options": [
+    "The query will identify the role assignment of User2.",
+    "The query will identify the creation of User3.",
+    "The query will identify the creation of User5.",
+    "The query will identify the creation of User4."
+  ],
+  "answer": [2],
+  "explanation": "The query filters on 'Add user' events and then joins with 'Create role assignment' events by the same caller. It will not capture a role assignment without a new user creation (User2), nor a user creation without a role assignment (User3). It correctly identifies when a new user is created and immediately assigned a role by the same caller (User5). User4's creation by User2 is not matched by the query. Therefore, only the creation of User5 is identified."
+},
+{
+  "id": 186,
+  "question": "You have the following KQL query that uses a watchlist and sets custom entities. Based on the query, which of the following statements are correct?",
+  "options": [
+    "The UserName field is set as the account entity and the IPList variable is set as the IP address entity.",
+    "The watchlist cannot be updated after it is created.",
+    "The UserName field is not used as an account entity.",
+    "The IPList variable is not tied to any entity."
+  ],
+  "answer": [0],
+  "explanation": "The correct statements are that the UserName field is set as the account entity (via AccountCustomEntity = UserName) and that the IPList variable is set as the IP address entity (via IPCustomEntity). Watchlists can be updated after creation, so statement 2 is false. The other distractors contradict the query."
+},
+{
+  "id": 187,
+  "question": "You have a Microsoft Sentinel workspace.\n\nYou develop a custom Advanced Security Information Model (ASIM) parser named Parser1 that produces a schema named Schema1.\n\nYou need to validate Schema1.\n\nHow should you complete the command?",
+  "options": [
+    "Parser1 | evaluate getschema AsimSchemaTester('Schema1')",
+    "Parser1 | evaluate invoke AsimSchemaTester('Schema1')",
+    "Parser1 | parse invoke AsimSchemaTester('Schema1')",
+    "Parser1 | evaluate parse AsimSchemaTester('Schema1')"
+  ],
+  "answer": [1],
+  "explanation": "The correct command is 'Parser1 | evaluate invoke AsimSchemaTester('Schema1')'. In Microsoft Sentinel ASIM, the 'evaluate invoke' syntax is required to run schema tester functions. 'getschema' retrieves schema info, 'parse' is for parsing operations, and other combinations are invalid."
+},
+{
+  "id": 188,
+  "question": "You have a Microsoft Sentinel workspace with UEBA enabled. You must identify all log entries related to security-sensitive user actions on a server named Server1, while including only actions by users who are NOT members of the IT department and minimizing false positives. How should you complete the KQL query (choose the join kind and the table to join)?",
+  "options": [
+    "join kind=fullouter",
+    "join kind=inner",
+    "join kind=innerunique",
+    "BehaviorAnalytics",
+    "IdentityInfo",
+    "SecurityEvent"
+  ],
+  "answer": [2, 4],
+  "explanation": "Use join kind=innerunique to deduplicate left-side rows and reduce noise, and join with the IdentityInfo table to get user attributes such as Department so you can filter Department != \"IT\". IdentityInfo (UEBA enrichment) contains user profile metadata including department, which is what the filter needs; BehaviorAnalytics holds anomaly outputs, not the department attribute used here. KQL docs recommend innerunique when you want a unique left key per match. Sources: Microsoft docs on IdentityInfo UEBA enrichment including user profile/department and KQL join innerunique behavior. :contentReference[oaicite:0]{index=0}"
+},
+{
+  "id": 189,
+  "question": "You have a Microsoft Sentinel workspace. You need to create a KQL query that will identify successful sign-ins from multiple countries during the last three hours. How should you complete the query?",
+  "options": [
+    "Use the 'imAuthentication' table and 'SrcGeoCountry' field.",
+    "Use the 'imNetworkSession' table and 'DstGeoCountry' field.",
+    "Use the 'imProcessCreate' table and 'SrcGeoRegion' field.",
+    "Use the 'imWebSession' table and 'DstGeoRegion' field."
+  ],
+  "answer": [0],
+  "explanation": "The correct answer is option A. Successful sign-in events are found in the imAuthentication table, and the field SrcGeoCountry provides the originating country of the sign-in. The other tables (NetworkSession, ProcessCreate, WebSession) do not contain sign-in activity. Using SrcGeoCountry with imAuthentication is the correct way to identify sign-ins from multiple countries within the given time frame."
+},
+{
+  "id": 190,
+  "question": "You have an Azure subscription.\n\nYou plan to implement a Microsoft Sentinel workspace and expect ~20 GB of security log data ingested per day.\n\nYou need to configure storage for the workspace to:\n• Minimize costs for daily ingested data.\n• Maximize the data retention period without incurring extra costs.\n\nWhat should you choose for each requirement? (Each correct selection is worth one point.)\n\nAnswer Area:\n1) Minimize costs for daily ingested data:\n2) Maximize the data retention period without incurring extra costs:",
+  "options": [
+    "Apply a daily cap.",
+    "Use a commitment tier.",
+    "Use the Pay-As-You-Go (PAYG) model.",
+    "Set retention to 31 days.",
+    "Set retention to 90 days.",
+    "Set retention to 365 days."
+  ],
+  "answer": [1, 4],
+  "explanation": "Use a commitment tier to reduce ingestion cost when volume is predictable (e.g., ~20 GB/day). For Microsoft Sentinel, security data includes up to 90 days of retention at no extra cost, so set retention to 90 days. Daily caps risk data loss and PAYG is typically more expensive at this volume; 31 days is too short and 365 days incurs extra cost."
+},
+{
+  "id": 192,
+  "question": "You have a playbook in Azure Sentinel. When you trigger the playbook, it sends an email to a distribution group.\n\nYou need to modify the playbook to send the email to the owner of the resource instead of the distribution group.\n\nWhat should you do?",
+  "options": [
+    "Add a parameter and modify the trigger.",
+    "Add a custom data connector and modify the trigger.",
+    "Add a condition and modify the action.",
+    "Add an alert and modify the action."
+  ],
+  "answer": [2],
+  "explanation": "The correct answer is C. You must add a condition to check the target (resource owner instead of distribution group) and then modify the action in the playbook to send the email accordingly. Parameters and connectors are unrelated to this logic change, and alerts are for detections, not email routing."
+},
+{
+  "id": 193,
+  "question": "You have a Microsoft Sentinel workspace.\n\nYou need to prevent a built-in Advanced Security Information Model (ASIM) parser from being updated automatically.\n\nWhat are two ways to achieve this goal? Each correct answer presents a complete solution.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "Create a hunting query that references the built-in parser.",
+    "Build a custom unifying parser and include the built-in parser version.",
+    "Redeploy the built-in parser and specify a CallerContext parameter of Any and a SourceSpecificParser parameter of Any.",
+    "Redeploy the built-in parser and specify a CallerContext parameter of Built-in.",
+    "Create an analytics rule that includes the built-in parser."
+  ],
+  "answer": [1, 2],
+  "explanation": "The correct answers are B and C. To prevent automatic updates to a built-in ASIM parser, you can (1) build a custom unifying parser that explicitly references the current built-in parser version, or (2) redeploy the built-in parser while specifying CallerContext=Any and SourceSpecificParser=Any. This ensures your custom or redeployed version remains fixed and does not get overwritten. Queries or analytics rules that reference the parser (A, E) do not stop updates, and redeploying with CallerContext=Built-in (D) would still allow updates."
+},
+{
+  "id": 194,
+  "question": "You have a custom Microsoft Sentinel workbook named Workbook1.\n\nYou need to add a grid to Workbook1. The solution must ensure that the grid contains a maximum of 100 rows.\n\nWhat should you do?",
+  "options": [
+    "In the grid query, include the take operator.",
+    "In the grid query, include the project operator.",
+    "In the query editor interface, configure Settings.",
+    "In the query editor interface, select Advanced Editor."
+  ],
+  "answer": [0],
+  "explanation": "The correct answer is A. The 'take' operator in KQL is used to limit the number of returned rows, e.g., 'take 100'. The 'project' operator is for selecting specific columns, Settings and Advanced Editor options do not enforce row limits."
+},
+{
+  "id": 195,
+  "question": "You have a Microsoft Sentinel workspace named SW1.\n\nYou plan to create a custom workbook that will include a time chart.\n\nYou need to create a query that will identify the number of security alerts per day for each provider.\n\nHow should you complete the query?",
+  "options": [
+    "Use materialize and series_add",
+    "Use project and series_fill_linear",
+    "Use render and bin",
+    "Use render and take"
+  ],
+  "answer": [2],
+  "explanation": "The correct completion is 'render' and 'bin'. In KQL, the 'bin' operator groups events into time buckets (such as 1d for daily aggregation). The 'render' operator then visualizes the data as a timechart. 'materialize' and 'project' are unrelated to visualization, while 'take' limits rows and 'series_fill_linear' is used for filling missing data, not time aggregation."
+},
+{
+  "id": 196,
+  "question": "You have a Microsoft Sentinel workspace named Workspace1.\n\nYou need to exclude a built-in, source-specific Advanced Security Information Model (ASIM) parser from a built-in unified ASIM parser.\n\nWhat should you create in Workspace1?",
+  "options": [
+    "an analytic rule",
+    "a watchlist",
+    "a workbook",
+    "a hunting query"
+  ],
+  "answer": [1],
+  "explanation": "The correct answer is B. A watchlist can be used to manage exclusions and conditions in Microsoft Sentinel, including controlling how ASIM parsers operate. Analytic rules detect threats, workbooks are for visualization, and hunting queries are for investigations, not parser exclusion."
+},
+{
+  "id": 197,
+  "question": "You have an Azure subscription that contains a Microsoft Sentinel workspace.\n\nYou need to create a playbook that will run automatically in response to a Microsoft Sentinel alert.\n\nWhat should you create first?",
+  "options": [
+    "a hunting query in Microsoft Sentinel",
+    "an Azure logic app",
+    "an automation rule in Microsoft Sentinel",
+    "a trigger in Azure Functions"
+  ],
+  "answer": [1],
+  "explanation": "The correct answer is B. An Azure Logic App is required to build the playbook itself. After the playbook exists, you can then link it to an automation rule in Sentinel to trigger automatically. A hunting query is for investigation, and Azure Functions triggers are unrelated to Sentinel playbooks."
+},
+{
+  "id": 198,
+  "question": "You have a Microsoft Sentinel workspace named Workspace1.\n\nYou configure Workspace1 to collect DNS events and deploy the Advanced Security Information Model (ASIM) unifying parser for the DNS schema.\n\nYou need to query the ASIM DNS schema to list all the DNS events from the last 24 hours that have a response code of 'NXDOMAIN' and were aggregated by the source IP address in 15-minute intervals. The solution must maximize query performance.\n\nHow should you complete the query?",
+  "options": [
+    "Use Im_Dns and apply summarize count() by SrcIpAddr, bin(TimeGenerated, 15m)",
+    "Use Dns and apply summarize count() by SrcIpAddr, bin(TimeGenerated, 15m)",
+    "Use imDns and apply summarize count() by SrcIpAddr, bin(TimeGenerated, 15m)",
+    "Use Im_Dns but without bin(), just summarize by SrcIpAddr"
+  ],
+  "answer": [0],
+  "explanation": "The correct choice is to use the ASIM unifying parser 'Im_Dns' to ensure schema consistency, and then apply 'summarize ... by SrcIpAddr, bin(TimeGenerated, 15m)'. This approach maximizes performance by aggregating events efficiently. Using 'Dns' bypasses ASIM, 'imDns' is incorrect capitalization, and omitting 'bin()' would not aggregate into 15-minute intervals."
+},
+{
+  "id": 199,
+  "question": "Your on-premises network contains 100 servers that run Windows Server.\n\nYou have an Azure subscription that uses Microsoft Sentinel.\n\nYou need to upload custom logs from the on-premises servers to Microsoft Sentinel.\n\nWhat should you do?",
+  "options": [
+    "On the servers, install the Azure Connected Machine agent. Configure custom log settings by using the Data connectors page of Microsoft Sentinel.",
+    "On the servers, install the Log Analytics agent. Configure custom log settings by using the Data connectors page of Microsoft Sentinel.",
+    "On the servers, install the Microsoft Dependency agent. Configure custom log settings by using the Log Analytics workspace settings of Microsoft Sentinel.",
+    "On the servers, install the Log Analytics agent. Configure custom log settings by using the Logs blade of Microsoft Sentinel."
+  ],
+  "answer": [1],
+  "explanation": "The correct answer is to install the Log Analytics agent on the on-premises servers and configure custom log collection through the Data connectors page in Microsoft Sentinel. This enables ingestion of custom logs into Sentinel. The Azure Connected Machine agent is for Azure Arc, and the Dependency agent is for VM insights, not log collection. The Logs blade only shows ingested logs, not configuration."
+},
+{
+  "id": 200,
+  "question": "You have an Azure subscription that contains a Microsoft Sentinel workspace. The workspace contains a Microsoft Defender for Cloud data connector.\n\nYou need to customize which details will be included when an alert is created for a specific event.\n\nWhat should you do?",
+  "options": [
+    "Enable User and Entity Behavior Analytics (UEBA).",
+    "Create a Data Collection Rule (DCR).",
+    "Modify the properties of the connector.",
+    "Create a scheduled query rule."
+  ],
+  "answer": [3],
+  "explanation": "The correct answer is D. To customize which details appear when an alert is created, you use scheduled query rules in Microsoft Sentinel. These allow you to define conditions, suppression settings, and what information to include in alerts. UEBA is for behavior analysis, DCRs control data ingestion but not alert customization, and connector properties only affect connection settings, not alert detail."
+},
+{
+  "id": 201,
+  "question": "You have a Microsoft Sentinel workspace named Workspace1 and 200 custom Advanced Security Information Model (ASIM) parsers based on the DNS schema.\n\nYou need to make the 200 parsers available in Workspace1. The solution must minimize administrative effort.\n\nWhat should you do first?",
+  "options": [
+    "Copy the parsers to the Azure Monitor Logs page.",
+    "Create a JSON file based on the DNS template.",
+    "Create an XML file based on the DNS template.",
+    "Create a YAML file based on the DNS template."
+  ],
+  "answer": [3],
+  "explanation": "Start by creating a YAML mapping file from the ASIM DNS template. ASIM parser tooling uses YAML templates to define and generate (at scale) the KQL parsers/unifying parser for deployment to Sentinel, which minimizes manual effort versus hand-creating individual parsers or copying content."
+},
+{
+  "id": 202,
+  "question": "You are investigating an incident in Microsoft Sentinel. You need to identify the geolocation information that corresponds to the incident.\n\nWhere should you look?",
+  "options": [
+    "From Overview, review the Potential malicious events map.",
+    "From the incident Investigation page, select the IP entity and review Geolocation information.",
+    "From the Alerts tab, expand the Mitigate the threat section.",
+    "From Investigation, review insights on the incident entity."
+  ],
+  "answer": [1],
+  "explanation": "The correct answer is option B. In Microsoft Sentinel, once you open the incident details, you can select the IP entity under the Entities section. This displays Geolocation information such as country, region, and city. The Potential malicious events map in Overview was deprecated and is no longer reliable, Alerts → Mitigate the threat shows remediation steps not geolocation, and generic Investigation insights do not provide detailed geolocation data."
+},
+{
+  "id": 202,
+  "question": "HOTSPOT - You have a Microsoft Sentinel workspace. A Microsoft Sentinel incident is generated as shown in the exhibit. Use the drop-down menus to select the answer choice that completes each statement based on the information presented in the graphic. NOTE: Each correct selection is worth one point.\n\nStatement 1: A map of the entities connected to the alert can be viewed by selecting ____.\nStatement 2: A list of the activities performed during the investigation can be viewed by selecting ____.",
+  "options": [
+    "Statement 1: Alerts",
+    "Statement 1: Entities",
+    "Statement 1: Investigate",
+    "Statement 2: Alerts",
+    "Statement 2: Bookmarks",
+    "Statement 2: Comments",
+    "Statement 2: Status"
+  ],
+  "answer": [2, 5],
+  "explanation": "Validation: In Microsoft Sentinel, selecting **Investigate** on an incident opens the investigation graph, which visually maps the related entities and their connections. See Microsoft Learn: \"Select an incident, then select Investigate.\" (Investigate incidents visually using the investigation graph).\nFor tracking what was done during the investigation, the **Comments** area is used to record analyst actions/notes and can be used to audit actions taken by playbooks (for example, to document investigation steps). This best matches the requested \"list of activities performed\" among the given options (Alerts/Bookmarks/Comments/Status).\n\nReferences:\n- Microsoft Learn – Investigate incidents visually using the investigation graph: https://learn.microsoft.com/azure/sentinel/investigate-incidents#investigate-incidents-visually-using-the-investigation-graph\n- Microsoft Learn – Supported triggers and actions (\"Add comments to incident\" used to audit actions): https://learn.microsoft.com/azure/sentinel/automation/playbook-triggers-actions"
+},
+{
+  "id": 203,
+  "question": "You provision Azure Sentinel for a new Azure subscription. You are configuring the Security Events connector. While creating a new rule from a template in the connector, you decide to generate a new alert for every event. You create the following rule query:\n\nlet timeframe = 1d;\nSecurityEvent\n| where TimeGenerated >= ago(timeframe)\n| where EventID == 1102 and EventSourceName == \"Microsoft-Windows-Eventlog\"\n| summarize StartTimeUtc = min(TimeGenerated), EndTimeUtc = max(TimeGenerated), EventCount = count() by Computer, Account, EventID, Activity\n| extend timestamp = StartTimeUtc, AccountCustomEntity = Account, HostCustomEntity = Computer\n\nBy which two components can you group alerts into incidents? Each correct answer presents a complete solution.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "user",
+    "resource group",
+    "IP address",
+    "computer"
+  ],
+  "answer": [0, 3],
+  "explanation": "In the rule query, the fields `AccountCustomEntity = Account` and `HostCustomEntity = Computer` are explicitly set. In Microsoft Sentinel, these custom entity mappings define which values are available for incident grouping.\n\n- user → Correct, because the query maps the Account field as `AccountCustomEntity`, allowing grouping by user.\n- computer → Correct, because the query maps the Computer field as `HostCustomEntity`, allowing grouping by host.\n- resource group → Incorrect, resource group is not part of the query or entity mapping.\n- IP address → Incorrect, IP address is not extracted or assigned as a custom entity in the query.\n\nReferences:\n- Microsoft Learn – [Create custom analytics rules in Microsoft Sentinel](https://learn.microsoft.com/azure/sentinel/tutorial-detect-threats-custom)\n- Microsoft Learn – [Map entities in rules](https://learn.microsoft.com/azure/sentinel/map-data-fields-to-entities)"
+}
+]
