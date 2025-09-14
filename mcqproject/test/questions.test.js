@@ -1,8 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { set1, set2, set3, set4, set5 } from '../src/questions.js';
+import {
+  set1,
+  set2,
+  set3,
+  set4,
+  set5,
+  set6,
+  set7,
+  set8,
+  set9
+} from '../src/questions.js';
 
-const allSets = { set1, set2, set3, set4, set5 };
+const allSets = { set1, set2, set3, set4, set5, set6, set7, set8, set9 };
 
 test('default sets have expected lengths', () => {
   assert.strictEqual(set1.length, 30);
@@ -10,6 +20,10 @@ test('default sets have expected lengths', () => {
   assert.strictEqual(set3.length, 29);
   assert.strictEqual(set4.length, 26);
   assert.strictEqual(set5.length, 50);
+  assert.strictEqual(set6.length, 23);
+  assert.strictEqual(set7.length, 29);
+  assert.strictEqual(set8.length, 23);
+  assert.strictEqual(set9.length, 35);
 });
 
 test('each question includes an explanation', () => {
