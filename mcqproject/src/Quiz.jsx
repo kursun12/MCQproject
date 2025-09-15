@@ -276,6 +276,7 @@ function QuizMain() {
   const [revealed, setRevealed] = useState(false);
   const [forceExplain, setForceExplain] = useState(false);
   const [awaitingNext, setAwaitingNext] = useState(false);
+  const [showImage, setShowImage] = useState(false);
   const testQuick = useMemo(() => localStorage.getItem('testQuick') === 'true', []);
   const testNoChange = useMemo(() => localStorage.getItem('testNoChange') === 'true', []);
   const [expandedRows, setExpandedRows] = useState({});
@@ -567,6 +568,7 @@ function QuizMain() {
     setRevealed(false);
     setForceExplain(false);
     setAwaitingNext(false);
+    setShowImage(false);
     if (mode === 'repeat') {
       const eng = engineRef.current;
       if (eng) {
@@ -660,10 +662,15 @@ function QuizMain() {
     return () => window.removeEventListener('keydown', onKey);
   }, [question, selected, handleNext, current]);
 
+  useEffect(() => {
+    setShowImage(false);
+  }, [current]);
+
   const restart = (newQuestions = questions) => {
     setQuestions(newQuestions);
     setCurrent(0);
     setSelected([]);
+    setShowImage(false);
     setScore(0);
     setPoints(0);
     setFinished(false);
@@ -955,6 +962,15 @@ function QuizMain() {
         <div className="badge" aria-hidden="true" style={{display:'inline-block',marginBottom:'6px'}}>Select ALL that apply · Choose {correct.length}</div>
       )}
       {!noQuestions && <p className="question" dangerouslySetInnerHTML={{__html: renderMDKaTeX(question.question)}}></p>}
+      {!noQuestions && question.image && (
+        <div style={{marginBottom:'10px'}}>
+          {showImage ? (
+            <img src={question.image} alt="Question" style={{maxWidth:'100%'}} />
+          ) : (
+            <button type="button" onClick={()=>setShowImage(true)}>Reveal image</button>
+          )}
+        </div>
+      )}
       {!noQuestions && question.type === 'hotspot' && question.media?.src ? (
         <div style={{marginBottom:'10px'}}>
           <Hotspot src={question.media.src} zones={question.media.zones||[]} selected={selected} onSelect={handleOption} />

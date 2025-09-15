@@ -13,6 +13,8 @@ function ImportQuestions() {
     question: '',
     options: ['', '', '', ''],
     answers: [],
+    explanation: '',
+    image: '',
   });
   const [sets, setSets] = useState([]);
   const [newSetName, setNewSetName] = useState('');
@@ -21,6 +23,7 @@ function ImportQuestions() {
     options: ['', '', '', ''],
     answers: [],
     explanation: '',
+    image: '',
     setIds: [],
   });
   const [search, setSearch] = useState('');
@@ -120,6 +123,7 @@ function ImportQuestions() {
       // Keep single answer for backward compatibility
       answer: validAnswers.length > 0 ? validAnswers[0] : 0,
       explanation: q.explanation || '',
+      image: q.image || '',
     };
   };
 
@@ -213,6 +217,8 @@ function ImportQuestions() {
       question: normalized.question,
       options: [...normalized.options],
       answers: [...normalized.answers],
+      explanation: normalized.explanation || '',
+      image: normalized.image || '',
     });
     setActiveTab('editor');
   };
@@ -280,7 +286,7 @@ function ImportQuestions() {
       );
       persistSets(updatedSets);
     }
-    setNewQ({ question: '', options: ['', '', '', ''], answers: [], explanation: '', setIds: [] });
+    setNewQ({ question: '', options: ['', '', '', ''], answers: [], explanation: '', image: '', setIds: [] });
     setShowNew(false);
   };
 
@@ -321,6 +327,18 @@ function ImportQuestions() {
     if (checked) cur.add(setId);
     else cur.delete(setId);
     setNewQ({ ...newQ, setIds: Array.from(cur) });
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const data = reader.result;
+      if (editingId) setDraft((d) => ({ ...d, image: data }));
+      else setNewQ((q) => ({ ...q, image: data }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const filteredQuestions = useMemo(() => {
@@ -587,6 +605,16 @@ function ImportQuestions() {
                 onChange={(e) => editingId? setDraft({ ...draft, explanation: e.target.value }) : setNewQ({ ...newQ, explanation: e.target.value })}
                 style={{marginTop:8}}
               />
+              <div style={{marginTop:8}}>
+                {(editingId ? draft.image : newQ.image) ? (
+                  <div>
+                    <img src={editingId ? draft.image : newQ.image} alt="preview" style={{maxWidth:'100%'}} />
+                    <button className="btn-ghost" onClick={() => editingId ? setDraft({ ...draft, image: '' }) : setNewQ({ ...newQ, image: '' })} style={{marginTop:6}}>Remove image</button>
+                  </div>
+                ) : (
+                  <input type="file" accept="image/*" onChange={handleImageChange} />
+                )}
+              </div>
               <div className="template-row">
                 <button type="button" className="btn-ghost" onClick={()=>{
                   const base=[ 'True','False' ];
@@ -719,6 +747,14 @@ function ImportQuestions() {
         ]}
       >
         <textarea placeholder="Question text" value={newQ.question} onChange={(e)=>setNewQ({...newQ, question:e.target.value})} />
+        {newQ.image ? (
+          <div style={{marginTop:6}}>
+            <img src={newQ.image} alt="preview" style={{maxWidth:'100%'}} />
+            <button className="btn-ghost" onClick={()=>setNewQ({...newQ, image:''})} style={{marginTop:6}}>Remove image</button>
+          </div>
+        ) : (
+          <div style={{marginTop:6}}><input type="file" accept="image/*" onChange={handleImageChange} /></div>
+        )}
         {newQ.options.map((opt, idx)=>(
           <div key={idx} style={{display:'flex',gap:8,alignItems:'center',marginTop:6}}>
             <input type="text" placeholder={`Option ${idx+1}`} value={opt} onChange={(e)=>{ const opts=[...newQ.options]; opts[idx]=e.target.value; setNewQ({...newQ, options: opts}); }} style={{flex:1}} />
