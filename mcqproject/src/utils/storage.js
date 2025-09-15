@@ -5,16 +5,22 @@ export function syncLocalStorage(defaultSets, allQuestions, storage, questionsKe
   } catch {
     existingQuestions = [];
   }
-  const qSet = new Set(existingQuestions.map((q) => JSON.stringify(q)));
+  const qMap = new Map();
+  // Seed map with any previously stored questions, deduping by content and
+  // ignoring ids which may collide across bundled sets.
+  for (const q of existingQuestions) {
+    const { id: _id, set: _set, ...rest } = q;
+    const key = JSON.stringify(rest);
+    if (!qMap.has(key)) qMap.set(key, q);
+  }
+  // Merge in bundled questions using the same content-based key.
   for (const q of allQuestions) {
-    const str = JSON.stringify(q);
-    if (!qSet.has(str)) {
-      qSet.add(str);
-      existingQuestions.push(q);
-    }
+    const { id: _id, set: _set, ...rest } = q;
+    const key = JSON.stringify(rest);
+    if (!qMap.has(key)) qMap.set(key, q);
   }
   try {
-    storage.setItem(questionsKey, JSON.stringify(existingQuestions));
+    storage.setItem(questionsKey, JSON.stringify([...qMap.values()]));
   } catch {
     /* ignore write errors */
   }
