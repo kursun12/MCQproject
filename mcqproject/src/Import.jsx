@@ -139,7 +139,9 @@ function ImportQuestions() {
 
   const prepareImport = (arr) =>
     ensureUniqueIds(
-      arr.map((q) => normalizeQuestion({ ...q, id: q.id ?? generateId() }))
+      // Always generate a new ID so imported data doesn't reuse any
+      // pre-existing identifiers that might conflict with local sets.
+      arr.map((q) => normalizeQuestion({ ...q, id: generateId() }))
     );
 
   const persistQuestions = (updater) => {
