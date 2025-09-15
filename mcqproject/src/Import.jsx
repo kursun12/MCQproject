@@ -36,11 +36,16 @@ function ImportQuestions() {
   const [pasteText, setPasteText] = useState('');
   const [pasteError, setPasteError] = useState('');
   const questionAssignments = useMemo(() => {
+    // Build a map of questionId -> [setId, ...]. Use strings for
+    // keys/values to avoid number/string mismatches which previously
+    // broke filtering when set IDs were non-numeric.
     const map = new Map();
     sets.forEach((s) => {
+      const sid = String(s.id);
       (s.questionIds || []).forEach((id) => {
-        if (!map.has(id)) map.set(id, []);
-        map.get(id).push(s.id);
+        const qid = String(id);
+        if (!map.has(qid)) map.set(qid, []);
+        map.get(qid).push(sid);
       });
     });
     return map;
@@ -319,11 +324,11 @@ function ImportQuestions() {
   const filteredQuestions = useMemo(() => {
     const term = search.trim().toLowerCase();
     return questions.filter((q) => {
-      const assignedTo = questionAssignments.get(q.id) || [];
+      const assignedTo = questionAssignments.get(String(q.id)) || [];
       const isAssigned = assignedTo.length > 0;
       if (assignFilter === 'assigned' && !isAssigned) return false;
       if (assignFilter === 'unassigned' && isAssigned) return false;
-      if (filterSet && !assignedTo.includes(Number(filterSet))) return false;
+      if (filterSet && !assignedTo.includes(String(filterSet))) return false;
       if (!term) return true;
       return (
         q.question.toLowerCase().includes(term) ||
