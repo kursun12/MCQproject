@@ -1,15 +1,36 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import questions from '../src/questions.js';
+import {
+  set1,
+  set2,
+  set3,
+  set4,
+  set5,
+  set6,
+  set7,
+  set8,
+  set9
+} from '../src/questions.js';
 
-test('questions array has expected length', () => {
-  assert.ok(Array.isArray(questions));
-  assert.strictEqual(questions.length, 3);
+const allSets = { set1, set2, set3, set4, set5, set6, set7, set8, set9 };
+
+test('default sets have expected lengths', () => {
+  assert.strictEqual(set1.length, 30);
+  assert.strictEqual(set2.length, 28);
+  assert.strictEqual(set3.length, 29);
+  assert.strictEqual(set4.length, 26);
+  assert.strictEqual(set5.length, 50);
+  assert.strictEqual(set6.length, 23);
+  assert.strictEqual(set7.length, 29);
+  assert.strictEqual(set8.length, 23);
+  assert.strictEqual(set9.length, 35);
 });
 
 test('each question includes an explanation', () => {
-  for (const q of questions) {
-    assert.strictEqual(typeof q.explanation, 'string');
-    assert.notStrictEqual(q.explanation.length, 0);
+  for (const set of Object.values(allSets)) {
+    for (const q of set) {
+      assert.strictEqual(typeof q.explanation, 'string');
+      assert.notStrictEqual(q.explanation.length, 0);
+    }
   }
 });

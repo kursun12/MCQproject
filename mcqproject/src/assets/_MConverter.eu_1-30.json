@@ -1,0 +1,352 @@
+[
+{
+  "id": 1,
+  "question": "You are investigating an incident by using Microsoft 365 Defender. You need an Advanced Hunting (KQL) query to count failed sign-in authentications on three devices named CFOLaptop, CEOLaptop, and COOLaptop. Which query should you use?",
+  "options": [
+    "DeviceLogonEvents\n| where DeviceName in (\"CFOLaptop\", \"CEOLaptop\", \"COOLaptop\")\n| where ActionType == \"LogonFailed\"\n| summarize LogonFailures=count() by DeviceName, LogonType",
+    "DeviceLogonEvents\n| where DeviceName in (\"CFOLaptop\", \"CEOLaptop\", \"COOLaptop\")\n| where ActionType == FailureReason\n| summarize LogonFailures=count() by DeviceName, LogonType",
+    "DeviceEvents\n| where DeviceName in (\"CFOLaptop\", \"CEOLaptop\", \"COOLaptop\")\n| where ActionType == \"LogonFailed\"\n| summarize LogonFailures=count() by DeviceName, LogonType",
+    "DeviceLogonEvents\n| summarize LogonFailures=count() by DeviceName, LogonType\n| where DeviceName in (\"CFOLaptop\", \"CEOLaptop\", \"COOLaptop\") and ActionType == \"LogonFailed\""
+  ],
+  "answer": 0,
+  "explanation": "Correct query uses the DeviceLogonEvents table (sign-in activity), filters to the three device names, filters failed logons with ActionType == \"LogonFailed\", then summarizes counts by DeviceName and LogonType. Option B is wrong because ActionType is not equal to FailureReason (that is a separate column describing why it failed). Option C uses the wrong table (DeviceEvents). Option D summarizes before filtering; after summarize the ActionType column no longer exists, so the filter is invalid. References: Microsoft 365 Defender Advanced Hunting schema for DeviceLogonEvents shows ActionType values such as \"LogonFailed\" and columns DeviceName and LogonType (https://learn.microsoft.com/microsoft-365/security/defender/advanced-hunting-deviceevents-table and https://learn.microsoft.com/microsoft-365/security/defender/advanced-hunting-schema-device-logon-events)."
+},
+{
+  "id": 2,
+  "question": "You are configuring Microsoft Defender for Identity integration with Active Directory. From the Defender for Identity portal, you need to configure several accounts for attackers to exploit. Solution: From Entity tags, you add the accounts as Honeytoken accounts. Does this meet the goal?",
+  "options": ["Yes", "No"],
+  "answer": 0,
+  "explanation": "Yes. In Microsoft Defender for Identity you configure decoy accounts by tagging them as Honeytoken accounts under Entity tags. Any authentication activity involving these accounts triggers an alert, which is exactly the goal when setting up accounts for attackers to exploit. References: Microsoft Learn – 'Entity tags in Microsoft Defender for Identity' (https://learn.microsoft.com/en-us/defender-for-identity/entity-tags)."
+},
+{
+  "id": 3,
+  "question": "Note: This question is part of a series of questions that present the same scenario. Each question in the series contains a unique solution that might meet the stated goals. Some question sets might have more than one correct solution, while others might not have a correct solution.\n\nAfter you answer a question in this section, you will NOT be able to return to it. As a result, these questions will not appear in the review screen.\n\nYou are configuring Microsoft Defender for Identity integration with Active Directory.\n\nFrom the Microsoft Defender for identity portal, you need to configure several accounts for attackers to exploit.\n\nSolution: From Azure AD Identity Protection, you configure the sign-in risk policy.\n\nDoes this meet the goal?",
+  "options": ["Yes", "No"],
+  "answer": 1,
+  "explanation": "No. Configuring a sign-in risk policy in Azure AD Identity Protection evaluates risky sign-ins and applies conditional access but does not create decoy accounts. To configure accounts for attackers to exploit in Defender for Identity, you tag decoy accounts as Honeytoken accounts under Entity tags. (Microsoft Learn: 'Entity tags in Microsoft Defender for Identity'; 'Configure sign-in risk policy in Microsoft Entra ID Protection')."
+},
+{
+  "id": 4,
+  "question": "You are configuring Microsoft Defender for Identity integration with Active Directory. From the Microsoft Defender for Identity portal, you need to configure several accounts for attackers to exploit. Solution: You add the accounts to an Active Directory group and add the group as a Sensitive group. Does this meet the goal?",
+  "options": ["Yes", "No"],
+  "answer": 1,
+  "explanation": "No. Marking a group as 'Sensitive' in Microsoft Defender for Identity changes the way the accounts are monitored, but it does not create decoy accounts for attackers. The correct method is to tag accounts as Honeytoken accounts. Sensitive group tagging is for protecting high-value groups like Domain Admins. References: Microsoft Learn – 'Entity tags in Microsoft Defender for Identity' (https://learn.microsoft.com/en-us/defender-for-identity/entity-tags)."
+},
+{
+  "id": 5,
+  "question": "You implement Safe Attachments policies in Microsoft Defender for Office 365. Users report that email messages containing attachments take longer than expected to be received. You need to reduce the amount of time it takes to deliver messages that contain attachments without compromising security. The attachments must be scanned for malware, and any messages that contain malware must be blocked. What should you configure in the Safe Attachments policies?",
+  "options": [
+    "Dynamic Delivery",
+    "Replace",
+    "Block and Enable redirect",
+    "Monitor and Enable redirect"
+  ],
+  "answer": 0,
+  "explanation": "Dynamic Delivery ensures that email messages are delivered immediately, while the attachments are replaced with a placeholder until the malware scan completes. If the attachment is found to be safe, it is reattached to the message; if malicious, it is blocked. This reduces delivery delays without compromising security. References: Microsoft Learn – 'Set up Safe Attachments policies in Microsoft 365' (https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/safe-attachments-policies)."
+},
+{
+  "id": 6,
+  "question": "You are informed of an increase in malicious email being received by users. You need to create an advanced hunting query in Microsoft 365 Defender to identify whether the accounts of the email recipients were compromised. The query must return the most recent 20 sign-ins performed by the recipients within an hour of receiving the known malicious email. How should you complete the query?",
+  "options": [
+    "Use EmailAttachmentInfo as the starting table, join to IdentityLogonEvents, and use 'top 20 by Timestamp'.",
+    "Use EmailEvents as the starting table, join to DeviceEvents, and use 'take 20'.",
+    "Use IdentityLogonEvents as the starting table, join to EmailAttachmentInfo, and use 'limit 20'.",
+    "Use EmailAttachmentInfo as the starting table, join to IdentityLogonEvents, and use 'select 20'."
+  ],
+  "answer": 0,
+  "explanation": "The correct query starts with EmailAttachmentInfo to identify malicious emails, then joins to IdentityLogonEvents to check recipient sign-ins. To return the most recent 20 sign-ins within an hour window, the 'top 20 by Timestamp' operator is required. 'take 20' or 'limit 20' would not guarantee ordering by recency, and 'select 20' is not a valid KQL operator. References: Microsoft Learn – 'Advanced hunting in Microsoft 365 Defender: Query emails and devices' (https://learn.microsoft.com/en-us/microsoft-365/security/defender/advanced-hunting-query-emails-devices)."
+},
+{
+  "id": 7,
+  "question": "You receive a security bulletin about a potential attack that uses an image file. You need to create an indicator of compromise (IoC) in Microsoft Defender for Endpoint to prevent the attack. Which indicator type should you use?",
+  "options": [
+    "A URL/domain indicator that has Action set to Alert only",
+    "A URL/domain indicator that has Action set to Alert and block",
+    "A file hash indicator that has Action set to Alert and block",
+    "A certificate indicator that has Action set to Alert and block"
+  ],
+  "answer": 2,
+  "explanation": "Since the threat involves an image file, the appropriate IoC type is a file hash indicator. In Microsoft Defender for Endpoint, blocking based on the file hash ensures the malicious file cannot run on endpoints. URL/domain indicators are used for web-based threats, while certificate indicators are for signed executables. The correct option is a file hash indicator with Action set to 'Alert and block'. Reference: Microsoft Learn – 'Manage indicators' (https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/manage-indicators)."
+},
+{
+  "id": 8,
+  "question": "Your company deploys Microsoft Defender for Identity, Microsoft Defender for Endpoint, and Microsoft Defender for Office 365. You need to provide a security analyst with the ability to use the Microsoft 365 security center. The analyst must be able to approve and reject pending actions generated by Microsoft Defender for Endpoint. The solution must use the principle of least privilege. Which two roles should you assign to the analyst?",
+  "options": [
+    "The Compliance Data Administrator in Azure Active Directory (Azure AD)",
+    "The Active remediation actions role in Microsoft Defender for Endpoint",
+    "The Security Administrator role in Azure Active Directory (Azure AD)",
+    "The Security Reader role in Azure Active Directory (Azure AD)"
+  ],
+  "answer": [1, 3],
+  "explanation": "The analyst must access the Microsoft 365 security center and approve/reject pending actions in Defender for Endpoint. The least privilege roles are: (1) 'Active remediation actions' in Microsoft Defender for Endpoint, which grants the ability to approve or reject remediation actions; and (2) 'Security Reader' in Azure AD, which allows viewing security information across Microsoft 365 security center without unnecessary admin rights. Security Administrator would grant broader privileges than required, and Compliance Data Administrator is unrelated. Reference: Microsoft Learn – 'Roles and permissions in Microsoft Defender for Endpoint' (https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/assign-portal-roles) and 'Microsoft Entra built-in roles' (https://learn.microsoft.com/en-us/entra/identity/role-based-access-control/permissions-reference)."
+},
+{
+  "id": 9,
+  "question": "HOTSPOT – You have a Microsoft 365 E5 subscription that uses Microsoft Defender and an Azure subscription that uses Microsoft Sentinel. You need to identify all the devices that contain files in emails sent by a known malicious sender. The query must match on the SHA256 hash. Which option pair correctly completes the Advanced Hunting query?\n\nEmailAttachmentInfo\n| where SenderFromAddress =~ \"MaliciousSender@example.com\"\n| where isnotempty( ? )\n| join (\n    DeviceFileEvents\n    | project FileName, SHA256\n) on  ?\n| project Timestamp, FileName, SHA256, DeviceName, DeviceId, NetworkMessageId, SenderFromAddress, RecipientEmailAddress",
+  "options": [
+    "Use isnotempty(SHA256); join on SHA256",
+    "Use isnotempty(RecipientEmailAddress); join on DeviceId",
+    "Use isnotempty(SenderFromAddress); join on RecipientEmailAddress",
+    "Use isnotempty(DeviceId); join on DeviceId"
+  ],
+  "answer": 0,
+  "explanation": "To find devices that contain files matching attachments from a malicious sender, first filter EmailAttachmentInfo rows that actually have a SHA256 value, then join those rows to DeviceFileEvents on the common key SHA256. This correlates the attachment hash with files observed on devices and returns the associated device details. Other pairings either don’t ensure a hash is present or join on unrelated fields, missing the required hash match. Reference: Microsoft Learn – Advanced hunting example correlating emails and devices using EmailAttachmentInfo and DeviceFileEvents with SHA256."
+},
+{
+  "id": 10,
+  "question": "You need to configure Microsoft Cloud App Security to generate alerts and trigger remediation actions in response to external sharing of confidential files. Which two actions should you perform in the Cloud App Security portal? Each correct answer presents part of the solution.",
+  "options": [
+    "From Settings, select Information Protection, select Azure Information Protection, and then select Only scan files for Azure Information Protection classification labels and content inspection warnings from this tenant.",
+    "Select Investigate files, and then filter App to Office 365.",
+    "Select Investigate files, and then select New policy from search.",
+    "From Settings, select Information Protection, select Azure Information Protection, and then select Automatically scan new files for Azure Information Protection classification labels and content inspection warnings.",
+    "From Settings, select Information Protection, select Files, and then enable file monitoring.",
+    "Select Investigate files, and then filter File Type to Document."
+  ],
+  "answer": [3, 4],
+  "explanation": "To detect and act on external sharing of confidential files, Microsoft Cloud App Security must be configured to automatically scan new files for classification labels (Azure Information Protection integration) and to enable file monitoring so the service can continuously inspect files for sensitive content. Options A, B, C, and F do not fulfill the requirement to trigger alerts and remediation on newly shared confidential files. References: Microsoft Learn – 'Integrate Microsoft Information Protection with Microsoft Defender for Cloud Apps' (https://learn.microsoft.com/en-us/defender-cloud-apps/information-protection) and 'File policies in Defender for Cloud Apps' (https://learn.microsoft.com/en-us/defender-cloud-apps/governance-actions)."
+},
+{
+  "id": 11,
+  "question": "HOTSPOT – You purchase a Microsoft 365 subscription and plan to configure Microsoft Cloud App Security. You need to create a custom template-based policy that detects connections to Microsoft 365 apps originating from a botnet network. What should you use?",
+  "options": [
+    "Policy template type: Access policy; Filter based on: IP address tag",
+    "Policy template type: Access policy; Filter based on: User agent string",
+    "Policy template type: Activity policy; Filter based on: IP address tag",
+    "Policy template type: Activity policy; Filter based on: Source",
+    "Policy template type: Anomaly detection policy; Filter based on: IP address tag",
+    "Policy template type: Anomaly detection policy; Filter based on: Source"
+  ],
+  "answer": 0,
+  "explanation": "To detect connections from risky or compromised networks (such as botnets), you configure a Microsoft Cloud App Security Access policy and filter based on the IP address tag. Access policies control session-level conditions, including login from risky IPs. Activity policies apply to in-app activities, and anomaly detection policies are machine-learning based and not directly filtered on IP tags. Reference: Microsoft Learn – 'Control cloud apps with access and session policies in Microsoft Defender for Cloud Apps' (https://learn.microsoft.com/en-us/defender-cloud-apps/access-policy)."
+},
+{
+  "id": 12,
+  "question": "You need to receive a security alert when a user attempts to sign in from a location that was never used by the other users in your organization to sign in. Which anomaly detection policy should you use?",
+  "options": [
+    "Impossible travel",
+    "Activity from anonymous IP addresses",
+    "Activity from infrequent country",
+    "Malware detection"
+  ],
+  "answer": 2,
+  "explanation": "The correct anomaly detection policy is 'Activity from infrequent country'. This policy detects sign-ins from countries that are unusual for your organization as a whole. 'Impossible travel' detects logins from geographically distant locations in an unrealistically short timeframe. 'Activity from anonymous IP addresses' detects sign-ins from VPNs, Tor, or proxies. 'Malware detection' identifies malware spread, not unusual geographies. References: Microsoft Learn – 'Anomaly detection policies in Microsoft Defender for Cloud Apps' (https://learn.microsoft.com/en-us/defender-cloud-apps/anomaly-detection-policy)."
+},
+{
+  "id": 13,
+  "question": "Your company has a single office in Istanbul and a Microsoft 365 subscription. The company plans to use conditional access policies to enforce multi-factor authentication (MFA). You need to enforce MFA for all users who work remotely. What should you include in the solution?",
+  "options": [
+    "A fraud alert",
+    "A user risk policy",
+    "A named location",
+    "A sign-in user policy"
+  ],
+  "answer": 2,
+  "explanation": "The correct solution is to configure a named location in Conditional Access. You can define trusted IP ranges (e.g., the company office in Istanbul). Then, apply a conditional access policy that requires MFA for any sign-in outside the trusted location. A fraud alert is part of Azure AD Identity Protection and does not enforce conditional access. A user risk policy enforces MFA based on risky sign-ins, not remote access. A sign-in user policy is not a valid Conditional Access option. Reference: Microsoft Learn – 'Conditional Access: Named locations' (https://learn.microsoft.com/en-us/entra/identity/conditional-access/location-condition)."
+},
+{
+  "id": 14,
+  "question": "You are configuring Microsoft Cloud App Security. You have a custom threat detection policy based on the IP address ranges of your company's United States-based offices. You receive many alerts related to impossible travel and sign-ins from risky IP addresses. You determine that 99% of the alerts are legitimate sign-ins from your corporate offices. You need to prevent alerts for legitimate sign-ins from known locations. Which two actions should you perform? Each correct answer presents part of the solution.",
+  "options": [
+    "Configure automatic data enrichment.",
+    "Add the IP addresses to the corporate address range category.",
+    "Increase the sensitivity level of the impossible travel anomaly detection policy.",
+    "Add the IP addresses to the other address range category and add a tag.",
+    "Create an activity policy that has an exclusion for the IP addresses."
+  ],
+  "answer": [0, 1],
+  "explanation": "The correct actions are: (A) Configure automatic data enrichment, and (B) Add the IP addresses to the corporate address range category. Automatic data enrichment allows you to override ISP and location data to accurately classify known IPs. Adding office IP addresses to the corporate address range ensures those logins are trusted and excluded from anomaly detections such as impossible travel or risky sign-in alerts. Options C, D, and E either increase false positives or miscategorize the IPs. Reference: Microsoft Learn – 'IP tags in Microsoft Defender for Cloud Apps' (https://learn.microsoft.com/en-us/defender-cloud-apps/ip-tags)."
+},
+{
+  "id": 15,
+  "question": "You are configuring Microsoft Defender for Identity integration with Active Directory. From the Microsoft Defender for Identity portal, you need to configure several accounts for attackers to exploit. Solution: You add each account as a Sensitive account. Does this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 1,
+  "explanation": "No. Marking accounts as 'Sensitive' in Microsoft Defender for Identity ensures that those accounts are monitored more closely, but it does not create decoy accounts designed to attract attackers. The correct configuration for this scenario is to tag them as 'Honeytoken accounts'. Sensitive accounts are typically high-value accounts like domain admins, executives, or service accounts that require special monitoring. Reference: Microsoft Learn – 'Entity tags in Microsoft Defender for Identity' (https://learn.microsoft.com/en-us/defender-for-identity/entity-tags)."
+},
+{
+  "id": 16,
+  "question": "You have a Microsoft 365 tenant that uses Microsoft Exchange Online and Microsoft Defender for Office 365. What should you use to identify whether zero-hour auto purge (ZAP) moved an email message from the mailbox of a user?",
+  "options": [
+    "The Threat Protection Status report in Microsoft Defender for Office 365",
+    "The mailbox audit log in Exchange",
+    "The Safe Attachments file types report in Microsoft Defender for Office 365",
+    "The mail flow report in Exchange"
+  ],
+  "answer": 0,
+  "explanation": "The correct option is the Threat Protection Status report in Microsoft Defender for Office 365. This report shows the number of email messages with malicious content that were acted upon by protection features, including Zero-hour Auto Purge (ZAP). The mailbox audit log and mail flow reports in Exchange do not provide ZAP-specific details. The Safe Attachments file types report only shows data about scanned attachment types, not ZAP actions. Reference: Microsoft Learn – 'View email security reports in the Security & Compliance Center' (https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/view-email-security-reports#threat-protection-status-report)."
+},
+{
+  "id": 17,
+  "question": "You have a Microsoft 365 subscription that contains 1,000 Windows 10 devices. The devices have Microsoft Office 365 installed. You need to mitigate the following device threats:\n- Microsoft Excel macros that download scripts from untrusted websites\n- Users that open executable attachments in Microsoft Outlook\n- Outlook rules and forms exploits\n\nWhat should you use?",
+  "options": [
+    "Microsoft Defender Antivirus",
+    "Attack surface reduction rules in Microsoft Defender for Endpoint",
+    "Windows Defender Firewall",
+    "Adaptive application control in Azure Defender"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is 'Attack surface reduction (ASR) rules in Microsoft Defender for Endpoint'. ASR rules help reduce the attack surface of devices by blocking behaviors often used by malware, such as launching executable content from email and Office apps, running suspicious macros, or creating persistence through Outlook rules. Microsoft Defender Antivirus provides malware detection but does not directly prevent these behaviors. Windows Defender Firewall controls network traffic, not application behavior. Adaptive application control in Azure Defender is for whitelisting apps in Azure environments, not endpoint-level Office/Outlook protections. Reference: Microsoft Learn – 'Attack surface reduction rules' (https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/attack-surface-reduction)."
+},
+{
+  "id": 18,
+  "question": "You have a third-party security information and event management (SIEM) solution. You need to ensure that the SIEM solution can generate alerts for Azure Active Directory (Azure AD) sign-in events in near real time. What should you do to route events to the SIEM solution?",
+  "options": [
+    "Create an Azure Sentinel workspace that has a Security Events connector.",
+    "Configure the Diagnostics settings in Azure AD to stream to an event hub.",
+    "Create an Azure Sentinel workspace that has an Azure Active Directory connector.",
+    "Configure the Diagnostics settings in Azure AD to archive to a storage account."
+  ],
+  "answer": 1,
+  "explanation": "The correct option is to configure Diagnostics settings in Azure AD to stream logs to an Event Hub. Event Hubs are designed for real-time integration with third-party SIEM systems, enabling near real-time alerts on Azure AD sign-in and audit events. Archiving logs to a storage account (Option D) is useful for long-term retention but not real-time alerting. Creating a Sentinel workspace (Options A and C) is unnecessary here because the question specifies a third-party SIEM, not Microsoft Sentinel. Reference: Microsoft Learn – 'Stream Azure Active Directory logs to an Azure Event Hub' (https://learn.microsoft.com/en-us/azure/active-directory/reports-monitoring/howto-integrate-activity-logs-with-event-hub)."
+},
+{
+  "id": 19,
+  "question": "You have an Azure subscription linked to an Azure Active Directory (Azure AD) tenant. The tenant contains two users named User1 and User2. You plan to deploy Azure Defender. You need to enable User1 and User2 to perform tasks at the subscription level as shown:\n- User1: Assign initiatives, Edit security policies, Enable automatic provisioning\n- User2: View alerts and recommendations, Apply security recommendations, Dismiss alerts\nThe solution must use the principle of least privilege. Which role should you assign to each user?",
+  "options": [
+    "User1: Owner; User2: Contributor",
+    "User1: Contributor; User2: Security Reader",
+    "User1: Security Administrator; User2: Contributor",
+    "User1: Owner; User2: Security Reader"
+  ],
+  "answer": 0,
+  "explanation": "User1 requires the ability to assign initiatives at the subscription scope, which only the Owner role can do. User2 needs to view alerts, apply security recommendations, and dismiss alerts. These tasks require the Contributor role. Security Reader is limited to viewing information without applying recommendations, and Security Administrator is scoped to Azure AD, not subscription-level Defender for Cloud permissions. Reference: Microsoft Learn – 'Permissions in Microsoft Defender for Cloud' (https://learn.microsoft.com/en-us/azure/defender-for-cloud/permissions)."
+},
+{
+  "id": 20,
+  "question": "HOTSPOT – You have a Microsoft 365 E5 subscription that contains 200 Windows 10 devices enrolled in Microsoft Defender for Endpoint. You need to ensure that users can access the devices by using a remote shell connection directly from the Microsoft 365 Defender portal. The solution must use the principle of least privilege. What should you do in the Microsoft 365 Defender portal? To answer, select the appropriate options in the answer area.",
+  "options": [
+    "Turn on endpoint detection and response (EDR) in block mode + Add a network assessment job",
+    "Turn on endpoint detection and response (EDR) in block mode + Create a device group that contains the devices and set Automation level to Full",
+    "Turn on Live Response + Create a device group that contains the devices and set Automation level to Full",
+    "Turn on Live Response + Create a device group that contains the devices and set Automation level to No automated response",
+    "Turn off Tamper Protection + Create a device group that contains the devices and set Automation level to Full"
+  ],
+  "answer": 2,
+  "explanation": "To allow remote shell connections from the Microsoft 365 Defender portal, you must enable Live Response in Defender for Endpoint. This feature allows authorized users to open a secure remote shell to a device for investigation and remediation. You must also configure a device group for the targeted endpoints and set the Automation level to 'Full' to allow automated remediation actions. EDR in block mode is unrelated to remote shell functionality, and turning off Tamper Protection is not required. References: Microsoft Learn – 'Live Response in Microsoft Defender for Endpoint' (https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/live-response)."
+},
+{
+  "id": 21,
+  "question": "HOTSPOT – You have a Microsoft 365 subscription that uses Microsoft 365 Defender and contains a user named User1. You’re notified that User1’s account is compromised. You need to review the alerts triggered on the devices to which User1 signed in. In the Advanced Hunting query shown (DeviceInfo → distinct DeviceId → [Box1] kind=inner AlertEvidence on DeviceId … → join AlertInfo on AlertId → [Box2] AlertId, Timestamp, Title, Severity, Category), which option pair correctly completes the query?",
+  "options": [
+    "Box1: join; Box2: project",
+    "Box1: join; Box2: summarize",
+    "Box1: project; Box2: summarize",
+    "Box1: extend; Box2: project"
+  ],
+  "answer": 0,
+  "explanation": "Use an inner **join** to correlate devices (DeviceInfo) with alerts evidence (AlertEvidence) on **DeviceId**, then later join to **AlertInfo** on **AlertId**. Finish with **project** to select the alert fields (AlertId, Timestamp, Title, Severity, Category). 'summarize' would aggregate (not desired), 'extend' adds columns without joining tables, and starting with 'project' at Box1 would remove needed columns for the join. This matches Microsoft’s hunting example for correlating DeviceInfo, AlertEvidence, and AlertInfo."
+},
+{
+  "id": 22,
+  "question": "You have a Microsoft 365 E5 subscription that uses Microsoft SharePoint Online. You delete users from the subscription. You need to be notified if the deleted users downloaded numerous documents from SharePoint Online sites during the month before their accounts were deleted. What should you use?",
+  "options": [
+    "A file policy in Microsoft Defender for Cloud Apps",
+    "An access review policy",
+    "An alert policy in Microsoft Defender for Office 365",
+    "An insider risk policy"
+  ],
+  "answer": 3,
+  "explanation": "The correct choice is an insider risk policy. Insider risk management in Microsoft Purview (formerly in Microsoft 365 compliance) helps detect and act on potentially risky user activities, such as mass downloads of documents before departure. A file policy in Defender for Cloud Apps could monitor file activity but is not specifically tied to user lifecycle events like deletion. Access review policies are for entitlement management, not risky behavior detection. Alert policies in Defender for Office 365 focus on email threats, not SharePoint activity. Reference: Microsoft Learn – 'Insider risk management in Microsoft Purview' (https://learn.microsoft.com/en-us/purview/insider-risk-management)."
+},
+{
+  "id": 23,
+  "question": "You have Microsoft SharePoint Online sites that contain sensitive documents. The documents contain customer account numbers that each consist of 32 alphanumeric characters. You need to create a data loss prevention (DLP) policy to protect the sensitive documents. What should you use to detect which documents are sensitive?",
+  "options": [
+    "SharePoint search",
+    "A hunting query in Microsoft 365 Defender",
+    "Azure Information Protection",
+    "RegEx pattern matching"
+  ],
+  "answer": 3,
+  "explanation": "The correct method is to use RegEx pattern matching. Microsoft Purview DLP policies support sensitive information types (SITs), which can be defined using regular expressions to match custom data patterns such as a 32-character alphanumeric string. SharePoint search does not provide policy enforcement for DLP. Hunting queries in Microsoft 365 Defender are used for investigations, not preventive policies. Azure Information Protection applies classification/labels but does not natively detect custom 32-character patterns without a sensitive information type definition. Reference: Microsoft Learn – 'Create a custom sensitive information type' (https://learn.microsoft.com/en-us/microsoft-365/compliance/create-a-custom-sensitive-information-type)."
+},
+{
+  "id": 24,
+  "question": "You have a Microsoft 365 subscription that has Microsoft 365 Defender enabled. You need to identify all the changes made to sensitivity labels during the past seven days. What should you use?",
+  "options": [
+    "The Incidents blade of the Microsoft 365 Defender portal",
+    "The Alerts settings on the Data Loss Prevention blade of the Microsoft 365 compliance center",
+    "Activity explorer in the Microsoft 365 compliance center",
+    "The Explorer settings on the Email & collaboration blade of the Microsoft 365 Defender portal"
+  ],
+  "answer": 2,
+  "explanation": "The correct option is 'Activity explorer in the Microsoft 365 compliance center'. Activity explorer provides detailed visibility into activities related to sensitivity labels, DLP, and other compliance features. It allows filtering by time period (such as the last 7 days) and activity type to review sensitivity label changes. The Incidents blade in Microsoft 365 Defender focuses on security incidents, not compliance activity. Alerts in the DLP blade are tied to DLP violations, not label changes. The Explorer in Defender for Office 365 relates to email and collaboration threat investigations, not sensitivity label activity. Reference: Microsoft Learn – 'Get started with Activity explorer' (https://learn.microsoft.com/en-us/microsoft-365/compliance/activity-explorer)."
+},
+{
+  "id": 25,
+  "question": "You have a Microsoft 365 subscription that uses Microsoft 365 Defender. You need to identify all the entities affected by an incident. Which tab should you use in the Microsoft 365 Defender portal?",
+  "options": [
+    "Investigations",
+    "Devices",
+    "Evidence and Response",
+    "Alerts"
+  ],
+  "answer": 2,
+  "explanation": "The correct tab is 'Evidence and Response'. In the Microsoft 365 Defender portal, the Evidence and Response tab within an incident provides a consolidated view of all entities affected, such as devices, users, email messages, and files. It also allows response actions to be taken directly from that view. 'Investigations' refers to automated or manual investigations but does not directly list all affected entities. 'Devices' shows device-specific details only, and 'Alerts' lists alerts but not the full scope of impacted entities. Reference: Microsoft Learn – 'Manage incidents in Microsoft 365 Defender' (https://learn.microsoft.com/en-us/microsoft-365/security/defender/incidents-overview)."
+},
+{
+  "id": 26,
+  "question": "You have a Microsoft 365 E5 subscription that is linked to a hybrid Azure AD tenant. You need to identify all the changes made to the Domain Admins group during the past 30 days. What should you use?",
+  "options": [
+    "The Modifications of sensitive groups report in Microsoft Defender for Identity",
+    "The identity security posture assessment in Microsoft Defender for Cloud Apps",
+    "The Azure Active Directory Provisioning Analysis workbook",
+    "The Overview settings of Insider risk management"
+  ],
+  "answer": 0,
+  "explanation": "The correct option is 'The Modifications of sensitive groups report in Microsoft Defender for Identity'. Microsoft Defender for Identity monitors on-premises Active Directory activities, including changes to sensitive groups such as Domain Admins. This report provides visibility into additions and removals in these groups over a selected period. The identity security posture assessment in Defender for Cloud Apps focuses on app configurations, not AD group modifications. The AAD Provisioning Analysis workbook is for provisioning diagnostics, not monitoring group changes. Insider risk management is unrelated to group membership changes. Reference: Microsoft Learn – 'Defender for Identity reports' (https://learn.microsoft.com/en-us/defender-for-identity/reports)."
+},
+{
+  "id": 27,
+  "question": "You have a Microsoft 365 subscription. The subscription uses Microsoft 365 Defender and has data loss prevention (DLP) policies that have aggregated alerts configured. You need to identify the impacted entities in an aggregated alert. What should you review in the DLP alert management dashboard of the Microsoft 365 compliance center?",
+  "options": [
+    "The Events tab of the alert",
+    "The Sensitive Info Types tab of the alert",
+    "Management log",
+    "The Details tab of the alert"
+  ],
+  "answer": 0,
+  "explanation": "The correct option is 'The Events tab of the alert'. In the Microsoft 365 compliance center, aggregated DLP alerts consolidate multiple related events. To review which users, files, or activities are impacted, you must open the 'Events' tab of the aggregated alert. The 'Sensitive Info Types' tab shows which classification triggered the policy, not the impacted entities. The 'Details' tab provides metadata about the alert but not a breakdown of affected items. The management log is unrelated. Reference: Microsoft Learn – 'Manage DLP alerts and alert policies' (https://learn.microsoft.com/en-us/microsoft-365/compliance/dlp-alerts-manage)."
+},
+{
+  "id": 28,
+  "question": "You have a Microsoft 365 subscription that uses Microsoft 365 Defender. You plan to create a hunting query from Microsoft Defender. You need to create a custom tracked query that will be used to assess the threat status of the subscription. From the Microsoft 365 Defender portal, which page should you use to create the query?",
+  "options": [
+    "Threat analytics",
+    "Advanced Hunting",
+    "Explorer",
+    "Policies & rules"
+  ],
+  "answer": 1,
+  "explanation": "The correct page is 'Advanced Hunting'. Advanced Hunting in Microsoft 365 Defender provides a query-based threat hunting tool using Kusto Query Language (KQL). It allows you to create, save, and run custom queries, including tracked queries, to assess threat status across your subscription. Threat analytics provides intelligence reports but not custom queries. Explorer is used for investigating email and collaboration threats. Policies & rules are for configuring prevention policies, not hunting queries. Reference: Microsoft Learn – 'Advanced hunting in Microsoft 365 Defender' (https://learn.microsoft.com/en-us/microsoft-365/security/defender/advanced-hunting-overview)."
+},
+{
+  "id": 29,
+  "question": "You have a Microsoft 365 subscription that uses Microsoft Defender for Endpoint. You need to add threat indicators for all the IP addresses in a range of 171.23.34.32–171.23.34.63. The solution must minimize administrative effort. What should you do in the Microsoft 365 Defender portal?",
+  "options": [
+    "Create an import file that contains the individual IP addresses in the range. Select Import and import the file.",
+    "Create an import file that contains the IP address of 171.23.34.32/27. Select Import and import the file.",
+    "Select Add indicator and set the IP address to 171.23.34.32–171.23.34.63.",
+    "Select Add indicator and set the IP address to 171.23.34.32/27."
+  ],
+  "answer": 1,
+  "explanation": "The most efficient way to cover a contiguous range of IPs in Microsoft Defender for Endpoint is to use CIDR notation in the import file. The range 171.23.34.32–171.23.34.63 corresponds to the subnet 171.23.34.32/27 (32 IPs). This minimizes administrative effort because you only need one entry. Option A (individual IPs) is correct but not efficient. Option C (using a dash-separated range) is unsupported, and option D works but is less efficient than importing the file directly. Reference: Microsoft Learn – 'Manage indicators' (https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/manage-indicators)."
+},
+{
+  "id": 30,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Endpoint. You need to ensure that you can allow or block a user-specified range of IP addresses and URLs. What should you enable first in the Advanced features from the Endpoints Settings in the Microsoft 365 Defender portal?",
+  "options": [
+    "Custom network indicators",
+    "Live response for servers",
+    "Endpoint detection and response (EDR) in block mode",
+    "Web content filtering"
+  ],
+  "answer": 0,
+  "explanation": "To allow or block specific IP addresses and URLs, you must enable 'Custom network indicators' in the Advanced features of Microsoft Defender for Endpoint. This enables the management of IPs, URLs, and domains as indicators of compromise (IoCs) with actions such as 'Allow', 'Alert only', or 'Alert and block'. Live response for servers is for remote investigation, EDR in block mode enhances detection/blocking of post-breach behaviors but does not configure IoCs, and web content filtering controls categories of websites but not specific custom IPs/URLs. Reference: Microsoft Learn – 'Manage indicators' (https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/manage-indicators)."
+}
+
+]

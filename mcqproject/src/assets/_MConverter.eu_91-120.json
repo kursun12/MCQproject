@@ -1,0 +1,324 @@
+[
+{
+  "id": 91,
+  "question": "You have a Microsoft subscription that has Microsoft Defender for Cloud enabled.\n\nYou configure the Azure logic apps shown in the following table.\n\nLogicApp1 → Trigger: When a Defender for Cloud recommendation is created or triggered | Action: Send an email\nLogicApp2 → Trigger: When a Defender for Cloud alert is created or triggered | Action: Send an email\n\nYou need to configure an automatic action that will run if a Suspicious process executed alert is triggered. The solution must minimize administrative effort.\n\nWhich three actions should you perform in sequence? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.\n\nSelect and Place:",
+  "options": [
+    "Configure the Mitigate the threat settings.",
+    "Configure the Suppress similar alerts settings.",
+    "Filter by alert title.",
+    "Configure the Trigger automated response settings.",
+    "Configure the Prevent future attacks settings.",
+    "Select Take action."
+  ],
+  "answer": [2, 5, 3],
+  "explanation": "The correct sequence is:\n\n1. **Filter by alert title** → Identify the specific alert ('Suspicious process executed') to ensure the action applies only to this type of alert.\n2. **Select Take action** → Choose to configure an automated response for the alert.\n3. **Configure the Trigger automated response settings** → Link the alert response to an automation workflow (Logic App).\n\nWhy not the others:\n- **Mitigate the threat settings:** Provides manual remediation guidance, not automation.\n- **Suppress similar alerts:** Suppresses alerts instead of automating a response.\n- **Prevent future attacks settings:** Provides recommendations for future prevention, not automated remediation.\n\nReference: [Microsoft Learn – Workflow automation in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/workflow-automation)."
+},
+{
+  "id": 92,
+  "question": "You have an Azure subscription that has Microsoft Defender for Cloud enabled.\n\nYou have a virtual machine named Server1 that runs Windows Server 2022 and is hosted in Amazon Web Services (AWS).\n\nYou need to collect logs and resolve vulnerabilities for Server1 by using Defender for Cloud.\n\nWhat should you install first on Server1?",
+  "options": [
+    "the Microsoft Monitoring Agent",
+    "the Azure Monitor agent",
+    "the Azure Arc agent",
+    "the Azure Pipelines agent"
+  ],
+  "answer": 2,
+  "explanation": "The correct answer is **the Azure Arc agent**. To onboard non-Azure machines (such as AWS or on-premises servers) into Microsoft Defender for Cloud, you must first connect them via **Azure Arc**. The Arc agent (Connected Machine agent) establishes the connection to Azure, after which Defender for Cloud can provision additional monitoring agents (like Azure Monitor or the new Azure Monitor Agent).\n\n- **A. Microsoft Monitoring Agent:** Deprecated in favor of the Azure Monitor Agent, and still requires Azure Arc first.\n- **B. Azure Monitor agent:** Needed for telemetry, but cannot be installed directly without Azure Arc onboarding.\n- **C. Azure Arc agent:** Correct — required as the first step to connect the server to Azure services.\n- **D. Azure Pipelines agent:** Used for DevOps CI/CD pipelines, irrelevant for Defender onboarding.\n\nReference: [Microsoft Learn – Connect hybrid machines to Defender for Cloud using Azure Arc](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-machines)."
+},
+{
+  "id": 93,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud and contains a storage account named storage1.\n\nYou receive an alert that there was an unusually high volume of delete operations on the blobs in storage1.\n\nYou need to identify which blobs were deleted.\n\nWhat should you review?",
+  "options": [
+    "the activity logs of storage1",
+    "the Azure Storage Analytics logs",
+    "the alert details",
+    "the related entities of the alert"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **the Azure Storage Analytics logs**. These logs contain detailed information about read, write, and delete requests against blob storage, including the identity of the caller, the timestamp, and the type of operation performed. This is the only way to determine specifically which blobs were deleted.\n\n- **A. Activity logs of storage1:** Show management operations (like updating storage account settings), but not detailed blob-level operations.\n- **B. Azure Storage Analytics logs:** Correct — include detailed storage transaction information, such as blob deletions.\n- **C. Alert details:** Provide context for the alert but don’t list individual blobs deleted.\n- **D. Related entities of the alert:** Show related resources or identities, not detailed blob transactions.\n\nReference: [Microsoft Learn – Storage Analytics logging](https://learn.microsoft.com/en-us/azure/storage/common/storage-analytics-logging)."
+},
+{
+  "id": 94,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud.\n\nYou need to filter the security alerts view to show the following alerts:\n- Unusual user accessed a key vault\n- Log on from an unusual location\n- Impossible travel activity\n\nWhich severity should you use?",
+  "options": [
+    "Informational",
+    "Low",
+    "Medium",
+    "High"
+  ],
+  "answer": 2,
+  "explanation": "The correct answer is **Medium**. Alerts such as 'Impossible travel activity', 'Unusual user accessed a key vault', and 'Logon from an unusual location' are classified as **medium severity alerts** in Microsoft Defender for Cloud. These indicate suspicious activity that requires investigation but are not yet confirmed as active threats.\n\n- **Informational:** Used for benign events that don’t represent threats.\n- **Low:** Used for alerts that pose minimal risk.\n- **Medium:** Correct — used for alerts involving suspicious user behavior, unusual sign-ins, or possible credential misuse.\n- **High:** Reserved for confirmed threats or activities with immediate risk (e.g., confirmed malware execution).\n\nReference: [Microsoft Learn – Security alerts in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/security-alerts)."
+},
+{
+  "id": 95,
+  "question": "You plan to review Microsoft Defender for Cloud alerts by using a third-party security information and event management (SIEM) solution.\n\nYou need to locate alerts that indicate the use of the Privilege Escalation MITRE ATT&CK tactic.\n\nWhich JSON key should you search?",
+  "options": [
+    "Description",
+    "Intent",
+    "ExtendedProperties",
+    "Entities"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **Intent**. In Microsoft Defender for Cloud (and Microsoft 365 Defender), alerts include an **Intent** field that maps to the MITRE ATT&CK tactics, such as Privilege Escalation, Persistence, Lateral Movement, etc. Searching this field allows SIEM solutions to filter alerts by the ATT&CK tactic.\n\n- **Description:** Contains human-readable details of the alert, not standardized tactic classification.\n- **Intent:** Correct — maps to ATT&CK tactics like Privilege Escalation.\n- **ExtendedProperties:** Holds additional metadata, not the MITRE tactic classification.\n- **Entities:** Contains affected resources (users, devices, etc.), not the tactic category.\n\nReference: [Microsoft Learn – Microsoft security alert schema](https://learn.microsoft.com/en-us/azure/defender-for-cloud/alerts-siem-integration#alert-schema)."
+},
+{
+  "id": 96,
+  "question": "DRAG DROP -\n\nYou have 50 on-premises servers.\n\nYou have an Azure subscription that uses Microsoft Defender for Cloud. The Defender for Cloud deployment has Microsoft Defender for Servers and automatic provisioning enabled.\n\nYou need to configure Defender for Cloud to support the on-premises servers. The solution must meet the following requirements:\n\n• Provide threat and vulnerability management.\n• Support data collection rules.\n\nWhich three actions should you perform in sequence? To answer, move the appropriate actions from the list of actions to the answer area and arrange them in the correct order.",
+  "options": [
+    "From the Add servers with Azure Arc settings in the Azure portal, generate an installation script.",
+    "From the Data controller settings in the Azure portal, create an Azure Arc data controller.",
+    "On the on-premises servers, install the Log Analytics agent.",
+    "On the on-premises servers, install the Azure Connected Machine agent.",
+    "On the on-premises servers, install the Azure Monitor agent."
+  ],
+  "answer": [0, 3, 4],
+  "explanation": "The correct order is:\n1. Generate an installation script from Azure Arc in the Azure portal.\n2. Install the Azure Connected Machine agent on the on-premises servers.\n3. Install the Azure Monitor agent on the on-premises servers.\n\nThis ensures the on-premises servers are onboarded into Azure Arc, connected to Defender for Cloud, and able to use data collection rules (DCRs) for telemetry. The Log Analytics agent is deprecated and replaced by the Azure Monitor agent. The Azure Arc Data Controller is unrelated (used for Arc-enabled SQL/Kubernetes). \n\nReferences:\n- Microsoft Learn – Onboard non-Azure machines to Defender for Cloud: https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-machines\n- Microsoft Learn – Data collection rules with Azure Monitor Agent: https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/data-collection-rule-overview"
+},
+{
+  "id": 97,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud and contains an Azure Logic App named app1.\nYou need to ensure that app1 launches when a specific Defender for Cloud security alert is generated.\nWhich two Azure Resource Manager (ARM) template elements should you configure?",
+  "options": [
+    "Resource type: Microsoft.Automation/automationAccounts; Path: .../actions",
+    "Resource type: Microsoft.Automation/automationAccounts; Path: .../contents",
+    "Resource type: Microsoft.Automation/automationAccounts; Path: .../triggers",
+    "Resource type: Microsoft.Logic/workflows; Path: .../actions",
+    "Resource type: Microsoft.Logic/workflows; Path: .../contents",
+    "Resource type: Microsoft.Logic/workflows; Path: .../triggers",
+    "Resource type: Microsoft.Security/automations; Path: .../actions",
+    "Resource type: Microsoft.Security/automations; Path: .../contents",
+    "Resource type: Microsoft.Security/automations; Path: .../triggers"
+  ],
+  "answer": [6, 9],
+  "explanation": "To configure Microsoft Defender for Cloud to trigger a Logic App when a security alert is generated, you must:\n1. Deploy a workflow automation resource of type **Microsoft.Security/automations**.\n2. Use the Logic App callback URL under **/triggers** (the trigger callback URL is what invokes the Logic App).\n\nTherefore, the correct combination is **Microsoft.Security/automations** and **.../triggers**.\n\nReferences:\n- Microsoft Learn: Workflow automation in Defender for Cloud → https://learn.microsoft.com/en-us/azure/defender-for-cloud/workflow-automation\n- Microsoft Learn: Logic App triggers and callback URLs → https://learn.microsoft.com/en-us/azure/logic-apps/logic-apps-http-endpoint"
+},
+{
+  "id": 98,
+  "question": "You have an Azure subscription that has Microsoft Defender for Cloud enabled for all supported resource types.\nYou create an Azure Logic App named LA1.\nYou plan to use LA1 to automatically remediate security risks detected in Defender for Cloud.\nYou need to test LA1 in Defender for Cloud.\nWhat should you do?",
+  "options": [
+    "Set the LA1 trigger to: When a Defender for Cloud Recommendation is created or triggered",
+    "Set the LA1 trigger to: When a Defender for Cloud Alert is created or triggered",
+    "Set the LA1 trigger to: When a response to a Defender for Cloud alert is triggered",
+    "Trigger the execution of LA1 from: Recommendations",
+    "Trigger the execution of LA1 from: Security alerts",
+    "Trigger the execution of LA1 from: Regulatory compliance standards"
+  ],
+  "answer": [0, 3],
+  "explanation": "To test LA1 as an automatic remediation workflow, you must target security recommendations. The correct configuration is:\n- **Trigger**: When a Defender for Cloud Recommendation is created or triggered.\n- **Execution**: From Recommendations.\n\nThis ensures that remediation workflows run automatically when new security recommendations are generated.\n\nReferences:\n- Microsoft Learn: Workflow automation in Microsoft Defender for Cloud → https://learn.microsoft.com/en-us/azure/defender-for-cloud/workflow-automation"
+},
+{
+  "id": 100,
+  "question": "You have an Azure subscription that has Microsoft Defender for Cloud enabled.\nYou have a virtual machine that runs Windows 10 and has the Log Analytics agent installed.\nYou need to simulate an attack on the virtual machine that will generate an alert.\nWhat should you do first?",
+  "options": [
+    "Run the Log Analytics Troubleshooting Tool.",
+    "Copy an executable and rename the file as ASC_AlertTest_662jfi039N.exe.",
+    "Modify the settings of the Microsoft Monitoring Agent.",
+    "Run the MMASetup executable and specify the --foo argument."
+  ],
+  "answer": 1,
+  "explanation": "To generate a test alert in Microsoft Defender for Cloud, copy any executable (for example calc.exe), rename it to **ASC_AlertTest_662jfi039N.exe**, and run it. This triggers a security alert in Defender for Cloud, allowing you to validate alert detection and workflows.\n\nOther options (Troubleshooting Tool, MMA settings, MMA setup) do not simulate alerts.\n\nReference: Microsoft Learn – [Generate a test alert in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-security-alerts#generate-a-test-alert)."
+},
+{
+  "id": 101,
+  "question": "You create a new Azure subscription and start collecting logs for Azure Monitor.\nYou need to validate that Microsoft Defender for Cloud will trigger an alert when a malicious file is present on an Azure virtual machine running Windows Server.\nWhich three actions should you perform in sequence?",
+  "options": [
+    "Enable Microsoft Defender for Cloud's enhanced security features for the subscription; Copy an executable file on a virtual machine and rename the file as ASC_AlertTest_662jf1039N.exe; Run the executable file and specify the appropriate arguments.",
+    "Rename the executable file as AlertTest.exe; Copy the file to a virtual machine; Run the file.",
+    "Change the alert severity threshold for emails to Medium; Enable Microsoft Defender for Cloud; Copy and rename the test executable.",
+    "Enable Microsoft Defender for Cloud's enhanced security features; Change the alert severity threshold for emails to Low; Run the renamed test executable."
+  ],
+  "answer": 0,
+  "explanation": "To generate a test alert in Microsoft Defender for Cloud on an Azure VM, you must:\n1. **Enable Microsoft Defender for Cloud's enhanced security features for the subscription** (this activates the protections and alerting).\n2. **Copy any executable file to the VM and rename it to ASC_AlertTest_662jf1039N.exe** (this special filename is recognized as a test signal).\n3. **Run the file** to trigger the alert in Defender for Cloud.\n\nOther options (renaming to AlertTest.exe, changing email severity thresholds) are unrelated to alert simulation.\n\nReference: Microsoft Learn – [Generate a test alert in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-security-alerts#generate-a-test-alert)."
+},
+{
+  "id": 102,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud and contains 100 virtual machines that run Windows Server.\nYou need to configure Defender for Cloud to collect event data from the virtual machines. The solution must minimize administrative effort and costs.\nWhich two actions should you perform?",
+  "options": [
+    "From the workspace created by Defender for Cloud, set the data collection level to Common.",
+    "From the Microsoft Endpoint Manager admin center, enable automatic enrollment.",
+    "From the Azure portal, create an Azure Event Grid subscription.",
+    "From the workspace created by Defender for Cloud, set the data collection level to All Events.",
+    "From Defender for Cloud in the Azure portal, enable automatic provisioning for the virtual machines."
+  ],
+  "answer": [0, 4],
+  "explanation": "To enable log collection in Defender for Cloud with minimal cost and effort:\n- Set the data collection level to **Common** in the workspace created by Defender for Cloud. This ensures only security-relevant events are collected (cheaper than 'All Events').\n- Enable **automatic provisioning** in Defender for Cloud so the required agents/extensions (Azure Monitor/Log Analytics) are installed on the VMs without manual effort.\n\nOther options are not required:\n- Microsoft Endpoint Manager enrollment (B) is irrelevant here.\n- Event Grid subscription (C) is for event-driven automation, not VM data collection.\n- 'All Events' (D) collects everything, increasing cost unnecessarily.\n\nReferences:\n- Microsoft Learn: [Enable data collection in Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/enable-data-collection)"
+},
+{
+  "id": 103,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud and contains a user named User1.\nYou need to ensure that User1 can modify Microsoft Defender for Cloud security policies. The solution must use the principle of least privilege.\nWhich role should you assign to User1?",
+  "options": [
+    "Security operator",
+    "Security Admin",
+    "Owner",
+    "Contributor"
+  ],
+  "answer": 1,
+  "explanation": "The **Security Admin** role in Microsoft Defender for Cloud allows a user to view and modify security policies, dismiss alerts, and recommendations. This is the least-privilege role required to modify security policies. \n- **Security Operator** can only view and dismiss alerts, not modify policies.\n- **Owner** grants full management access, which is excessive.\n- **Contributor** can manage resources but does not grant Defender for Cloud policy modification rights.\n\nReference: Microsoft Learn – [Permissions in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/permissions)."
+},
+{
+  "id": 104,
+  "question": "You have an Azure subscription that contains a user named User1.\nUser1 is assigned an Azure Active Directory Premium Plan 2 license.\nYou need to identify whether the identity of User1 was compromised during the last 90 days.\nWhat should you use?",
+  "options": [
+    "the risk detections report",
+    "the risky users report",
+    "Identity Secure Score recommendations",
+    "the risky sign-ins report"
+  ],
+  "answer": 1,
+  "explanation": "The **Risky users report** in Azure AD Identity Protection shows a list of users flagged as compromised within a defined period (up to 90 days). This is the right place to check if User1’s identity was compromised.\n- **Risk detections report** shows individual risky events, but not the overall user-level compromise status.\n- **Risky sign-ins report** shows details of risky login attempts, not overall user compromise.\n- **Identity Secure Score** provides posture recommendations, not compromise detection.\n\nReference: Microsoft Learn – [Risky users in Azure AD Identity Protection](https://learn.microsoft.com/en-us/azure/active-directory/identity-protection/concept-identity-protection-risks#risky-users)."
+},
+{
+  "id": 105,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud.\nYou have an Amazon Web Services (AWS) account that contains an Amazon Elastic Compute Cloud (EC2) instance named EC2-1.\nYou need to onboard EC2-1 to Defender for Cloud.\nWhat should you install on EC2-1?",
+  "options": [
+    "the Log Analytics agent",
+    "the Azure Connected Machine agent",
+    "the unified Microsoft Defender for Endpoint solution package",
+    "Microsoft Monitoring Agent"
+  ],
+  "answer": 1,
+  "explanation": "To onboard non-Azure machines (such as AWS EC2 or on-prem servers) into Microsoft Defender for Cloud, you must connect them using **Azure Arc**. The required installation on the VM is the **Azure Connected Machine agent**, which projects the server into Azure as an Arc-enabled machine. Once Arc is enabled, Defender for Cloud can provide threat protection and vulnerability management.\n\n- The **Log Analytics agent** and **Microsoft Monitoring Agent** are legacy and being retired in favor of the Azure Monitor agent.\n- The **Defender for Endpoint package** is used for endpoint detection, not for onboarding external servers into Defender for Cloud.\n\nReference: Microsoft Learn – [Onboard non-Azure machines to Defender for Cloud using Azure Arc](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-machines)."
+},
+{
+  "id": 106,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud and contains a resource group named RG1. RG1 contains 20 virtual machines that run Windows Server 2019.\nYou need to configure just-in-time (JIT) access for the virtual machines in RG1. The solution must meet the following requirements:\n• Limit the maximum request time to two hours.\n• Limit protocols access to Remote Desktop Protocol (RDP) only.\n• Minimize administrative effort.\nWhat should you use?",
+  "options": [
+    "Azure AD Privileged Identity Management (PIM)",
+    "Azure Policy",
+    "Azure Bastion",
+    "Azure Front Door"
+  ],
+  "answer": 1,
+  "explanation": "Just-in-time (JIT) VM access is a built-in feature of **Microsoft Defender for Cloud**. It allows you to configure rules that:\n- Restrict protocols (e.g., RDP only).\n- Set maximum request durations (e.g., 2 hours).\n- Apply at scale with minimal administrative effort.\n\nCorrect option: **Azure Policy** is not the right wording here—JIT is enabled directly in Defender for Cloud and enforced via policies under the hood. But the exam answer key expects 'Azure Policy' since JIT uses security policies to apply these restrictions.\n\nWhy others are wrong:\n- **PIM** is for role-based access, not VM network access.\n- **Azure Bastion** provides secure RDP/SSH over TLS, but it does not implement JIT controls.\n- **Azure Front Door** is a web application delivery service, unrelated to VM access control.\n\nReference: Microsoft Learn – [Just-in-time VM access in Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/just-in-time-access-usage)."
+},
+{
+  "id": 107,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud.\nYou create a Google Cloud Platform (GCP) organization named GCP1.\nYou need to onboard GCP1 to Defender for Cloud by using the native cloud connector. The solution must ensure that all future GCP projects are onboarded automatically.\nWhat should you include in the solution?",
+  "options": [
+    "Create a management group and an Azure AD service principal; Deploy by running a script in Azure Cloud Shell.",
+    "Create a management project and a custom role; Deploy by running a script in GCP Cloud Shell.",
+    "Create an Azure AD administrative unit and a managed identity; Deploy by deploying a Bicep template."
+  ],
+  "answer": 1,
+  "explanation": "To onboard a GCP organization to Defender for Cloud using the native connector:\n- You must **create a management project and a custom role** in GCP. This ensures all current and future projects in the organization are covered.\n- The onboarding process is executed by **running a script in GCP Cloud Shell** that configures the required permissions and connects the organization to Defender for Cloud.\n\nOther options (Azure AD service principals, Bicep templates, administrative units) apply to Azure scenarios, not GCP onboarding.\n\nReference: Microsoft Learn – [Connect your GCP accounts to Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-gcp)."
+},
+{
+  "id": 108,
+  "question": "You have an Azure subscription that contains a virtual machine named VM1 and uses Microsoft Defender for Cloud.\nMicrosoft Defender for Cloud has automatic provisioning configured to use Azure Monitor Agent.\nYou need to create a custom alert suppression rule that will suppress false positive alerts for suspicious use of PowerShell on VM1.\nWhat should you do first?",
+  "options": [
+    "From Microsoft Defender for Cloud, export the alerts to a Log Analytics workspace.",
+    "From Microsoft Defender for Cloud, add a workflow automation.",
+    "On VM1, trigger a PowerShell alert.",
+    "On VM1, run the Get-MPThreatCatalog cmdlet."
+  ],
+  "answer": 2,
+  "explanation": "To create an alert suppression rule in Microsoft Defender for Cloud, you must have at least one alert instance to base the suppression rule on. Therefore, the first step is to **trigger a PowerShell alert on VM1** so that Defender for Cloud generates the detection. Once the alert exists, you can then define a suppression rule to filter out similar false positives in the future.\n\n- Exporting alerts (A) sends data to Log Analytics but doesn’t help create suppression rules.\n- Workflow automation (B) is for automated responses, not alert suppression.\n- Get-MPThreatCatalog (D) lists known threats in Defender Antivirus but isn’t related to suppression rules.\n\nReference: Microsoft Learn – [Manage alert suppression rules in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/alerts-suppressions)."
+},
+{
+  "id": 110,
+  "question": "You provision a Linux virtual machine in a new Azure subscription.\nYou enable Azure Defender and onboard the virtual machine to Azure Defender.\nYou need to verify that an attack on the virtual machine triggers an alert in Azure Defender.\nWhich two Bash commands should you run on the virtual machine? Each correct answer presents part of the solution.",
+  "options": [
+    "cp /bin/echo ./asc_alerttest_662jfi039n",
+    "./alerttest testing eicar pipe",
+    "cp /bin/echo ./alerttest",
+    "./asc_alerttest_662jfi039n testing eicar pipe"
+  ],
+  "answer": [0, 3],
+  "explanation": "To simulate a Defender for Cloud test alert on a Linux VM:\n1. Copy an existing binary (such as /bin/echo) and rename it to the special test file **asc_alerttest_662jfi039n**.\n   → `cp /bin/echo ./asc_alerttest_662jfi039n`\n2. Execute the renamed file with the **testing eicar pipe** argument.\n   → `./asc_alerttest_662jfi039n testing eicar pipe`\n\nThis sequence generates a Defender for Cloud alert. \n- Option B and C are incorrect: they use the wrong file name or command.\n\nReference: Microsoft Learn – [Generate a test alert in Microsoft Defender for Cloud on Linux](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-security-alerts#linux)."
+},
+{
+  "id": 113,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud.\nYou have the following resources:\n- Server1: On-premises file server (Windows Server)\n- Server2: AWS EC2 virtual machine (Linux)\n- Server3: Azure virtual machine (Windows Server)\n- Server4: On-premises domain controller (Windows Server)\n\nYou need to enable Microsoft Defender for Servers on each resource.\nWhich resources will require the installation of the Azure Arc agent?",
+  "options": [
+    "Server3 only",
+    "Server1 and Server4 only",
+    "Server1, Server2, and Server4 only",
+    "Server1, Server2, Server3, and Server4"
+  ],
+  "answer": 2,
+  "explanation": "Microsoft Defender for Servers requires onboarding via the **Azure Arc agent** for any machine that is **not natively in Azure** (on-premises or multicloud like AWS/GCP). \n- **Server1 (on-prem)** → Needs Arc agent.\n- **Server2 (AWS EC2)** → Needs Arc agent.\n- **Server4 (on-prem)** → Needs Arc agent.\n- **Server3 (Azure VM)** → Already natively supported in Azure; no Arc agent required.\n\nTherefore, only Server1, Server2, and Server4 require the Arc agent.\n\nReference: Microsoft Learn – [Onboard non-Azure machines to Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-machines)."
+},
+{
+  "id": 114,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud.\nYou have a GitHub account named Account1 that contains 10 repositories.\nYou need to ensure that Defender for Cloud can access the repositories in Account1.\nWhat should you do first in the Microsoft Defender for Cloud portal?",
+  "options": [
+    "Enable integrations.",
+    "Enable a plan.",
+    "Add an environment.",
+    "Enable security policies."
+  ],
+  "answer": 2,
+  "explanation": "To connect GitHub repositories to Microsoft Defender for Cloud, you must first **add GitHub as an environment** in the Defender for Cloud portal. This creates the connection between Azure and GitHub, after which Defender for DevOps plans and policies can be applied.\n\n- **Enable integrations** (A) is too generic and happens after onboarding.\n- **Enable a plan** (B) can only be done after the environment is connected.\n- **Enable security policies** (D) applies once GitHub is already connected.\n\nCorrect first step: **Add an environment**.\n\nReference: Microsoft Learn – [Connect GitHub to Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-devops-enable-github)."
+},
+{
+  "id": 115,
+  "question": "You have an Azure subscription named Sub1 that uses Microsoft Defender for Cloud.\nYou have an Azure DevOps organization named AzDO1.\nYou need to integrate Sub1 and AzDO1. The solution must meet the following requirements:\n• Detect secrets exposed in pipelines by using Defender for Cloud.\n• Minimize administrative effort.\nWhat should you do?",
+  "options": [
+    "In Defender for Cloud: Add an environment; In AzDO1: Install an extension",
+    "In Defender for Cloud: Configure workflow automation; In AzDO1: Configure OAuth",
+    "In Defender for Cloud: Enable a plan; In AzDO1: Configure security policies"
+  ],
+  "answer": 0,
+  "explanation": "To integrate Azure DevOps with Defender for Cloud:\n- In **Defender for Cloud**, you first **add an environment** for Azure DevOps.\n- In **Azure DevOps**, you must **install the Defender for DevOps extension** to scan pipelines for secrets, vulnerabilities, and misconfigurations.\n\nOther options are incorrect:\n- Workflow automation + OAuth (B) is unrelated to onboarding.\n- Enabling a plan + configuring security policies (C) won’t establish the DevOps integration.\n\nReference: Microsoft Learn – [Connect Azure DevOps to Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-devops-enable-azure-devops)."
+},
+{
+  "id": 116,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud.\nYou need to create a workflow that will send a Microsoft Teams message to the IT department of your company when a new Microsoft Secure Score action is generated.\nWhich three actions should you perform in sequence?",
+  "options": [
+    "Configure workflow automation → Configure a trigger condition → Create an Azure Logic app that includes the Defender for Cloud recommendation trigger",
+    "Create an Azure Logic app that includes the Defender for Cloud alert trigger → Configure workflow automation → Configure a trigger condition",
+    "Configure a trigger condition → Configure workflow automation → Create an Azure Logic app that includes the Defender for Cloud regulatory compliance assessment trigger"
+  ],
+  "answer": 0,
+  "explanation": "To automatically notify Teams when a new Secure Score recommendation appears:\n1. **Configure workflow automation** in Defender for Cloud to define what action to take when recommendations are generated.\n2. **Configure a trigger condition** to ensure only Secure Score related actions trigger the workflow.\n3. **Create a Logic App** that includes the Defender for Cloud recommendation trigger and sends a Teams message.\n\nOther sequences (alerts or compliance assessment triggers) do not match the requirement to act on **Secure Score recommendations**.\n\nReference: Microsoft Learn – [Workflow automation in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/workflow-automation)."
+},
+{
+  "id": 117,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud and contains 100 virtual machines that run Windows Server.\nYou need to configure Defender for Cloud to collect event data from the virtual machines. The solution must minimize administrative effort and costs.\nWhich two actions should you perform?",
+  "options": [
+    "Configure auto-provisioning by setting the security event storage to Common.",
+    "From the Microsoft Endpoint Manager admin center, enable automatic enrollment.",
+    "From the Azure portal, create an Azure Event Grid subscription.",
+    "Configure auto-provisioning by setting the security event storage to All Events.",
+    "From Defender for Cloud in the Azure portal, enable Microsoft Defender for Servers."
+  ],
+  "answer": [0, 4],
+  "explanation": "To collect event data for Defender for Cloud while minimizing cost and administrative effort:\n- **Enable Defender for Servers (E)**: This automatically provisions the required monitoring agents on VMs.\n- **Configure auto-provisioning with 'Common' event collection (A)**: This provides the essential security logs (logons, account changes, policy changes, etc.) without incurring the higher costs of 'All Events.'\n\nOther options:\n- **Microsoft Endpoint Manager (B)** is for device enrollment, not VM event collection.\n- **Event Grid subscription (C)** is unrelated to security log collection.\n- **All Events (D)** is valid but much more costly, not aligned with minimizing cost.\n\nReference: Microsoft Learn – [Data collection in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/enable-data-collection)."
+},
+{
+  "id": 118,
+  "question": "You have an Azure subscription that uses Microsoft Defender for Cloud.\nYou have an Amazon Web Services (AWS) subscription that contains multiple virtual machines that run Windows Server.\nYou need to enable Microsoft Defender for Servers on the virtual machines.\nWhich two actions should you perform?",
+  "options": [
+    "From Defender for Cloud, enable agentless scanning.",
+    "Onboard the virtual machines to Microsoft Defender for Endpoint.",
+    "From Defender for Cloud, configure the AWS connector.",
+    "Install the Azure Virtual Machine Agent (VM Agent) on each virtual machine.",
+    "From Defender for Cloud, configure auto-provisioning."
+  ],
+  "answer": [2, 4],
+  "explanation": "To onboard AWS virtual machines into Microsoft Defender for Servers:\n- **Configure the AWS connector (C)** in Defender for Cloud. This establishes the integration between Azure and AWS.\n- **Configure auto-provisioning (E)** so that the required agents (Azure Monitor Agent / Defender extensions) are automatically installed on the AWS VMs.\n\nOther options:\n- **Agentless scanning (A)** is optional and not the core requirement for enabling Defender for Servers.\n- **Defender for Endpoint onboarding (B)** is separate from Defender for Servers.\n- **Azure VM Agent (D)** applies only to native Azure VMs, not AWS instances.\n\nReference: Microsoft Learn – [Connect AWS accounts to Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-aws)."
+},
+{
+  "id": 119,
+  "question": "You have an Azure subscription named Sub1 and an Azure DevOps organization named AzDO1. AzDO1 uses Defender for Cloud and contains a project that has a YAML pipeline named Pipeline1.\nPipeline1 outputs the details of discovered open source software vulnerabilities to Defender for Cloud.\nYou need to configure Pipeline1 to output the results of secret scanning to Defender for Cloud.\nWhat should you add to Pipeline1?",
+  "options": [
+    "inputs: 'secrets'",
+    "outputs: 'secrets'",
+    "categories: 'secrets'"
+  ],
+  "answer": [0, 2],
+  "explanation": "In order for an Azure DevOps pipeline to output secret scanning results to Microsoft Defender for Cloud, the YAML pipeline definition must include:\n- **inputs: 'secrets'** → defines that secret scanning is part of the inputs.\n- **categories: 'secrets'** → classifies the results as secret scanning.\n\nOther options (like outputs) are not valid schema fields for this integration.\n\nReference: Microsoft Learn – [Defender for DevOps YAML pipeline annotations](https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-devops-pipeline)."
+},
+{
+  "id": 120,
+  "question": "You create an Azure subscription named sub1.\nIn sub1, you create a Log Analytics workspace named workspace1.\nYou enable Microsoft Defender for Cloud and configure Defender for Cloud to use workspace1.\nYou need to collect security event logs from the Azure virtual machines that report to workspace1.\nWhat should you do?",
+  "options": [
+    "From Defender for Cloud, modify Microsoft Defender for Servers plan settings.",
+    "In sub1, register a provider.",
+    "From Defender for Cloud, create a workflow automation.",
+    "In workspace1, create a workbook."
+  ],
+  "answer": 0,
+  "explanation": "To collect security event logs from Azure VMs into a Log Analytics workspace, you must configure Microsoft Defender for Servers and set the plan settings in Defender for Cloud. This ensures that security event collection is enabled and sent to the chosen workspace.\n\n- **Register a provider (B)** is only required when enabling resource providers in Azure, not for log collection.\n- **Workflow automation (C)** is used for alert-based automated responses, not log collection.\n- **Workbooks (D)** are visualization tools for analyzing data already collected; they don’t configure collection.\n\nCorrect answer: **Modify Microsoft Defender for Servers plan settings in Defender for Cloud.**\n\nReference: Microsoft Learn – [Configure security data collection in Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/enable-data-collection)."
+}
+
+]

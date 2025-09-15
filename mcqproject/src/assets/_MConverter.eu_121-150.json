@@ -1,0 +1,281 @@
+[
+{
+  "id": 121,
+  "question": "You create an Azure subscription named sub1.\nIn sub1, you create a Log Analytics workspace named workspace1.\nYou enable Azure Security Center and configure Security Center to use workspace1.\nYou need to collect security event logs from the Azure virtual machines that report to workspace1.\nWhat should you do?",
+  "options": [
+    "From Security Center, enable data collection",
+    "In sub1, register a provider",
+    "From Security Center, create a Workflow automation",
+    "In workspace1, create a workbook"
+  ],
+  "answer": 0,
+  "explanation": "To collect security event logs from Azure VMs into a Log Analytics workspace via Security Center (now Defender for Cloud), you must **enable data collection** in Security Center. This ensures VM security logs are automatically ingested into the specified workspace.\n\n- **Registering a provider (B)** is needed for enabling Azure services but not specifically for VM log collection.\n- **Workflow automation (C)** is for triggering responses (like Logic Apps), not data ingestion.\n- **Workbooks (D)** are for visualizing data, not for configuring its collection.\n\nCorrect answer: **From Security Center, enable data collection.**\n\nReference: Microsoft Learn – [Enable data collection in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/enable-data-collection)."
+},
+{
+  "id": 124,
+  "question": "You have an on-premises datacenter that contains a custom web app named App1. App1 uses Active Directory Domain Services (AD DS) authentication and is accessible by using Microsoft Entra application proxy.\nYou have a Microsoft 365 E5 subscription that uses Microsoft Defender XDR.\nYou receive an alert that a user downloaded highly confidential documents.\nYou need to remediate the risk associated with the alert by requiring multi-factor authentication (MFA) when users use App1 to initiate the download of documents that have a Highly Confidential sensitivity label applied.\nWhat should you do?",
+  "options": [
+    "For App1 to require MFA: Conditional Access; To implement a session policy: Microsoft Defender for Cloud Apps",
+    "For App1 to require MFA: Microsoft Entra Domain Services; To implement a session policy: Microsoft Defender for Identity",
+    "For App1 to require MFA: Microsoft Entra ID Protection; To implement a session policy: Microsoft Defender for Office 365"
+  ],
+  "answer": 0,
+  "explanation": "To enforce MFA for accessing App1, you should use **Conditional Access** in Microsoft Entra ID. Conditional Access allows you to require MFA based on conditions like accessing sensitive apps or downloading sensitive-labeled files.\nFor implementing real-time monitoring and control of session behavior (e.g., blocking or requiring extra actions when downloading Highly Confidential data), you use **Microsoft Defender for Cloud Apps (MCAS)**. It integrates with Conditional Access session policies to control data access.\n\nOther options are incorrect:\n- **Entra Domain Services** (B) is for domain join and LDAP, not access policies.\n- **Defender for Identity** (B) monitors AD traffic for threats, not session policies.\n- **Entra ID Protection** (C) handles risk-based MFA but is not scoped specifically to this scenario.\n- **Defender for Office 365** (C) focuses on email and collaboration security, not session control.\n\nReference: Microsoft Learn – [Session policies in Microsoft Defender for Cloud Apps](https://learn.microsoft.com/en-us/defender-cloud-apps/session-policy-aad)."
+},
+{
+  "id": 125,
+  "question": "You create a new Azure subscription and start collecting logs for Azure Monitor.\nYou need to configure Azure Security Center (Defender for Cloud) to detect possible threats related to sign-ins from suspicious IP addresses to Azure virtual machines.\nThe solution must validate the configuration.\nWhich three actions should you perform in sequence?",
+  "options": [
+    "Change the alert severity threshold for emails to Medium.",
+    "Copy an executable file on a virtual machine and rename the file as ASC_AlertTest_662jfi039N.exe.",
+    "Enable Azure Defender for the subscription.",
+    "Change the alert severity threshold for emails to Low.",
+    "Run the executable file and specify the appropriate arguments.",
+    "Rename the executable file as AlertTest.exe."
+  ],
+  "answer": [2, 1, 4],
+  "explanation": "To validate that Microsoft Defender for Cloud (formerly Azure Security Center) detects suspicious sign-in attempts:\n1. **Enable Azure Defender for the subscription (2)** – This activates threat protection and advanced detection capabilities.\n2. **Copy the test executable and rename it to ASC_AlertTest_662jfi039N.exe (1)** – This simulates malicious activity.\n3. **Run the executable with the appropriate arguments (4)** – This generates a test alert in Defender for Cloud.\n\nOther options:\n- Changing email alert thresholds (A, D) only affects notifications, not alert validation.\n- Renaming to 'AlertTest.exe' (F) is incorrect; Defender requires the specific test filename 'ASC_AlertTest_662jfi039N.exe'.\n\nReference: Microsoft Learn – [Validate security alerts in Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/security-center-alert-validation)."
+},
+{
+  "id": 126,
+  "question": "Your company uses Azure Security Center and Azure Defender.\nThe security operations team at the company informs you that it does NOT receive email notifications for security alerts.\nWhat should you configure in Security Center to enable the email notifications?",
+  "options": [
+    "Security solutions",
+    "Security policy",
+    "Pricing & settings",
+    "Security alerts",
+    "Azure Defender"
+  ],
+  "answer": 2,
+  "explanation": "Email notifications for security alerts in Microsoft Defender for Cloud (formerly Security Center) are managed under **Pricing & settings**. This is where you configure:\n- Which subscriptions or resource groups send email notifications.\n- The recipients (including additional email addresses).\n- The severity level threshold for email alerts.\n\nOther options:\n- **Security solutions (A)** is for partner or third-party security integrations.\n- **Security policy (B)** controls compliance rules but not notifications.\n- **Security alerts (D)** lists alerts but doesn’t manage email notifications.\n- **Azure Defender (E)** refers to enabling advanced plans, not email settings.\n\nReference: Microsoft Learn – [Configure email notifications for security alerts in Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/enable-email-notifications)."
+},
+{
+  "id": 127,
+  "question": "You have resources in Azure and Google Cloud.\nYou need to ingest Google Cloud Platform (GCP) data into Azure Defender.\nIn which order should you perform the actions?",
+  "options": [
+    "Enable Security Health Analytics → Enable the GCP Security Command Center API → Create a dedicated service account and a private key → From Azure Security Center, add cloud connectors",
+    "Configure the GCP Security Command Center → Enable Security Health Analytics → Enable the GCP Security Command Center API → Create a dedicated service account and a private key → From Azure Security Center, add cloud connectors",
+    "Enable the GCP Security Command Center API → Configure the GCP Security Command Center → Enable Security Health Analytics → Create a dedicated service account and a private key → From Azure Security Center, add cloud connectors"
+  ],
+  "answer": 1,
+  "explanation": "To onboard GCP into Microsoft Defender for Cloud (via cloud connectors):\n1. **Configure the GCP Security Command Center** – This is the native GCP security service required for integration.\n2. **Enable Security Health Analytics** – Required for generating security findings in GCP.\n3. **Enable the GCP Security Command Center API** – Ensures API access for Defender for Cloud.\n4. **Create a dedicated service account and private key** – Provides Azure with permissions to read GCP security findings.\n5. **From Azure Security Center, add cloud connectors** – This completes the onboarding in Defender for Cloud.\n\nOther sequences are incorrect because the GCP Security Command Center must be configured and its analytics enabled before enabling the API and connecting from Azure.\n\nReference: Microsoft Learn – [Connect GCP accounts to Microsoft Defender for Cloud](https://learn.microsoft.com/en-us/azure/defender-for-cloud/quickstart-onboard-gcp)."
+},
+{
+  "id": 128,
+  "question": "You plan to connect an external solution that will send Common Event Format (CEF) messages to Azure Sentinel.\nYou need to deploy the log forwarder.\nWhich three actions should you perform in sequence?",
+  "options": [
+    "Deploy an OMS Gateway on the network.",
+    "Set the syslog daemon to forward the events directly to Azure Sentinel.",
+    "Configure the syslog daemon. Restart the syslog daemon and the Log Analytics agent.",
+    "Download and install the Log Analytics agent.",
+    "Set the Log Analytics agent to listen on port 25226 and forward the CEF messages to Azure Sentinel."
+  ],
+  "answer": [3, 4, 2],
+  "explanation": "To configure a CEF log forwarder for Azure Sentinel:\n1. **Download and install the Log Analytics agent (3)** on the Linux machine acting as the forwarder.\n2. **Set the Log Analytics agent to listen on port 25226 and forward the CEF messages to Azure Sentinel (4)**.\n3. **Configure the syslog daemon and restart both the syslog daemon and the Log Analytics agent (2)** so that it forwards logs correctly.\n\nOther options:\n- **OMS Gateway** (1) is used in proxy scenarios but not required for this CEF pipeline.\n- **Forwarding events directly to Sentinel** via syslog (2nd option) is incorrect because Sentinel only ingests via the Log Analytics agent.\n\nReference: Microsoft Learn – [Connect data from a CEF agent to Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/connect-cef-agent)."
+},
+{
+  "id": 129,
+  "question": "You have a custom analytics rule to detect threats in Azure Sentinel.\nYou discover that the analytics rule stopped running. The rule was disabled, and the rule name has a prefix of AUTO DISABLED.\nWhat is a possible cause of the issue?",
+  "options": [
+    "There are connectivity issues between the data sources and Log Analytics.",
+    "The number of alerts exceeded 10,000 within two minutes.",
+    "The rule query takes too long to run and times out.",
+    "Permissions to one of the data sources of the rule query were modified."
+  ],
+  "answer": 3,
+  "explanation": "In Microsoft Sentinel, if a rule is prefixed with **AUTO DISABLED**, it typically means that the permissions to one or more data sources used by the rule were changed or revoked. This prevents the rule from accessing the necessary data, so Sentinel automatically disables it.\n\nOther options:\n- **Connectivity issues (A)** would not trigger an AUTO DISABLED prefix.\n- **Exceeding 10,000 alerts (B)** may cause throttling but not automatic rule disabling.\n- **Long query runtimes (C)** may fail executions but don’t cause Sentinel to disable the rule.\n\nReference: Microsoft Learn – [Analytics rules in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/analytics-rule-template)."
+},
+{
+  "id": 135,
+  "question": "You have an Azure subscription that contains a Microsoft Sentinel workspace named Workspace1.\nFrom Content Hub, you deploy the Microsoft Entra solution for Microsoft Sentinel and configure a connector.\nYou need to analyze actions performed by users that have administrative privileges to the subscription.\nWhich workbook should you use?",
+  "options": [
+    "Azure Activity",
+    "Microsoft Entra Audit logs",
+    "Microsoft Entra Sign-ins logs",
+    "Identity & Access"
+  ],
+  "answer": 0,
+  "explanation": "The **Azure Activity workbook** is the correct choice to analyze subscription-level administrative actions. Azure Activity logs record control-plane operations (such as resource creation, deletion, role assignments, etc.) that users with administrative privileges perform in a subscription.\n\n- **Microsoft Entra Audit logs (B)** record changes to Entra ID (e.g., group modifications, app registrations) but not subscription-level Azure resource actions.\n- **Microsoft Entra Sign-ins logs (C)** record user authentication attempts, not actions on Azure resources.\n- **Identity & Access (D)** is broader and correlates sign-ins with resource activity but does not provide the direct subscription admin activity view.\n\nReference: Microsoft Learn – [Azure Activity logs in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/connect-azure-activity)."
+},
+{
+  "id": 136,
+  "question": "You have an Azure subscription that contains a Microsoft Sentinel workspace named Workspace1 and a user named User1.\nYou need to ensure that User1 can investigate incidents by using Workspace1. The solution must follow the principle of least privilege.\nWhich role should you assign to User1?",
+  "options": [
+    "Microsoft Sentinel Responder",
+    "Microsoft Sentinel Contributor",
+    "Microsoft Sentinel Automation Contributor",
+    "Microsoft Sentinel Reader"
+  ],
+  "answer": 0,
+  "explanation": "The **Microsoft Sentinel Responder** role provides the minimum privileges required to investigate and respond to incidents in Sentinel. It allows viewing and updating incidents, running playbooks, and performing investigation tasks.\n\n- **Sentinel Contributor (B)** provides full access to all Sentinel resources, including analytics rules and hunting queries, which exceeds least privilege.\n- **Sentinel Automation Contributor (C)** is focused on playbook automation permissions, not incident investigation.\n- **Sentinel Reader (D)** allows viewing data but not updating or responding to incidents.\n\nCorrect role: **Microsoft Sentinel Responder**.\n\nReference: Microsoft Learn – [Permissions in Microsoft Sentinel](https://learn.microsoft.com/en-us/azure/sentinel/roles)."
+},
+{
+  "id": 137,
+  "question": "HOTSPOT -\n\nYou have an Azure subscription that contains a Log Analytics workspace named Workspace1.\n\nYou configure Azure activity logs and Microsoft Entra ID logs to be forwarded to Workspace1.\n\nYou need to query Workspace1 to identify all the requests that failed due to insufficient authorization.\n\nHow should you complete the KQL query?",
+  "options": [
+    "AuditLogs with ResponseStatusCode == 401",
+    "AuditLogs with ResponseStatusCode == 403",
+    "AuditLogs with ResponseStatusCode == 402",
+    "AzureActivity with ResponseStatusCode == 401",
+    "AzureActivity with ResponseStatusCode == 403",
+    "AzureActivity with ResponseStatusCode == 402",
+    "MicrosoftGraphActivityLogs with ResponseStatusCode == 401",
+    "MicrosoftGraphActivityLogs with ResponseStatusCode == 403",
+    "MicrosoftGraphActivityLogs with ResponseStatusCode == 402"
+  ],
+  "answer": 3,
+  "explanation": "The correct table is **AzureActivity**, because failed authorization attempts for Azure resources are logged in Azure Activity logs. The proper HTTP status code for insufficient authorization is **401 (Unauthorized)**. Codes 402 and 403 are not correct here: 402 refers to Payment Required (not applicable) and 403 is Forbidden (used when authentication succeeded but access is denied). Since the question specifically asks about insufficient authorization, 401 is the correct code. \n\nReference: Microsoft Learn – 'Azure Monitor Logs table reference' and HTTP status codes (https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/azureactivity)."
+},
+{
+  "id": 138,
+  "question": "You have a Microsoft 365 subscription that uses Microsoft Defender XDR.\n\nYou are investigating an incident.\n\nYou need to review the incident tasks that were performed. The solution must include a query that will display the incidents in a workbook, and then display the tasks of each incident in another grid.\n\nWhich table should you target in the query?",
+  "options": [
+    "SecurityIncident",
+    "SecurityEvent",
+    "SentinelAudit",
+    "SecurityAlert"
+  ],
+  "answer": 0,
+  "explanation": "The correct table is **SecurityIncident**. This table stores incidents that aggregate related alerts, investigations, and tasks. It is the right source when building a workbook to display incidents and drill down into their tasks. \n- **SecurityEvent** is used for raw Windows event log data collected by Defender for Endpoint or Azure Monitor, not incident tasks.\n- **SentinelAudit** contains audit logs about Sentinel configuration changes, not incidents.\n- **SecurityAlert** contains alert-level data, but not the higher-level incident grouping with tasks.\n\nReference: Microsoft Learn – 'Advanced hunting table reference for Microsoft 365 Defender' (https://learn.microsoft.com/en-us/microsoft-365/security/defender/advanced-hunting-securityincident-table)."
+},
+{
+  "id": 139,
+  "question": "Your company uses Azure Sentinel.\n\nA new security analyst reports that she cannot assign and resolve incidents in Azure Sentinel.\n\nYou need to ensure that the analyst can assign and resolve incidents. The solution must use the principle of least privilege.\n\nWhich role should you assign to the analyst?",
+  "options": [
+    "Azure Sentinel Responder",
+    "Logic App Contributor",
+    "Azure Sentinel Contributor",
+    "Azure Sentinel Reader"
+  ],
+  "answer": 0,
+  "explanation": "The correct role is **Azure Sentinel Responder**. This role allows analysts to view incidents and alerts, and to take response actions such as assigning and resolving incidents. \n- **Logic App Contributor** is unrelated; it only allows managing Logic Apps. \n- **Azure Sentinel Contributor** has broader rights, including the ability to create and delete analytic rules and workbooks, which violates the least privilege principle. \n- **Azure Sentinel Reader** only allows viewing data without the ability to assign or resolve incidents.\n\nReference: Microsoft Learn – 'Permissions in Microsoft Sentinel' (https://learn.microsoft.com/en-us/azure/sentinel/roles)."
+},
+{
+  "id": 140,
+  "question": "You recently deployed Azure Sentinel.\n\nYou discover that the default Fusion rule does not generate any alerts. You verify that the rule is enabled.\n\nYou need to ensure that the Fusion rule can generate alerts.\n\nWhat should you do?",
+  "options": [
+    "Disable, and then enable the rule.",
+    "Add data connectors",
+    "Create a new machine learning analytics rule.",
+    "Add a hunting bookmark."
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **Add data connectors**. Fusion rules in Microsoft Sentinel rely on telemetry data from connected services (such as Microsoft 365 Defender, Microsoft Entra ID, or third-party sources). If no data connectors are configured, the Fusion rule will not have events to correlate and therefore will not generate alerts. \n- Disabling and enabling the rule does not solve the underlying issue of missing data. \n- Creating a new ML analytics rule is unnecessary, since the Fusion rule already uses machine learning. \n- Hunting bookmarks are unrelated; they are used in advanced hunting, not rule correlation.\n\nReference: Microsoft Learn – 'Fusion detection in Microsoft Sentinel' (https://learn.microsoft.com/en-us/azure/sentinel/fusion)."
+},
+{
+  "id": 141,
+  "question": "You need to delegate the following tasks in Azure Sentinel:\n1. Create and run playbooks\n2. Create workbooks and analytic rules\n\nWhich role should you assign for each task while following the principle of least privilege?",
+  "options": [
+    "1: Azure Sentinel Contributor, 2: Azure Sentinel Contributor",
+    "1: Azure Sentinel Responder, 2: Azure Sentinel Contributor",
+    "1: Logic App Contributor, 2: Azure Sentinel Contributor",
+    "1: Azure Sentinel Reader, 2: Azure Sentinel Contributor"
+  ],
+  "answer": 2,
+  "explanation": "The correct mapping is **1: Logic App Contributor, 2: Azure Sentinel Contributor**.\n- **Logic App Contributor** is required to create and run playbooks, since Sentinel playbooks are built on Azure Logic Apps.\n- **Azure Sentinel Contributor** is required to create workbooks and analytic rules.\n\nOther options are incorrect:\n- Azure Sentinel Responder is for incident management only (assign/resolve incidents).\n- Azure Sentinel Reader is read-only.\n- Assigning Sentinel Contributor for playbooks is unnecessary and violates least privilege.\n\nReference: Microsoft Learn – 'Permissions in Microsoft Sentinel' (https://learn.microsoft.com/en-us/azure/sentinel/roles)."
+},
+{
+  "id": 142,
+  "question": "A company uses Azure Sentinel.\n\nYou need to create an automated threat response.\n\nWhat should you use?",
+  "options": [
+    "a data connector",
+    "a playbook",
+    "a workbook",
+    "a Microsoft incident creation rule"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **a playbook**. Playbooks in Microsoft Sentinel are automated workflows built on Azure Logic Apps that can respond to threats (e.g., disabling a user account, sending notifications, isolating a device). \n- **Data connectors** are used to ingest data from sources into Sentinel, not for responses. \n- **Workbooks** are used for visualization and reporting. \n- **Microsoft incident creation rules** define when incidents are created but do not perform automated remediation.\n\nReference: Microsoft Learn – 'Automate threat response with playbooks in Microsoft Sentinel' (https://learn.microsoft.com/en-us/azure/sentinel/automation)."
+},
+{
+  "id": 143,
+  "question": "You use Azure Sentinel to monitor irregular Azure activity. You create custom analytics rules as shown in the exhibit.\n\nIf a user deploys three Azure virtual machines simultaneously, how many alerts will you receive in the next five hours?\n\nIf three separate users deploy one Azure virtual machine each within five minutes of each other, how many alerts will you receive?",
+  "options": [
+    "Case 1: 0 alerts; Case 2: 0 alerts",
+    "Case 1: 0 alerts; Case 2: 1 alert",
+    "Case 1: 1 alert; Case 2: 1 alert",
+    "Case 1: 1 alert; Case 2: 3 alerts",
+    "Case 1: 3 alerts; Case 2: 3 alerts"
+  ],
+  "answer": 1,
+  "explanation": "The analytics rule is configured to **group all query results into a single alert**. The alert threshold requires results greater than 2, and suppression is enabled for 5 hours.\n- **Case 1**: A single user deploying three VMs at once produces 3 results, but they are grouped into a single alert. Since suppression is active for 5 hours, no new alerts are triggered. Result = 0 alerts.\n- **Case 2**: Three different users deploying one VM each within five minutes creates 3 results. Because of the alert threshold (greater than 2) and event grouping, one alert is generated. Result = 1 alert.\n\nReference: Microsoft Learn – 'Create custom analytics rules to detect threats' (https://learn.microsoft.com/en-us/azure/sentinel/tutorial-detect-threats-custom)."
+},
+{
+  "id": 144,
+  "question": "You have an Azure Sentinel deployment in the East US Azure region.\n\nYou create a Log Analytics workspace named LogsWest in the West US Azure region.\n\nYou need to ensure that you can use scheduled analytics rules in the existing Azure Sentinel deployment to generate alerts based on queries to LogsWest.\n\nWhat should you do first?",
+  "options": [
+    "Deploy Azure Data Catalog to the West US Azure region.",
+    "Modify the workspace settings of the existing Azure Sentinel deployment.",
+    "Add Azure Sentinel to a workspace.",
+    "Create a data connector in Azure Sentinel."
+  ],
+  "answer": 2,
+  "explanation": "The correct answer is **Add Azure Sentinel to a workspace**. Sentinel is enabled on top of a Log Analytics workspace. To start using LogsWest for analytics rules, you must first enable Azure Sentinel on that new workspace. \n- **A. Deploy Azure Data Catalog** is unrelated to Sentinel or analytics rules. \n- **B. Modify the workspace settings of the existing Sentinel deployment** is not possible; Sentinel is tied to a specific workspace. \n- **D. Create a data connector** is done after Sentinel is enabled on the workspace, not before.\n\nReference: Microsoft Learn – 'Onboard Microsoft Sentinel' (https://learn.microsoft.com/en-us/azure/sentinel/quickstart-onboard)."
+},
+{
+  "id": 145,
+  "question": "You create a custom analytics rule to detect threats in Azure Sentinel.\n\nYou discover that the rule fails intermittently.\n\nWhat are two possible causes of the failures? Each correct answer presents part of the solution.\n\nNOTE: Each correct selection is worth one point.",
+  "options": [
+    "The rule query takes too long to run and times out.",
+    "The target workspace was deleted.",
+    "Permissions to the data sources of the rule query were modified.",
+    "There are connectivity issues between the data sources and Log Analytics."
+  ],
+  "answer": [0, 3],
+  "explanation": "The two most likely causes of intermittent failures are:\n- **The rule query takes too long and times out** (Option A). Long KQL queries may exceed execution limits and fail sporadically.\n- **Connectivity issues between the data sources and Log Analytics** (Option D). Temporary ingestion or pipeline issues can lead to intermittent failures.\n\nOption B (workspace deleted) would cause a permanent failure, not intermittent. Option C (permissions modified) would result in consistent failures, not sporadic ones.\n\nReference: Microsoft Learn – 'Troubleshoot Microsoft Sentinel analytics rules' (https://learn.microsoft.com/en-us/azure/sentinel/tutorial-detect-threats-custom)."
+},
+{
+  "id": 146,
+  "question": "You are configuring Azure Sentinel.\n\nYou need to create an incident in Azure Sentinel when a sign-in to an Azure virtual machine from a malicious IP address is detected.\n\nSolution: You create a scheduled query rule for a data connector.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 1,
+  "explanation": "The solution does **not** meet the goal. A data connector is only used to bring data into Azure Sentinel (e.g., Azure AD sign-in logs, Microsoft Defender alerts). To generate incidents from malicious sign-ins, you must create an **analytics rule** (scheduled query rule based on the log data) that maps to incidents. Simply creating a rule for a connector does not achieve this.\n\nCorrect approach: configure a scheduled analytics rule in Sentinel that queries sign-in logs for malicious IPs, then create incidents.\n\nReference: Microsoft Learn – 'Create custom analytics rules to detect threats' (https://learn.microsoft.com/en-us/azure/sentinel/tutorial-detect-threats-custom)."
+},
+{
+  "id": 147,
+  "question": "You are configuring Azure Sentinel.\n\nYou need to create an incident in Azure Sentinel when a sign-in to an Azure virtual machine from a malicious IP address is detected.\n\nSolution: You create a hunting bookmark.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 1,
+  "explanation": "The solution does **not** meet the goal. Hunting bookmarks in Microsoft Sentinel are used during proactive threat hunting sessions to tag and save interesting results. They do not automatically generate incidents. To create incidents based on sign-ins from malicious IPs, you must configure an **analytics rule** in Sentinel, not a bookmark.\n\nReference: Microsoft Learn – 'Hunt for threats with Microsoft Sentinel' (https://learn.microsoft.com/en-us/azure/sentinel/hunting-bookmarks)."
+},
+{
+  "id": 148,
+  "question": "From Azure Sentinel, you open the Investigation pane for a high-severity incident as shown in the exhibit.\n\nIf you hover over the virtual machine named vm1, you can view [answer choice].\n\nIf you select [answer choice], you can navigate to the items related to the incident.",
+  "options": [
+    "Hover vm1 → the inbound network security group (NSG) rules; Navigate → Entities",
+    "Hover vm1 → the last five Windows security log events; Navigate → Info",
+    "Hover vm1 → the open ports on the host; Navigate → Insights",
+    "Hover vm1 → the running processes; Navigate → Entities"
+  ],
+  "answer": 3,
+  "explanation": "In the Azure Sentinel Investigation graph:\n- Hovering over the entity 'vm1' shows information about **the running processes** associated with that host.\n- Selecting **Entities** lets you navigate to the items (hosts, accounts, IPs) related to the incident for deeper investigation.\n\nOther options are incorrect because NSG rules, Windows security logs, and open ports are not displayed when hovering over vm1 in the investigation pane.\n\nReference: Microsoft Learn – 'Investigate incidents with Microsoft Sentinel investigation graph' (https://learn.microsoft.com/en-us/azure/sentinel/investigate-cases)."
+},
+{
+  "id": 149,
+  "question": "You are configuring Azure Sentinel.\n\nYou need to create an incident in Azure Sentinel when a sign-in to an Azure virtual machine from a malicious IP address is detected.\n\nSolution: You create a Microsoft incident creation rule for a data connector.\n\nDoes this meet the goal?",
+  "options": [
+    "Yes",
+    "No"
+  ],
+  "answer": 1,
+  "explanation": "The solution does **not** meet the goal. Data connector incident creation rules are only available for certain Microsoft security products (such as Microsoft Defender for Endpoint, Microsoft Defender for Office 365, and Microsoft Cloud App Security). They do not cover generic log data such as Azure VM sign-ins. To detect sign-ins from malicious IPs and generate incidents, you must create an **analytics rule** in Sentinel.\n\nReference: Microsoft Learn – 'Create custom analytics rules to detect threats' (https://learn.microsoft.com/en-us/azure/sentinel/tutorial-detect-threats-custom)."
+},
+{
+  "id": 150,
+  "question": "You plan to create a custom Azure Sentinel query that will track anomalous Azure Active Directory (Azure AD) sign-in activity and present the activity as a time chart aggregated by day.\n\nYou need to create a query that will be used to display the time chart.\n\nWhat should you include in the query?",
+  "options": [
+    "extend",
+    "bin",
+    "makeset",
+    "workspace"
+  ],
+  "answer": 1,
+  "explanation": "The correct answer is **bin**. In Kusto Query Language (KQL), the `bin()` operator groups (or buckets) data into time intervals, which is required for aggregating events into a time chart (e.g., by day, hour, or minute). \n- **extend** is used to add calculated columns but not for time aggregation. \n- **makeset** aggregates values into a dynamic array, not suitable for time charting. \n- **workspace** is not an operator, it is used to reference another workspace in cross-workspace queries.\n\nReference: Microsoft Learn – 'Kusto query language: bin() function' (https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/binfunction)."
+}
+
+]
