@@ -185,12 +185,17 @@ export default function Review() {
   };
 
   const exportQuestion = (q) => {
-    const blob = new Blob([JSON.stringify(q, null, 2)], { type: 'application/json' });
+    // Exclude the question ID from the exported JSON to avoid clashes
+    // when re-importing into other instances.
+    const { id, ...rest } = q;
+    const blob = new Blob([JSON.stringify(rest, null, 2)], {
+      type: 'application/json',
+    });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `q${q.id}.json`;
+    a.download = `q${id}.json`;
     a.click();
-    toast(`Exported q${q.id}.json`);
+    toast(`Exported q${id}.json`);
   };
 
   const exportCSV = () => {
