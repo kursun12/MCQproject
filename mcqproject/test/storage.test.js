@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import {
+import defaultQuestions, {
   set1,
   set2,
   set3,
@@ -30,17 +30,7 @@ function createMockStorage(initial = {}) {
 }
 
 const defaultSets = { set1, set2, set3, set4, set5, set6, set7, set8, set9 };
-const allQuestions = [
-  ...set1,
-  ...set2,
-  ...set3,
-  ...set4,
-  ...set5,
-  ...set6,
-  ...set7,
-  ...set8,
-  ...set9,
-];
+const allQuestions = defaultQuestions;
 
 test('initializes empty storage with all default data', () => {
   const storage = createMockStorage();
