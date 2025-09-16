@@ -187,9 +187,10 @@
     "SW1",
     "CEF1",
     "Server1",
-    "Server2"
+    "Server2",
+    "Server1"
   ],
-  "answer": [2, 2],
+  "answer": [2, 4],
   "explanation": "Both actions are performed on the source that sends CEF (Server1). To prevent duplicates, Microsoft guidance says to remove Syslog facilities that also send CEF on each CEF-sending source and to disable Syslog sync in the agent on that same machine. This avoids the same events being ingested into both CommonSecurityLog and Syslog. Sources: Microsoft guidance on avoiding CEF/Syslog duplication and connector docs. :contentReference[oaicite:0]{index=0}"
 },
 {
