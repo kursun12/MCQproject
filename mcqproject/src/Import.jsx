@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Modal from './components/Modal.jsx';
 import { toast } from './utils/toast.js';
 import { generateId } from './utils/id.js';
+import { moveItem, remapAnswers, normalizeQuestion, prepareImport, ensureUniqueIds } from './utils/importUtils.js';
+import { apiClient } from './utils/apiClient.js';
 
 function ImportQuestions() {
   const location = useLocation();
@@ -58,23 +60,11 @@ function ImportQuestions() {
   const [showImportAssign, setShowImportAssign] = useState(false);
   const [serverSets, setServerSets] = useState([]);
   const [selectedServerSet, setSelectedServerSet] = useState('');
+  const prepareForImport = useCallback((incoming) => prepareImport(incoming, questions), [questions]);
+  const generateUniqueBuffer = useCallback((incoming) => ensureUniqueIds(questions, incoming), [questions]);
 
-  const moveItem = (arr, from, to) => {
-    const next = [...arr];
-    const [item] = next.splice(from, 1);
-    next.splice(to, 0, item);
-    return next;
-  };
 
-  const remapAnswers = (answers, from, to) => {
-    // When option moves, update indices in answers accordingly
-    return answers.map((i) => {
-      if (i === from) return to;
-      if (from < to && i > from && i <= to) return i - 1;
-      if (to < from && i >= to && i < from) return i + 1;
-      return i;
-    }).sort((a,b)=>a-b);
-  };
+
 
   useEffect(() => {
     try {
@@ -95,58 +85,19 @@ function ImportQuestions() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/questionsets')
-      .then((res) => res.json())
+    apiClient
+      .get('/api/questionsets')
       .then((data) => {
         if (Array.isArray(data)) setServerSets(data);
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.warn('Unable to load server question sets', err);
+      });
   }, []);
 
-  const normalizeQuestion = (q) => {
-    const answers = Array.isArray(q.answers)
-      ? q.answers
-      : Array.isArray(q.answer)
-      ? q.answer
-      : Number.isFinite(q.answer)
-      ? [q.answer]
-      : [];
-    // Ensure unique, in-range indices
-    const validAnswers = Array.from(new Set(answers)).filter(
-      (i) => Number.isInteger(i) && i >= 0 && i < (q.options?.length || 0)
-    );
-    return {
-      id: q.id ?? generateId(),
-      question: q.question ?? '',
-      options: q.options || [],
-      answers: validAnswers,
-      // Keep single answer for backward compatibility
-      answer: validAnswers.length > 0 ? validAnswers[0] : 0,
-      explanation: q.explanation || '',
-      image: q.image || '',
-    };
-  };
+;
 
-  const ensureUniqueIds = (arr) => {
-    const seen = new Set(questions.map((q) => String(q.id)));
-    const unique = [];
-    arr.forEach((item) => {
-      let id = item.id;
-      while (!id || seen.has(String(id))) {
-        id = generateId();
-      }
-      seen.add(String(id));
-      unique.push({ ...item, id });
-    });
-    return unique;
-  };
 
-  const prepareImport = (arr) =>
-    ensureUniqueIds(
-      // Always generate a new ID so imported data doesn't reuse any
-      // pre-existing identifiers that might conflict with local sets.
-      arr.map((q) => normalizeQuestion({ ...q, id: generateId() }))
-    );
 
   const persistQuestions = (updater) => {
     setQuestions((prev) => {
@@ -180,7 +131,7 @@ function ImportQuestions() {
       try {
         const parsed = JSON.parse(reader.result);
         if (!Array.isArray(parsed)) throw new Error('Invalid format');
-        const prepared = prepareImport(parsed);
+        const prepared = prepareForImport(parsed);
         setImportBuffer(prepared);
         setImportSetIds([]);
         setShowImportAssign(true);
@@ -196,10 +147,9 @@ function ImportQuestions() {
   const importFromServer = async () => {
     if (showImportAssign || !selectedServerSet) return;
     try {
-      const res = await fetch(`/api/questionsets/${selectedServerSet}`);
-      const parsed = await res.json();
+      const parsed = await apiClient.get('/api/questionsets/' + selectedServerSet);
       if (!Array.isArray(parsed)) throw new Error('Invalid format');
-      const prepared = prepareImport(parsed);
+      const prepared = prepareForImport(parsed);
       setImportBuffer(prepared);
       setImportSetIds([]);
       setShowImportAssign(true);
@@ -210,7 +160,7 @@ function ImportQuestions() {
     }
   };
 
-  const startEdit = (q) => {
+  const startEdit = useCallback((q) => {
     setEditingId(q.id);
     const normalized = normalizeQuestion(q);
     setDraft({
@@ -221,8 +171,7 @@ function ImportQuestions() {
       image: normalized.image || '',
     });
     setActiveTab('editor');
-  };
-
+  }, []);
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const editId = params.get('edit');
@@ -230,7 +179,7 @@ function ImportQuestions() {
       const q = questions.find((x) => String(x.id) === String(editId));
       if (q) startEdit(q);
     }
-  }, [location.search, questions, editingId]);
+  }, [location.search, questions, editingId, startEdit]);
 
   const importFromText = () => {
     if (showImportAssign) return;
@@ -238,7 +187,7 @@ function ImportQuestions() {
       const parsed = JSON.parse(pasteText);
       if (!Array.isArray(parsed))
         throw new Error('JSON must be an array of question objects');
-      const prepared = prepareImport(parsed);
+      const prepared = prepareForImport(parsed);
       setImportBuffer(prepared);
       setImportSetIds([]);
       setShowImportAssign(true);
@@ -422,7 +371,7 @@ function ImportQuestions() {
 
   const confirmImport = () => {
     if (importBuffer.length === 0) return;
-    const uniqueBuffer = ensureUniqueIds(importBuffer);
+    const uniqueBuffer = generateUniqueBuffer(importBuffer);
 
     // Store questions first
     persistQuestions((prev) => [...prev, ...uniqueBuffer]);
@@ -826,3 +775,5 @@ function ImportQuestions() {
 }
 
 export default ImportQuestions;
+
+

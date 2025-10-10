@@ -10,12 +10,13 @@ import RepeatBuilder from './RepeatBuilder.jsx';
 import Toaster from './components/Toaster.jsx';
 import HelpOverlay from './components/HelpOverlay.jsx';
 import { loadKeymap } from './utils/keymap.js';
+import DebugPanel from './components/DebugPanel.jsx';
 
 function ModeBadge() {
   const location = useLocation();
   const path = location.pathname;
   const mode = path === '/' ? 'Home' : path.replace('/', '').replace(/^[a-z]/, (m) => m.toUpperCase());
-  return <span className="badge" title="Current mode" style={{ marginLeft: '0.5rem' }}>{mode}</span>;
+  return <span className="badge mode-badge" aria-live="polite" title="Current mode" style={{ marginLeft: '0.5rem' }}>{mode}</span>;
 }
 
 function App() {
@@ -51,39 +52,44 @@ function App() {
   return (
     <BrowserRouter>
       <div className="app">
-        <h1>
-          MCQ Practice <span style={{fontSize: '0.7em', opacity: 0.7}}>v2025.09</span>
-          <ModeBadge />
-        </h1>
-        <nav className="nav">
-          <div className="nav-links">
-            <NavLink to="/" end>
-              Home
-            </NavLink>
-            <NavLink to="/quiz">Quiz</NavLink>
-            <NavLink to="/repeat">Repeat</NavLink>
-            <NavLink to="/review">Review</NavLink>
-            <NavLink to="/review?bookmarks=1">Bookmarks</NavLink>
-            <NavLink to="/settings">Settings</NavLink>
-            <NavLink to="/import">Questions</NavLink>
-          </div>
-          <div className="mode-and-progress">
-            <div className="bar top-progress"><div style={{ width: '0%' }}></div></div>
-            <button className="theme-toggle icon-btn" onClick={toggleTheme}>
-              {theme === 'light' ? 'Dark' : 'Light'} Mode
-            </button>
-          </div>
-        </nav>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/quiz" element={<Quiz />} />
-          <Route path="/repeat" element={<RepeatBuilder />} />
-          <Route path="/review" element={<Review />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/import" element={<ImportQuestions />} />
-        </Routes>
+        <header className="app-header">
+          <h1>
+            MCQ Practice <span style={{fontSize: '0.7em', opacity: 0.7}}>v2025.09</span>
+            <ModeBadge />
+          </h1>
+          <nav className="nav" aria-label="Primary">
+            <div className="nav-links">
+              <NavLink to="/" end>
+                Home
+              </NavLink>
+              <NavLink to="/quiz">Quiz</NavLink>
+              <NavLink to="/repeat">Repeat</NavLink>
+              <NavLink to="/review">Review</NavLink>
+              <NavLink to="/review?bookmarks=1">Bookmarks</NavLink>
+              <NavLink to="/settings">Settings</NavLink>
+              <NavLink to="/import">Questions</NavLink>
+            </div>
+            <div className="mode-and-progress">
+              <div className="bar top-progress"><div style={{ width: '0%' }}></div></div>
+              <button className="theme-toggle icon-btn" onClick={toggleTheme}>
+                {theme === 'light' ? 'Dark' : 'Light'} Mode
+              </button>
+            </div>
+          </nav>
+        </header>
+        <main className="app-main" role="main">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/repeat" element={<RepeatBuilder />} />
+            <Route path="/review" element={<Review />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/import" element={<ImportQuestions />} />
+          </Routes>
+        </main>
         <Toaster />
         <HelpOverlay open={showHelp} onClose={() => setShowHelp(false)} />
+        <DebugPanel />
       </div>
     </BrowserRouter>
   );

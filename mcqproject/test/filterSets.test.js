@@ -1,5 +1,4 @@
-import { test } from 'node:test';
-import assert from 'node:assert';
+import { describe, expect, it } from 'vitest';
 
 function filterQuestions(questions, sets, filterSet) {
   const map = new Map();
@@ -18,11 +17,13 @@ function filterQuestions(questions, sets, filterSet) {
   });
 }
 
-test('filters questions by set id regardless of id type', () => {
-  const questions = [{ id: 1, question: 'Q1', options: [], answers: [] }];
-  const sets = [{ id: 'abc', questionIds: [1] }];
-  const res = filterQuestions(questions, sets, 'abc');
-  assert.strictEqual(res.length, 1);
-  const none = filterQuestions(questions, sets, 'xyz');
-  assert.strictEqual(none.length, 0);
+describe('filterQuestions', () => {
+  it('filters questions by set id regardless of id type', () => {
+    const questions = [{ id: 1, question: 'Q1', options: [], answers: [] }];
+    const sets = [{ id: 'abc', questionIds: [1] }];
+    const res = filterQuestions(questions, sets, 'abc');
+    expect(res).toHaveLength(1);
+    const none = filterQuestions(questions, sets, 'xyz');
+    expect(none).toHaveLength(0);
+  });
 });

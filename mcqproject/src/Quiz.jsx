@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { gradePartial, gradeStrict, gradeLenient, toPoints } from './utils/scoring';
 import { toast } from './utils/toast.js';
@@ -7,22 +7,8 @@ import Hotspot from './components/Hotspot.jsx';
 import defaultQuestions from './questions';
 import { RepeatEngine } from './repeat/engine';
 import { loadKeymap } from './utils/keymap.js';
+import { buildQuestionPool, shuffleArray } from './utils/quizBuilder.js';
 
-// Shuffle helpers need to be defined before they're used in buildQuestions.
-// Previously these were declared later in the component which meant enabling
-// shuffle options attempted to invoke an uninitialized function, triggering a
-// runtime ReferenceError and rendering a blank screen.
-function shuffleArray(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function shuffleCopy(arr) {
-  return shuffleArray([...arr]);
-}
 function QuizSetup({ mode }) {
   const navigate = useNavigate();
   const [selectedSet, setSelectedSet] = useState(null);
@@ -147,85 +133,25 @@ function QuizMain() {
       return null;
     }
   }, [resume]);
-  const buildQuestions = () => {
-    // Load dataset safely without throwing
-    let dataset = defaultQuestions;
-    const raw = localStorage.getItem('questions');
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) dataset = parsed;
-      } catch {/* keep defaults */}
-    }
+  const storage = useMemo(() => (typeof window !== 'undefined'
+    ? window.localStorage
+    : {
+        getItem: () => null,
+        setItem: () => {},
+        removeItem: () => {},
+      }), []);
 
-    // Normalize
-    let arr = dataset.map((q, idx) => ({
-      ...q,
-      id: q.id ?? idx + 1,
-      options: Array.isArray(q.options) ? q.options : [],
-    }));
+  const buildQuestions = useCallback(
+    () => buildQuestionPool({
+      mode,
+      searchParams: new URLSearchParams(location.search),
+      storage,
+      dataset: defaultQuestions,
+    }),
+    [mode, location.search, storage],
+  );
 
-    // Retry subset
-    try {
-      const retryIds = JSON.parse(localStorage.getItem('retryIds') || 'null');
-      if (Array.isArray(retryIds) && retryIds.length) {
-        const idSet = new Set(retryIds);
-        arr = arr.filter(q => idSet.has(q.id));
-        localStorage.removeItem('retryIds');
-      }
-    } catch { /* ignore */ }
-
-    // Filters
-    try {
-      const url = new URL(window.location.href);
-      const setId = url.searchParams.get('setId');
-      const hard = url.searchParams.get('hard') === 'true';
-      const tagsParam = url.searchParams.get('tags');
-      const countParam = parseInt(url.searchParams.get('count'), 10);
-      if (setId === 'bookmarks') {
-        try {
-          const bm = JSON.parse(localStorage.getItem('bookmarks') || '[]');
-          const idSet = new Set(Array.isArray(bm) ? bm.map(Number) : []);
-          arr = arr.filter((q) => idSet.has(q.id));
-        } catch { /* ignore */ }
-      } else if (setId && setId !== 'all') {
-        try {
-          const setsLS = JSON.parse(localStorage.getItem('sets') || '[]');
-          const s = setsLS.find((x) => String(x.id) === String(setId));
-          if (s) {
-            const idSet = new Set(s.questionIds || []);
-            arr = arr.filter((q) => idSet.has(q.id));
-          }
-        } catch { /* ignore */ }
-      }
-      if (tagsParam) {
-        const tags = tagsParam.split(',').map((t) => t.trim()).filter(Boolean);
-        if (tags.length) {
-          arr = arr.filter((q) => Array.isArray(q.tags) && q.tags.some((t) => tags.includes(t)));
-        }
-      }
-      if (hard) {
-        try {
-          const stats = JSON.parse(localStorage.getItem('stats')||'{}');
-          arr = arr.filter(q => { const st = stats[q.id]; return st && st.fails >= 3 && (st.fails / Math.max(1,(st.attempts||0))) >= 0.6; });
-        } catch { /* ignore */ }
-      }
-      const shuffleQs = localStorage.getItem('shuffleQs') === 'true';
-      if (shuffleQs) arr = shuffleCopy(arr);
-      const limit = Number.isFinite(countParam) && countParam > 0 ? countParam : null;
-      if (limit && mode !== 'repeat') arr = arr.slice(0, limit);
-    } catch { /* ignore */ }
-
-    const shuffleOpts = localStorage.getItem('shuffleOpts') === 'true';
-    const mapped = arr.map((q) => ({
-      ...q,
-      _order: shuffleOpts ? shuffleArray([...Array(q.options.length).keys()]) : [...Array(q.options.length).keys()],
-    }));
-    // Guard: ensure we never return empty if dataset existed
-    return mapped.length > 0 ? mapped : defaultQuestions.map((q, idx) => ({ ...q, id: q.id ?? idx + 1, _order: [...Array(q.options.length).keys()] }));
-  };
-
-  const allQuestionsRef = useRef([]);
+const allQuestionsRef = useRef([]);
   const [questions, setQuestions] = useState(() => {
     if (sessionData?.questions?.length) {
       allQuestionsRef.current = sessionData.questions;
@@ -316,9 +242,7 @@ function QuizMain() {
   useEffect(() => {
     if (resume) return;
     const payload = { mode, current, questions, results: [], bookmarks: [...bookmarks], notes, times: [] };
-    try { localStorage.setItem('mcqSession', JSON.stringify(payload)); } catch { /* ignore */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    try { localStorage.setItem('mcqSession', JSON.stringify(payload)); } catch { /* ignore */ }  }, []);
   // Rebuild questions on route change (e.g., after toggling settings and navigating back)
   useEffect(() => {
     if (resume) return;
@@ -1064,3 +988,6 @@ function formatTime(sec = 0){
   const ss = (s % 60).toString().padStart(2,'0');
   return `${m}:${ss}`;
 }
+
+
+

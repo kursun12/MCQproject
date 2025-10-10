@@ -78,7 +78,7 @@ export default function Review() {
     }
     return session.questions || [];
   }, [onlyBookmarked, session]);
-  const results = session.results || [];
+  const results = useMemo(() => session.results || [], [session.results]);
 
   const tags = useMemo(() => {
     const s = new Set();
