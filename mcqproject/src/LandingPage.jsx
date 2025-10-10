@@ -9,8 +9,9 @@ function LandingPage() {
   const navigate = useNavigate();
   const [selectedSet, setSelectedSet] = useState(null);
   const countOptions = [10, 20, 25, 30];
-  let qCount = 0, bmCount = 0;
-  try { qCount = JSON.parse(localStorage.getItem('questions')||'[]').length; } catch { /* ignore */ }
+  const certificationQuestions = certification?.questions || [];
+  const qCount = certificationQuestions.length;
+  let bmCount = 0;
   try {
     const b = JSON.parse(localStorage.getItem('bookmarks')||'[]');
     bmCount = Array.isArray(b) ? new Set(b.map(Number)).size : 0;

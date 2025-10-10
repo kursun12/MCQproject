@@ -41,3 +41,11 @@ test('open review navigates to review screen with latest results', async ({ page
   await expect(page.getByRole('button', { name: 'Retry Incorrect Only' })).toBeVisible();
   await expect(page.locator('.question-grid .question-card').first()).toContainText('Q');
 });
+
+test('kcda certification exposes seeded questions', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Active certification').selectOption('KCDA Knowledge Discovery & Classification Analyst');
+  await expect(page.locator('.hero .chip', { hasText: 'Questions:' })).toContainText(/Questions:\s*(?!0\b)/);
+  await page.goto('/quiz?mode=practice&setId=all&count=1');
+  await expect(page.locator('text=Question 1 of')).toBeVisible();
+});
