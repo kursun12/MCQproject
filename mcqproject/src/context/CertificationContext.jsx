@@ -63,10 +63,22 @@ function ensureSeed(certId, storage, existingCert) {
   if (!cert) return;
   const questionsKey = `questions:${certId}`;
   const setsKey = `sets:${certId}`;
-  const hasQuestions = storage.getItem(questionsKey);
-  const hasSets = storage.getItem(setsKey);
 
-  if (!hasQuestions || !hasSets) {
+  const parseJSON = (value) => {
+    if (!value) return null;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  };
+
+  const storedQuestions = parseJSON(storage.getItem(questionsKey));
+  const storedSets = parseJSON(storage.getItem(setsKey));
+  const needsQuestions = !Array.isArray(storedQuestions) || storedQuestions.length === 0;
+  const needsSets = !Array.isArray(storedSets) || storedSets.length === 0;
+
+  if (needsQuestions || needsSets) {
     const defaultSets = Object.fromEntries((cert.sets || []).map((set) => [set.id, set.questions]));
     syncLocalStorage(defaultSets, cert.questions, storage, questionsKey, setsKey);
   }
