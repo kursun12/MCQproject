@@ -64,11 +64,19 @@ function App() {
     <BrowserRouter>
       <div className="app">
         <header className="app-header">
-          <h1>
-            MCQ Practice <span style={{fontSize: '0.7em', opacity: 0.7}}>v2025.09</span>
-            <ModeBadge />
-            <CertificationBadge />
-          </h1>
+          <div className="header-top">
+            <h1>
+              MCQ Practice <span style={{fontSize: '0.7em', opacity: 0.7}}>v2025.09</span>
+              <ModeBadge />
+              <CertificationBadge />
+            </h1>
+            <div className="header-controls">
+              <CertificationSwitcher />
+              <button className="theme-toggle icon-btn" onClick={toggleTheme}>
+                {theme === 'light' ? 'Dark' : 'Light'} Mode
+              </button>
+            </div>
+          </div>
           <nav className="nav" aria-label="Primary">
             <div className="nav-links">
               <NavLink to="/" end>
@@ -80,13 +88,6 @@ function App() {
               <NavLink to="/review?bookmarks=1">Bookmarks</NavLink>
               <NavLink to="/settings">Settings</NavLink>
               <NavLink to="/import">Questions</NavLink>
-            </div>
-            <div className="mode-and-progress">
-              <CertificationSwitcher />
-              <div className="bar top-progress"><div style={{ width: '0%' }}></div></div>
-              <button className="theme-toggle icon-btn" onClick={toggleTheme}>
-                {theme === 'light' ? 'Dark' : 'Light'} Mode
-              </button>
             </div>
           </nav>
         </header>

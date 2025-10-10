@@ -7,15 +7,22 @@ function CertificationSwitcher() {
 
   return (
     <div className="certification-switcher">
-      <label htmlFor="certification-select">Certification</label>
+      <label className="sr-only" htmlFor="certification-select">
+        Active certification
+      </label>
       <select
         id="certification-select"
+        aria-label="Active certification"
         value={certificationId}
         onChange={(event) => setCertificationId(event.target.value)}
         disabled={!isReady || options.length === 0}
       >
         {options.map((cert) => (
-          <option key={cert.id} value={cert.id}>
+          <option
+            key={cert.id}
+            value={cert.id}
+            disabled={cert.comingSoon && cert.id !== certificationId}
+          >
             {cert.label}{cert.comingSoon ? ' (coming soon)' : ''}
           </option>
         ))}
