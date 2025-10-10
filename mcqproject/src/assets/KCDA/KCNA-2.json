@@ -1,0 +1,362 @@
+[
+    {
+    "id": 31,
+    "question": "What does 'Continuous Integration' mean?",
+    "options": [
+      "The continuous integration and testing of code changes from multiple sources manually.",
+      "The continuous integration and testing of code changes from multiple sources via automation.",
+      "The continuous integration of changes from one environment to another.",
+      "The continuous integration of new tools to support developers in a project."
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **The continuous integration and testing of code changes from multiple sources via automation**. Continuous Integration (CI) involves automatically building and testing code whenever developers commit changes, ensuring early detection of integration issues. (Reference: Martin Fowler – Continuous Integration https://martinfowler.com/articles/continuousIntegration.html)"
+  },
+  {
+    "id": 32,
+    "question": "Which of the following options is true about considerations for large Kubernetes clusters?",
+    "options": [
+      "Kubernetes supports up to 1000 nodes and recommends no more than 1000 containers per node.",
+      "Kubernetes supports up to 5000 nodes and recommends no more than 500 pods per node.",
+      "Kubernetes supports up to 5000 nodes and recommends no more than 110 pods per node.",
+      "Kubernetes supports up to 50 nodes and recommends no more than 1000 containers per node."
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **Kubernetes supports up to 5000 nodes and recommends no more than 110 pods per node**. As per official scalability limits, Kubernetes clusters are tested up to 5000 nodes, 150,000 total pods, and 300,000 total containers. (Reference: Kubernetes Scalability Limits – https://kubernetes.io/docs/setup/best-practices/cluster-large/)"
+  },
+  {
+    "id": 33,
+    "question": "Which component of the node is responsible to run workloads?",
+    "options": [
+      "The kubelet.",
+      "The kubeproxy.",
+      "The kube-apiserver.",
+      "The container runtime."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **The container runtime**. The container runtime (e.g., containerd, CRI-O) is responsible for pulling container images, starting and stopping containers, and ensuring their correct operation as defined by the kubelet. (Reference: Kubernetes Node Components – https://kubernetes.io/docs/concepts/overview/components/#node-components)"
+  },
+  {
+    "id": 34,
+    "question": "Kubernetes __ allows you to automatically manage the number of nodes in your cluster to meet demand.",
+    "options": [
+      "Node Autoscaler",
+      "Cluster Autoscaler",
+      "Horizontal Pod Autoscaler",
+      "Vertical Pod Autoscaler"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **Cluster Autoscaler**. The Cluster Autoscaler automatically adjusts the number of nodes in a cluster when pods fail to schedule or when nodes are underutilized. (Reference: Kubernetes Cluster Autoscaler – https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler)"
+  },
+  {
+    "id": 35,
+    "question": "The IPv4/IPv6 dual stack in Kubernetes:",
+    "options": [
+      "Translates an IPv4 request from a service to an IPv6 service.",
+      "Allows you to access the IPv4 address by using the IPv6 address.",
+      "Requires NetworkPolicies to prevent services from mixing requests.",
+      "Allows you to create IPv4 and IPv6 dual stack services."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **Allows you to create IPv4 and IPv6 dual stack services**. Dual-stack networking enables Pods and Services to have both IPv4 and IPv6 addresses assigned, improving flexibility and compatibility. (Reference: Kubernetes Dual-Stack Networking – https://kubernetes.io/docs/concepts/services-networking/dual-stack/)"
+  },
+  {
+    "id": 36,
+    "question": "What does 'continuous' mean in the context of CI/CD?",
+    "options": [
+      "Frequent releases, Manual processes, Repeatable, Fast processing",
+      "Periodic releases, Manual processes, Repeatable, Automated Processing",
+      "Frequent releases, Automated processes, Repeatable, Fast processing",
+      "Periodic releases, Automated processes, Repeatable, Automated processing"
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **Frequent releases, Automated processes, Repeatable, Fast processing**. In CI/CD, 'continuous' emphasizes automation and frequent integration or deployment of code to reduce errors and deliver software quickly. (Reference: Atlassian CI/CD Guide – https://www.atlassian.com/continuous-delivery/ci-vs-ci-vs-cd)"
+  },
+  {
+    "id": 37,
+    "question": "What is ephemeral storage?",
+    "options": [
+      "Storage space that need not persist across restarts.",
+      "Storage that may grow dynamically.",
+      "Storage used by multiple consumers (e.g. multiple Pods).",
+      "Storage that is always provisioned locally."
+    ],
+    "answer": [0],
+    "explanation": "The correct answer is **Storage space that need not persist across restarts**. Ephemeral storage provides temporary disk space that is deleted when a Pod is removed or restarted. It is used for caches, temporary files, and logs. (Reference: Kubernetes Ephemeral Storage – https://kubernetes.io/docs/concepts/storage/ephemeral-volumes/)"
+  },
+  {
+    "id": 38,
+    "question": "What is the reference implementation of the OCI runtime specification?",
+    "options": [
+      "lxc",
+      "cri-o",
+      "runc",
+      "docker"
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **runc**. It is the official Open Container Initiative (OCI) reference implementation for container runtime specifications and is used by Docker, containerd, and CRI-O. (Reference: OCI Runtime Specification – https://opencontainers.org/ and runc GitHub – https://github.com/opencontainers/runc)"
+  },
+  {
+    "id": 39,
+    "question": "What is a Service?",
+    "options": [
+      "A static network mapping from a Pod to a port.",
+      "A way to expose an application running on a set of Pods.",
+      "The network configuration for a group of Pods.",
+      "An NGINX load balancer that gets deployed for an application."
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **A way to expose an application running on a set of Pods**. A Service defines a stable endpoint and load-balances traffic across Pods that match a label selector. (Reference: Kubernetes Services – https://kubernetes.io/docs/concepts/services-networking/service/)"
+  },
+  {
+    "id": 40,
+    "question": "What's the difference between a security profile and a security context?",
+    "options": [
+      "Security Contexts configure Clusters and Namespaces at runtime. Security profiles are control plane mechanisms to enforce specific settings in the Security Context.",
+      "Security Contexts configure Pods and Containers at runtime. Security profiles are control plane mechanisms to enforce specific settings in the Security Context.",
+      "Security Profiles configure Pods and Containers at runtime. Security Contexts are control plane mechanisms to enforce specific settings in the Security Profile.",
+      "Security Profiles configure Clusters and Namespaces at runtime. Security Contexts are control plane mechanisms to enforce specific settings in the Security Profile."
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **Security Contexts configure Pods and Containers at runtime. Security profiles are control plane mechanisms to enforce specific settings in the Security Context**. Security Contexts specify privilege and access control settings for a Pod or container, while PodSecurityPolicy and similar profiles enforce constraints cluster-wide. (Reference: Kubernetes Security Context – https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)"
+  },
+  {
+    "id": 41,
+    "question": "At which layer would distributed tracing be implemented in a cloud native deployment?",
+    "options": [
+      "Network",
+      "Application",
+      "Database",
+      "Infrastructure"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **Application**. Distributed tracing is implemented at the application layer to trace requests as they flow through microservices, helping developers analyze performance and identify bottlenecks. (Reference: CNCF OpenTelemetry documentation – https://opentelemetry.io/docs/concepts/what-is-distributed-tracing/)"
+  },
+  {
+    "id": 42,
+    "question": "What framework does Kubernetes use to authenticate users with JSON Web Tokens?",
+    "options": [
+      "OpenID Connect",
+      "OpenID Container",
+      "OpenID Cluster",
+      "OpenID CNCF"
+    ],
+    "answer": [0],
+    "explanation": "The correct answer is **OpenID Connect**. Kubernetes integrates with OpenID Connect (OIDC) providers to authenticate users using JSON Web Tokens (JWTs), providing a standard way to manage external authentication. (Reference: Kubernetes Authentication – https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens)"
+  },
+  {
+    "id": 43,
+    "question": "Which of the following is a feature Kubernetes provides by default as a container orchestration tool?",
+    "options": [
+      "A portable operating system.",
+      "File system redundancy.",
+      "A container image registry.",
+      "Automated rollouts and rollbacks."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **Automated rollouts and rollbacks**. Kubernetes Deployments support automatic rollout of changes and rollback to previous versions if issues occur, enabling reliable release management. (Reference: Kubernetes Deployments – https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)"
+  },
+  {
+    "id": 44,
+    "question": "Which of the following sentences is true about container runtimes in Kubernetes?",
+    "options": [
+      "If you let iptables see bridged traffic, you don't need a container runtime.",
+      "If you enable IPv4 forwarding, you don't need a container runtime.",
+      "Container runtimes are deprecated, you must install CRI on each node.",
+      "You must install a container runtime on each node to run pods on it."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **You must install a container runtime on each node to run pods on it**. Kubernetes requires a container runtime (e.g., containerd, CRI-O) installed on every node to run and manage containers. (Reference: Kubernetes Container Runtimes – https://kubernetes.io/docs/setup/production-environment/container-runtimes/)"
+  },
+  {
+    "id": 45,
+    "question": "Which of the following statements is correct concerning Open Policy Agent (OPA)?",
+    "options": [
+      "The policies must be written in Python language.",
+      "Kubernetes can use it to validate requests and apply policies.",
+      "Policies can only be tested when published.",
+      "It cannot be used outside Kubernetes."
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **Kubernetes can use it to validate requests and apply policies**. Open Policy Agent (OPA) is a general-purpose policy engine that uses the Rego language and can be integrated with Kubernetes (e.g., via Gatekeeper) to enforce admission control and compliance. (Reference: OPA Documentation – https://www.openpolicyagent.org/docs/latest/kubernetes-introduction/)"
+  },
+  {
+    "id": 46,
+    "question": "If a Pod was waiting for container images to download on the scheduled node, what state would it be in?",
+    "options": [
+      "Failed",
+      "Succeeded",
+      "Unknown",
+      "Pending"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **Pending**. When a Pod is created but its containers have not yet started, such as when images are still being pulled, it remains in the Pending state. (Reference: Kubernetes Pod Lifecycle – https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)"
+  },
+  {
+    "id": 47,
+    "question": "In a cloud native world, what does the IaC abbreviation stand for?",
+    "options": [
+      "Infrastructure and Code",
+      "Infrastructure as Code",
+      "Infrastructure above Code",
+      "Infrastructure across Code"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **Infrastructure as Code**. IaC refers to managing and provisioning infrastructure through code and automation rather than manual processes. Tools like Terraform and Ansible implement IaC practices. (Reference: HashiCorp IaC Guide – https://developer.hashicorp.com/terraform/intro)"
+  },
+  {
+    "id": 48,
+    "question": "Which of the following scenarios would benefit the most from a service mesh architecture?",
+    "options": [
+      "A few applications with hundreds of pod replicas running in multiple clusters, each one providing multiple services.",
+      "Thousands of distributed applications running in a single cluster, each one providing multiple services.",
+      "Tens of distributed applications running in multiple clusters, each one providing multiple services.",
+      "Thousands of distributed applications running in multiple clusters, each one providing multiple services."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **Thousands of distributed applications running in multiple clusters, each one providing multiple services**. Service meshes provide observability, traffic control, and security across microservices at scale, making them ideal for complex, distributed, multi-cluster environments. (Reference: Istio Architecture Overview – https://istio.io/latest/docs/concepts/what-is-istio/)"
+  },
+  {
+    "id": 49,
+    "question": "Manual reclamation policy of a PVC resource is known as:",
+    "options": [
+      "claimRef",
+      "Delete",
+      "Retain",
+      "Recycle"
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **Retain**. The Retain policy ensures that a PersistentVolume is not automatically deleted or reused after a PVC is released, requiring manual intervention to reclaim it. (Reference: Kubernetes Persistent Volumes – https://kubernetes.io/docs/concepts/storage/persistent-volumes/#reclaiming)"
+  },
+  {
+    "id": 50,
+    "question": "Which one of the following is an open source runtime security tool?",
+    "options": [
+      "lxd",
+      "containerd",
+      "falco",
+      "gvisor"
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **Falco**. Falco is a CNCF-hosted open-source runtime security tool that detects abnormal behavior in applications and containers by monitoring system calls. (Reference: Falco Project – https://falco.org/)"
+  },
+  {
+    "id": 51,
+    "question": "In which framework do the developers no longer have to deal with capacity, deployments, scaling and fault tolerance, and OS?",
+    "options": [
+      "Docker Swarm",
+      "Kubernetes",
+      "Mesos",
+      "Serverless"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **Serverless**. In a serverless framework, the cloud provider handles infrastructure management, scaling, fault tolerance, and capacity. Developers only focus on writing and deploying code functions. (Reference: AWS Lambda & Azure Functions documentation on serverless computing – https://aws.amazon.com/serverless/what-is-serverless/)"
+  },
+  {
+    "id": 52,
+    "question": "Which of these is a valid container restart policy?",
+    "options": [
+      "On login",
+      "On update",
+      "On start",
+      "On failure"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **On failure**. Valid Kubernetes container restart policies are Always, OnFailure, and Never. 'On failure' restarts a container only if it exits with a non-zero status code. (Reference: Kubernetes Pod Lifecycle – https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)"
+  },
+  {
+    "id": 53,
+    "question": "Which of the following is a challenge derived from running cloud native applications?",
+    "options": [
+      "The operational costs of maintaining the data center of the company.",
+      "The cost optimization is complex to maintain across different public cloud environments.",
+      "The lack of different container images available in public image repositories.",
+      "The lack of services provided by the most common public clouds."
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **The cost optimization is complex to maintain across different public cloud environments**. Managing distributed workloads across multi-cloud or hybrid environments introduces challenges in observability, cost control, and governance. (Reference: CNCF Cloud Native Definition – https://github.com/cncf/toc/blob/main/DEFINITION.md)"
+  },
+  {
+    "id": 54,
+    "question": "What is the correct hierarchy of Kubernetes components?",
+    "options": [
+      "Containers → Pods → Cluster → Nodes",
+      "Nodes → Cluster → Containers → Pods",
+      "Cluster → Nodes → Pods → Containers",
+      "Pods → Cluster → Containers → Nodes"
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **Cluster → Nodes → Pods → Containers**. A Kubernetes cluster consists of nodes; nodes run Pods, and Pods contain one or more containers. This reflects the structural hierarchy of Kubernetes components. (Reference: Kubernetes Architecture Overview – https://kubernetes.io/docs/concepts/overview/components/)"
+  },
+  {
+    "id": 55,
+    "question": "Which statement about Secrets is correct?",
+    "options": [
+      "A Secret is part of a Pod specification.",
+      "Secrets data is encrypted with the cluster private key by default.",
+      "Secrets data is base64 encoded and stored unencrypted by default.",
+      "A Secret can only be used for confidential data."
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **Secrets data is base64 encoded and stored unencrypted by default**. Kubernetes stores Secrets in etcd as base64-encoded data; by default it is not encrypted at rest unless explicitly configured. (Reference: Kubernetes Secrets – https://kubernetes.io/docs/concepts/configuration/secret/)"
+  },
+  {
+    "id": 56,
+    "question": "Which mechanism allows extending the Kubernetes API?",
+    "options": [
+      "ConfigMap",
+      "CustomResourceDefinition",
+      "MutatingAdmissionWebhookmechanism",
+      "Kustomize"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **CustomResourceDefinition (CRD)**. CRDs allow users to define their own resource types and extend the Kubernetes API without modifying the core source code. These custom resources behave like native Kubernetes objects. (Reference: Kubernetes Custom Resources – https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)"
+  },
+  {
+    "id": 57,
+    "question": "Which of the following observability data streams would be most useful when desiring to plot resource consumption and predicted future resource exhaustion?",
+    "options": [
+      "stdout",
+      "Traces",
+      "Logs",
+      "Metrics"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **Metrics**. Metrics data (such as CPU, memory, and I/O usage) provides numerical time-series information that can be visualized for monitoring and forecasting resource utilization. (Reference: Kubernetes Metrics Server – https://kubernetes.io/docs/tasks/debug/debug-cluster/resource-metrics-pipeline/)"
+  },
+  {
+    "id": 58,
+    "question": "What can be used to create a job that will run at specified times/dates or on a repeating schedule?",
+    "options": [
+      "Job",
+      "CalenderJob",
+      "BatchJob",
+      "CronJob"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **CronJob**. A CronJob in Kubernetes runs Jobs on a time-based schedule defined with cron syntax, enabling periodic or recurring task execution. (Reference: Kubernetes CronJobs – https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/)"
+  },
+  {
+    "id": 59,
+    "question": "If kubectl is failing to retrieve information from the cluster, where can you find pod logs to troubleshoot?",
+    "options": [
+      "/var/log/pods/",
+      "~/.kube/config",
+      "/var/log/k8s/",
+      "/etc/kubernetes/"
+    ],
+    "answer": [0],
+    "explanation": "The correct answer is **/var/log/pods/**. This directory stores logs for running Pods and containers on a node, which can be used to diagnose cluster communication or runtime issues. (Reference: Kubernetes Logging Architecture – https://kubernetes.io/docs/concepts/cluster-administration/logging/)"
+  },
+  {
+    "id": 60,
+    "question": "Which component in Kubernetes is responsible to watch newly created Pods with no assigned node, and selects a node for them to run on?",
+    "options": [
+      "etcd",
+      "kube controller-manager",
+      "kube proxy",
+      "kube scheduler"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **kube scheduler**. The kube-scheduler monitors for unscheduled Pods and assigns them to suitable nodes based on resource availability and scheduling policies. (Reference: Kubernetes Scheduler – https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)"
+  }
+]
