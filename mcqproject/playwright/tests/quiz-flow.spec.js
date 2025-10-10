@@ -27,3 +27,17 @@ test('user can complete a short practice quiz', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Your Results' })).toBeVisible();
   await expect(page.getByRole('button', { name: /^Restart$/ }).first()).toBeVisible();
 });
+
+
+test('open review navigates to review screen with latest results', async ({ page }) => {
+  await page.goto('/quiz?mode=practice&setId=all&count=1');
+  await page.waitForSelector('text=Question 1 of');
+  await answerQuestion(page);
+  await expect(page.getByRole('heading', { name: 'Your Results' })).toBeVisible();
+  const openReview = page.getByRole('button', { name: 'Open Review' }).first();
+  await expect(openReview).toBeVisible();
+  await openReview.click();
+  await expect(page).toHaveURL(/\/review$/);
+  await expect(page.getByRole('button', { name: 'Retry Incorrect Only' })).toBeVisible();
+  await expect(page.locator('.question-grid .question-card').first()).toContainText('Q');
+});

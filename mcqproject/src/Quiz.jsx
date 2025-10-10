@@ -397,21 +397,38 @@ const allQuestionsRef = useRef([]);
     }
   };
 
-  const saveSession = (nextState = {}) => {
-    const payload = {
-      mode,
-      current,
-      questions,
-      results: answers.map((sel, i) => ({ index: i, selected: sel, isCorrect: gradeStrict(sel, getCorrect(questions[i])) === 1 })),
-      bookmarks: [...bookmarks],
-      notes,
-      score,
-      points,
-      times,
-      ...nextState,
-    };
-    localStorage.setItem('mcqSession', JSON.stringify(payload));
-  };
+  const getCorrect = (q) => (
+    Array.isArray(q.answers) ? q.answers : Array.isArray(q.answer) ? q.answer : [q.answer]
+  );
+
+  const saveSession = useCallback(
+    (nextState = {}, overrides = {}) => {
+      const answersOverride = overrides.answers ?? answers;
+      const timesOverride = overrides.times ?? nextState.times ?? times;
+      const currentOverride = overrides.current ?? nextState.current ?? current;
+      const finishedOverride = overrides.finished ?? nextState.finished ?? finished;
+      const payload = {
+        mode,
+        current: currentOverride,
+        finished: finishedOverride,
+        questions,
+        results: (answersOverride || []).map((sel, i) => ({
+          index: i,
+          selected: sel,
+          isCorrect: gradeStrict(sel, getCorrect(questions[i])) === 1,
+        })),
+        answers: answersOverride,
+        bookmarks: [...bookmarks],
+        notes,
+        score,
+        points,
+        times: timesOverride,
+        ...nextState,
+      };
+      localStorage.setItem('mcqSession', JSON.stringify(payload));
+    },
+    [mode, current, finished, questions, answers, bookmarks, notes, score, points, times, getCorrect]
+  );
   // Stats for hard questions
   const updateStats = (id, ok) => {
     try {
@@ -421,10 +438,6 @@ const allQuestionsRef = useRef([]);
       stats[id] = s; localStorage.setItem('stats', JSON.stringify(stats));
     } catch { /* ignore */ }
   };
-
-  const getCorrect = (q) => (
-    Array.isArray(q.answers) ? q.answers : Array.isArray(q.answer) ? q.answer : [q.answer]
-  );
 
   const handleNext = () => {
     if (!selected || selected.length === 0) return;
@@ -443,6 +456,8 @@ const allQuestionsRef = useRef([]);
       return;
     }
     let newTimes = times;
+    let updatedAnswers = answers;
+    let willBeFinished = finished;
     if (!awaitingNext) {
       // Record time for current question
       try {
@@ -476,7 +491,9 @@ const allQuestionsRef = useRef([]);
         const delta = toPoints(partial) + Math.max(0, 25 - Math.floor((performance.now() % 25000) / 1000));
         setPoints(points + delta);
       }
-      setAnswers([...answers, selected]);
+      const appendedAnswers = [...answers, selected];
+      setAnswers(appendedAnswers);
+      updatedAnswers = appendedAnswers;
       if (mode === 'repeat') {
         const eng = engineRef.current;
         if (eng) {
@@ -500,6 +517,7 @@ const allQuestionsRef = useRef([]);
         const nid = eng.next();
         if (!nid) {
           setFinished(true);
+          willBeFinished = true;
         } else {
           const qobj = byIdRef.current.get(nid);
           if (qobj) {
@@ -509,6 +527,7 @@ const allQuestionsRef = useRef([]);
             eng.onShow(nid);
           } else {
             setFinished(true);
+            willBeFinished = true;
           }
         }
       } else {
@@ -520,10 +539,11 @@ const allQuestionsRef = useRef([]);
         setQStart(performance.now());
       } else {
         setFinished(true);
+        willBeFinished = true;
       }
     }
     const nextIdx = Math.min(current + 1, questions.length - 1);
-    saveSession({ current: nextIdx, times: newTimes });
+    saveSession({ current: nextIdx, times: newTimes, finished: willBeFinished }, { answers: updatedAnswers });
   };
 
   const toggleBookmark = () => {
@@ -671,6 +691,11 @@ const allQuestionsRef = useRef([]);
     }
   };
 
+  const handleOpenReview = useCallback(() => {
+    saveSession({ finished: true }, { answers });
+    navigate('/review');
+  }, [saveSession, navigate, answers]);
+
   if (finished) {
     const partialMode = localStorage.getItem('partialCredit') === 'true';
     let partialSum = 0;
@@ -756,7 +781,7 @@ const allQuestionsRef = useRef([]);
           <div style={{position:'sticky', top:0, background:'var(--card-bg)', padding:'8px', display:'flex', gap:'8px', zIndex:1, borderBottom:'1px solid var(--border-color)', alignItems:'center', flexWrap:'wrap'}}>
             <button onClick={restart}>Restart</button>
             <button onClick={retryIncorrect}>Retry Incorrect</button>
-            <button onClick={() => navigate('/review')}>Open Review</button>
+            <button type="button" onClick={handleOpenReview}>Open Review</button>
             <button className="btn-ghost" onClick={() => { exportResultsCSV(questions, answers); toast('Exported results.csv'); }}>Export CSV</button>
             <button className="btn-ghost" onClick={() => exportStateJSON(questions, answers, mode, points)}>Export State</button>
             <label className="toggle" style={{marginLeft:'auto'}}>
@@ -823,7 +848,7 @@ const allQuestionsRef = useRef([]);
         </div>
         <div style={{display:'flex',gap:'8px',flexWrap:'wrap', marginTop:8}}>
           <button onClick={restart}>Restart</button>
-          <button onClick={() => navigate('/review')}>Open Review</button>
+          <button type="button" onClick={handleOpenReview}>Open Review</button>
           <button onClick={share}>Share</button>
         </div>
       </div>
