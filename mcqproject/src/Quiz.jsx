@@ -590,8 +590,15 @@ const allQuestionsRef = useRef([]);
     setShowImage(false);
   }, [current]);
 
-  const restart = (newQuestions = questions) => {
-    setQuestions(newQuestions);
+  const restart = useCallback((sourceQuestions = null) => {
+    let nextQuestions;
+    if (Array.isArray(sourceQuestions) && sourceQuestions.length) {
+      nextQuestions = sourceQuestions.map((q) => ({ ...q }));
+    } else {
+      nextQuestions = buildQuestions();
+    }
+    allQuestionsRef.current = nextQuestions;
+    setQuestions(nextQuestions);
     setCurrent(0);
     setSelected([]);
     setShowImage(false);
@@ -602,8 +609,20 @@ const allQuestionsRef = useRef([]);
     setTimes([]);
     setStreak(0);
     setAchievement('');
-    localStorage.removeItem('retryIds');
-  };
+    setResSort({ key: 'idx', dir: 'asc' });
+    setResIncorrectOnly(false);
+    setResSearch('');
+    if (mode === 'repeat') {
+      setRepeatAttempted(0);
+      engineRef.current = null;
+    }
+    try {
+      localStorage.removeItem('retryIds');
+      if (!resume) {
+        localStorage.removeItem('mcqSession');
+      }
+    } catch { /* ignore */ }
+  }, [buildQuestions, mode, resume]);
 
   const retryIncorrect = () => {
     const incorrect = questions.filter((q, i) => {
