@@ -4,13 +4,16 @@ import { gradePartial, gradeStrict, gradeLenient, toPoints } from './utils/scori
 import { toast } from './utils/toast.js';
 import { ensureKatex, renderMDKaTeX } from './utils/katex';
 import Hotspot from './components/Hotspot.jsx';
-import defaultQuestions from './questions';
+import { useCertification } from './context/CertificationContext.jsx';
 import { RepeatEngine } from './repeat/engine';
 import { loadKeymap } from './utils/keymap.js';
 import { buildQuestionPool, shuffleArray } from './utils/quizBuilder.js';
 
 function QuizSetup({ mode }) {
   const navigate = useNavigate();
+  const { certification } = useCertification();
+  const certificationLabel = certification?.shortLabel || certification?.label || 'SC-200';
+  const comingSoon = Boolean(certification?.comingSoon);
   const [selectedSet, setSelectedSet] = useState(null);
   const countOptions = [10, 20, 25, 30];
   let sets = [];
@@ -41,14 +44,15 @@ function QuizSetup({ mode }) {
   return (
     <div>
       <div className="card" style={{ padding: '12px' }}>
-        <h2 style={{ marginTop: 0 }}>Choose set</h2>
+        <h2 style={{ marginTop: 0 }}>Choose set ({certificationLabel})</h2>
+        {comingSoon && (<p className="muted" style={{ marginBottom: '0.5rem' }}>Question bank for {certificationLabel} is coming soon.</p>)}
         <div className="chips">
           <button
             type="button"
             className={`chip ${selectedSet === 'all' ? 'accent' : ''}`}
             onClick={() => setSelectedSet(selectedSet === 'all' ? null : 'all')}
           >
-            All • {qCount}
+            All ({qCount})
           </button>
           {sets.map((s) => {
             const count = (s.questionIds || []).length;
@@ -61,10 +65,13 @@ function QuizSetup({ mode }) {
                   setSelectedSet(selectedSet === String(s.id) ? null : String(s.id))
                 }
               >
-                {s.name} • {count}
+                {s.name} ({count})
               </button>
             );
           })}
+          {sets.length === 0 && (
+            <span className="muted" style={{ display: 'block', marginTop: '0.5rem' }}>No preset sets installed yet for {certificationLabel}. Use All to practice the full bank.</span>
+          )}
           {bmCount > 0 && (
             <button
               type="button"
@@ -73,7 +80,7 @@ function QuizSetup({ mode }) {
                 setSelectedSet(selectedSet === 'bookmarks' ? null : 'bookmarks')
               }
             >
-              Bookmarks • {bmCount}
+              Bookmarks ({bmCount})
             </button>
           )}
         </div>
@@ -118,6 +125,7 @@ function QuizSetup({ mode }) {
 
 function QuizMain() {
   const location = useLocation();
+  const { certification } = useCertification();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const mode = params.get('mode') || 'practice'; // practice | test | challenge
@@ -133,7 +141,7 @@ function QuizMain() {
     } catch {
       return null;
     }
-  }, [resume]);
+  }, [resume, certification?.id]);
   const storage = useMemo(() => (typeof window !== 'undefined'
     ? window.localStorage
     : {
@@ -141,15 +149,16 @@ function QuizMain() {
         setItem: () => {},
         removeItem: () => {},
       }), []);
+  const activeQuestions = certification?.questions || [];
 
   const buildQuestions = useCallback(
     () => buildQuestionPool({
       mode,
       searchParams: new URLSearchParams(location.search),
       storage,
-      dataset: defaultQuestions,
+      dataset: activeQuestions,
     }),
-    [mode, location.search, storage],
+    [mode, location.search, storage, activeQuestions],
   );
 
 const allQuestionsRef = useRef([]);
@@ -173,7 +182,7 @@ const allQuestionsRef = useRef([]);
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
-  }, [resume]);
+  }, [resume, certification?.id]);
   const engineRef = useRef(null);
   const byIdRef = useRef(new Map());
   const [repeatAttempted, setRepeatAttempted] = useState(0);
@@ -681,7 +690,7 @@ const allQuestionsRef = useRef([]);
   }, [revealed, feedbackTrigger, mode, current, questions.length, selected.length]);
 
   const share = () => {
-    const text = `I scored ${score}/${questions.length} with a best streak of ${maxStreak} on MCQ Practice!`;
+    const text = `I scored ${score}/${questions.length} in ${certification?.shortLabel || certification?.label || 'SC-200'} with a best streak of ${maxStreak} on MCQ Practice!`;
     if (navigator.share) {
       navigator.share({ text });
     } else {
@@ -876,7 +885,7 @@ const allQuestionsRef = useRef([]);
         )}
       </div>
       {noQuestions && (
-        <div className="muted" style={{marginTop:6}}>No questions available. Check your import or filters.</div>
+        <div className="muted" style={{marginTop:6}}>No questions available for {certification?.shortLabel || certification?.label || 'this certification'}. Check your import or filters.</div>
       )}
       <div className="muted" style={{marginTop:4}}>
         {mode==='repeat' ? (

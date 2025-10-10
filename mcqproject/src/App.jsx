@@ -11,6 +11,8 @@ import Toaster from './components/Toaster.jsx';
 import HelpOverlay from './components/HelpOverlay.jsx';
 import { loadKeymap } from './utils/keymap.js';
 import DebugPanel from './components/DebugPanel.jsx';
+import CertificationSwitcher from './components/CertificationSwitcher.jsx';
+import { useCertification } from './context/CertificationContext.jsx';
 
 function ModeBadge() {
   const location = useLocation();
@@ -19,7 +21,16 @@ function ModeBadge() {
   return <span className="badge mode-badge" aria-live="polite" title="Current mode" style={{ marginLeft: '0.5rem' }}>{mode}</span>;
 }
 
+function CertificationBadge() {
+  const { certification } = useCertification();
+  const label = certification?.shortLabel || certification?.label || 'SC-200';
+  return (
+    <span className="badge mode-badge" aria-live="polite" title="Active certification" style={{ marginLeft: '0.5rem' }}>{label}</span>
+  );
+}
+
 function App() {
+  const { certificationId } = useCertification();
   const [theme, setTheme] = useState(
     () =>
       localStorage.getItem('theme') ||
@@ -56,6 +67,7 @@ function App() {
           <h1>
             MCQ Practice <span style={{fontSize: '0.7em', opacity: 0.7}}>v2025.09</span>
             <ModeBadge />
+            <CertificationBadge />
           </h1>
           <nav className="nav" aria-label="Primary">
             <div className="nav-links">
@@ -70,6 +82,7 @@ function App() {
               <NavLink to="/import">Questions</NavLink>
             </div>
             <div className="mode-and-progress">
+              <CertificationSwitcher />
               <div className="bar top-progress"><div style={{ width: '0%' }}></div></div>
               <button className="theme-toggle icon-btn" onClick={toggleTheme}>
                 {theme === 'light' ? 'Dark' : 'Light'} Mode
@@ -79,12 +92,12 @@ function App() {
         </header>
         <main className="app-main" role="main">
           <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/repeat" element={<RepeatBuilder />} />
-            <Route path="/review" element={<Review />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/import" element={<ImportQuestions />} />
+            <Route path="/" element={<LandingPage key={`landing-${certificationId}`} />} />
+            <Route path="/quiz" element={<Quiz key={`quiz-${certificationId}`} />} />
+            <Route path="/repeat" element={<RepeatBuilder key={`repeat-${certificationId}`} />} />
+            <Route path="/review" element={<Review key={`review-${certificationId}`} />} />
+            <Route path="/settings" element={<Settings key={`settings-${certificationId}`} />} />
+            <Route path="/import" element={<ImportQuestions key={`import-${certificationId}`} />} />
           </Routes>
         </main>
         <Toaster />

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useCertification } from './context/CertificationContext.jsx';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from './utils/toast.js';
 import { ensureKatex, renderMDKaTeX } from './utils/katex';
@@ -19,6 +20,7 @@ function loadSession() {
 export default function Review() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { certification } = useCertification();
   const params = new URLSearchParams(location.search);
   const initialBookmarked = params.get('bookmarks') === '1' || params.get('bookmarks') === 'true';
 
@@ -64,7 +66,7 @@ export default function Review() {
 
   const allQuestions = useMemo(() => {
     if (onlyBookmarked) {
-      let dataset = defaultQuestions;
+      let dataset = certification?.questions || [];
       try {
         const raw = localStorage.getItem('questions');
         if (raw) {
@@ -77,7 +79,7 @@ export default function Review() {
       return dataset.map((q, idx) => ({ ...q, id: q.id ?? idx + 1 }));
     }
     return session.questions || [];
-  }, [onlyBookmarked, session]);
+  }, [onlyBookmarked, session, certification]);
   const results = useMemo(() => session.results || [], [session.results]);
 
   const tags = useMemo(() => {

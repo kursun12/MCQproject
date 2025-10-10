@@ -3,42 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
-import {
-  set1,
-  set2,
-  set3,
-  set4,
-  set5,
-  set6,
-  set7,
-  set8,
-  set9,
-} from './questions.js';
-import { syncLocalStorage } from './utils/storage.js';
-
-// On first load, populate localStorage with the bundled question sets so
-// users have a ready-to-use library without needing to import anything.
-const defaultSets = { set1, set2, set3, set4, set5, set6, set7, set8, set9 };
-const allQuestions = [
-  ...set1,
-  ...set2,
-  ...set3,
-  ...set4,
-  ...set5,
-  ...set6,
-  ...set7,
-  ...set8,
-  ...set9,
-];
-const LS_Q_KEY = 'questions';
-const LS_S_KEY = 'sets';
-
-syncLocalStorage(defaultSets, allQuestions, localStorage, LS_Q_KEY, LS_S_KEY);
+import { CertificationProvider } from './context/CertificationContext.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary fallbackMessage="Something went wrong while rendering MCQ Practice." onReset={() => window.location.reload()}>
-      <App />
+      <CertificationProvider>
+        <App />
+      </CertificationProvider>
     </ErrorBoundary>
   </StrictMode>,
 )

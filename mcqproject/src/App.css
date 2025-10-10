@@ -496,3 +496,40 @@ body.dark .nav {
   }
 }
 
+
+.certification-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.certification-switcher label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.certification-switcher select {
+  padding: 0.25rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+.certification-switcher select:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 1px;
+}
+
+@media (max-width: 600px) {
+  .certification-switcher {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .certification-switcher label {
+    justify-content: center;
+  }
+}

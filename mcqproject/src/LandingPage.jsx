@@ -1,7 +1,11 @@
 import { useState } from 'react';
+import { useCertification } from './context/CertificationContext.jsx';
 import { Link, useNavigate } from 'react-router-dom';
 
 function LandingPage() {
+  const { certification } = useCertification();
+  const certificationLabel = certification?.shortLabel || certification?.label || 'SC-200';
+  const comingSoon = Boolean(certification?.comingSoon);
   const navigate = useNavigate();
   const [selectedSet, setSelectedSet] = useState(null);
   const countOptions = [10, 20, 25, 30];
@@ -19,9 +23,12 @@ function LandingPage() {
         <h2>Welcome to MCQ Practice</h2>
         <p>Drill smarter with modes, streaks, and clean design.</p>
         <div className="badges" style={{justifyContent:'center', marginTop:8}}>
+          <span className="chip">Certification: {certificationLabel}</span>
           <span className="chip">Questions: {qCount}</span>
           <span className="chip">Bookmarks: {bmCount}</span>
         </div>
+        {comingSoon && (<p className="muted" style={{ marginTop: 8 }}>Question bank for {certificationLabel} is coming soon.</p>)}
+        {!comingSoon && qCount === 0 && (<p className="muted" style={{ marginTop: 8 }}>No questions stored for {certificationLabel} yet. Import your own questions or check back soon.</p>)}
         {session && session.questions?.length>0 && (
           <div style={{marginTop:12}}>
             <Link to={`/quiz?mode=${encodeURIComponent(session.mode||'practice')}&resume=1`}>
@@ -77,7 +84,7 @@ function LandingPage() {
                   className={`chip ${selectedSet===s.id?'accent':''}`}
                   onClick={()=>setSelectedSet(selectedSet===s.id?null:s.id)}
                 >
-                  {s.name} • {count}
+                  {s.name} ({count})
                 </button>
               );
             })}
@@ -88,7 +95,7 @@ function LandingPage() {
                 className={`chip ${selectedSet==='bookmarks'?'accent':''}`}
                 onClick={()=>setSelectedSet(selectedSet==='bookmarks'?null:'bookmarks')}
               >
-                Bookmarks • {bmCount}
+                Bookmarks ({bmCount})
               </button>
             )}
           </div>

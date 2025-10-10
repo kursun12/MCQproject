@@ -1,72 +1,128 @@
-import rawSet1 from './assets/_MConverter.eu_1-30.json' assert { type: 'json' };
-import rawSet2 from './assets/_MConverter.eu_31-60.json' assert { type: 'json' };
-import rawSet3 from './assets/_MConverter.eu_61-90.json' assert { type: 'json' };
-import rawSet4 from './assets/_MConverter.eu_91-120.json' assert { type: 'json' };
-import rawSet5 from './assets/_MConverter.eu_youtube50.json' assert { type: 'json' };
-import rawSet6 from './assets/_MConverter.eu_121-150.json' assert { type: 'json' };
-import rawSet7 from './assets/_MConverter.eu_151-180.json' assert { type: 'json' };
-import rawSet8 from './assets/_MConverter.eu_181-210.json' assert { type: 'json' };
-import rawSet9 from './assets/_MConverter.eu_211-254.json' assert { type: 'json' };
+import sc200Set1 from './assets/SC-200/_MConverter.eu_1-30.json' assert { type: 'json' };
+import sc200Set2 from './assets/SC-200/_MConverter.eu_31-60.json' assert { type: 'json' };
+import sc200Set3 from './assets/SC-200/_MConverter.eu_61-90.json' assert { type: 'json' };
+import sc200Set4 from './assets/SC-200/_MConverter.eu_91-120.json' assert { type: 'json' };
+import sc200Set5 from './assets/SC-200/_MConverter.eu_youtube50.json' assert { type: 'json' };
+import sc200Set6 from './assets/SC-200/_MConverter.eu_121-150.json' assert { type: 'json' };
+import sc200Set7 from './assets/SC-200/_MConverter.eu_151-180.json' assert { type: 'json' };
+import sc200Set8 from './assets/SC-200/_MConverter.eu_181-210.json' assert { type: 'json' };
+import sc200Set9 from './assets/SC-200/_MConverter.eu_211-254.json' assert { type: 'json' };
 import { generateId } from './utils/id.js';
 
-// Prepare bundled sets while ensuring each question is unique across
-// the entire collection. The original JSON files contain an `id`
-// field, but those identifiers collide between sets which causes the
-// app to over-count questions. We ignore those ids and generate our own
-// unique ids at load time, deduping by question content.
-
-const rawBundledSets = [
-  { name: 'Set 1', data: rawSet1 },
-  { name: 'Set 2', data: rawSet2 },
-  { name: 'Set 3', data: rawSet3 },
-  { name: 'Set 4', data: rawSet4 },
-  { name: 'YouTube 50', data: rawSet5 },
-  { name: 'Set 6', data: rawSet6 },
-  { name: 'Set 7', data: rawSet7 },
-  { name: 'Set 8', data: rawSet8 },
-  { name: 'Set 9', data: rawSet9 },
+const sc200RawSets = [
+  { id: 'sc200-set-1', name: 'SC-200 Set 1', shortName: 'Set 1', data: sc200Set1 },
+  { id: 'sc200-set-2', name: 'SC-200 Set 2', shortName: 'Set 2', data: sc200Set2 },
+  { id: 'sc200-set-3', name: 'SC-200 Set 3', shortName: 'Set 3', data: sc200Set3 },
+  { id: 'sc200-set-4', name: 'SC-200 Set 4', shortName: 'Set 4', data: sc200Set4 },
+  { id: 'sc200-set-5', name: 'SC-200 YouTube 50', shortName: 'YouTube 50', data: sc200Set5 },
+  { id: 'sc200-set-6', name: 'SC-200 Set 6', shortName: 'Set 6', data: sc200Set6 },
+  { id: 'sc200-set-7', name: 'SC-200 Set 7', shortName: 'Set 7', data: sc200Set7 },
+  { id: 'sc200-set-8', name: 'SC-200 Set 8', shortName: 'Set 8', data: sc200Set8 },
+  { id: 'sc200-set-9', name: 'SC-200 Set 9', shortName: 'Set 9', data: sc200Set9 },
 ];
 
-// Map used to keep track of unique questions keyed by their content
-// (excluding any ids or set assignments).
-const uniqueQuestions = new Map();
+function buildCertification({ id, label, shortLabel, slug, description = '', comingSoon = false, rawSets = [] }) {
+  const uniqueQuestions = new Map();
 
-const bundledSets = rawBundledSets.map(({ name, data }) => {
-  const processed = data.map((q) => {
-    // Strip the incoming id and derive a stable key based on question content.
-    // We also drop any set information when computing the key so that the same
-    // question appearing in multiple sets maps to a single entry.
-    const { id, set, ...rest } = q;
-    const key = JSON.stringify(rest);
-    let existing = uniqueQuestions.get(key);
-    if (!existing) {
-      // First time we've seen this question: assign a new unique id and retain
-      // the set name as the source for display purposes.
-      existing = { ...rest, id: generateId(), set: name };
-      uniqueQuestions.set(key, existing);
-    }
-    return existing;
+  const processedSets = rawSets.map(({ id: setId, name, shortName, data }) => {
+    const processedQuestions = data.map((question) => {
+      const { id: legacyId, set: legacySet, ...rest } = question;
+      const key = JSON.stringify(rest);
+      let existing = uniqueQuestions.get(key);
+      if (!existing) {
+        existing = {
+          ...rest,
+          id: generateId(),
+          set: name,
+          certification: id,
+        };
+        uniqueQuestions.set(key, existing);
+      }
+      return existing;
+    });
+
+    return {
+      id: setId,
+      name,
+      shortName: shortName || name,
+      certification: id,
+      questions: processedQuestions,
+    };
   });
-  return { name, data: processed };
+
+  return {
+    id,
+    label,
+    shortLabel: shortLabel || label,
+    slug,
+    description,
+    comingSoon,
+    sets: processedSets,
+    questions: Array.from(uniqueQuestions.values()),
+  };
+}
+
+const sc200Certification = buildCertification({
+  id: 'SC-200',
+  label: 'SC-200 Microsoft Security Operations Analyst',
+  shortLabel: 'SC-200',
+  slug: 'sc-200',
+  description: 'Security Operations Analyst question bank.',
+  rawSets: sc200RawSets,
 });
 
-// Flatten the unique questions for backward compatibility with areas of the
-// app that expect a single array of default questions.
-const defaultQuestions = Array.from(uniqueQuestions.values());
 
-// Export each processed set individually for tests and for the initial
-// localStorage population routine.
+const kcdaCertification = {
+  id: 'KCDA',
+  label: 'KCDA Knowledge Discovery & Classification Analyst',
+  shortLabel: 'KCDA',
+  slug: 'kcda',
+  description: 'KCDA question bank is coming soon.',
+  comingSoon: true,
+  sets: [],
+  questions: [],
+};
+
+const certificationOrder = ['SC-200', 'KCDA'];
+const certificationsArray = [sc200Certification, kcdaCertification];
+const certifications = Object.fromEntries(certificationsArray.map((cert) => [cert.id, cert]));
+const DEFAULT_CERTIFICATION_ID = sc200Certification.id;
+
+const defaultQuestions = certifications[DEFAULT_CERTIFICATION_ID].questions;
+
+const sc200SetQuestions = sc200Certification.sets.map((set) => set.questions);
 const [
-  { data: set1 },
-  { data: set2 },
-  { data: set3 },
-  { data: set4 },
-  { data: set5 },
-  { data: set6 },
-  { data: set7 },
-  { data: set8 },
-  { data: set9 },
-] = bundledSets;
+  set1 = [],
+  set2 = [],
+  set3 = [],
+  set4 = [],
+  set5 = [],
+  set6 = [],
+  set7 = [],
+  set8 = [],
+  set9 = [],
+] = sc200SetQuestions;
+
+const bundledSets = sc200Certification.sets.map(({ id, name, certification, questions }) => ({
+  id,
+  name,
+  certification,
+  data: questions,
+}));
+
+function getCertification(id) {
+  return certifications[id] || certifications[DEFAULT_CERTIFICATION_ID];
+}
+
+function getCertificationQuestions(id) {
+  return getCertification(id).questions;
+}
+
+function getCertificationSets(id) {
+  return getCertification(id).sets;
+}
+
+const certificationCatalog = certificationOrder.map((id) => certifications[id]);
 
 export default defaultQuestions;
 export {
@@ -80,5 +136,12 @@ export {
   set8,
   set9,
   bundledSets,
+  certifications,
+  certificationCatalog,
+  certificationOrder,
+  DEFAULT_CERTIFICATION_ID,
+  getCertification,
+  getCertificationQuestions,
+  getCertificationSets,
 };
 
