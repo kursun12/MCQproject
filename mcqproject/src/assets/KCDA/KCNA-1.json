@@ -1,0 +1,362 @@
+[
+  {
+    "id": 1,
+    "question": "What native runtime is Open Container Initiative (OCI) compliant?",
+    "options": [
+      "runC",
+      "runV",
+      "kata-containers",
+      "gvisor"
+    ],
+    "answer": [0],
+    "explanation": "The correct answer is **runC**. It is the reference implementation of the Open Container Initiative (OCI) runtime specification and is responsible for spawning and running containers as defined by the OCI standard. runV, kata-containers, and gVisor are alternative or extended runtimes but not the native OCI reference runtime. (Reference: Open Container Initiative – https://opencontainers.org/ and runC GitHub repository – https://github.com/opencontainers/runc)"
+  },
+  {
+    "id": 2,
+    "question": "What function does kube-proxy provide to a cluster?",
+    "options": [
+      "Implementing the Ingress resource type for application traffic.",
+      "Forwarding data to the correct endpoints for Services.",
+      "Managing data egress from the cluster nodes to the network.",
+      "Managing access to the Kubernetes API."
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **Forwarding data to the correct endpoints for Services**. kube-proxy maintains network rules on nodes, handling routing and load balancing for Services. It ensures that traffic destined for a Service is correctly forwarded to one of its backend Pods. It does not manage Ingress resources, external egress, or API access. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/services-networking/service/#kube-proxy)"
+  },
+  {
+    "id": 3,
+    "question": "Which of these events will cause the kube-scheduler to assign a Pod to a node?",
+    "options": [
+      "When the Pod crashes because of an error.",
+      "When a new node is added to the Kubernetes cluster.",
+      "When the CPU load on the node becomes too high.",
+      "When a new Pod is created and has no assigned node."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **When a new Pod is created and has no assigned node**. The kube-scheduler continuously watches for unscheduled Pods and assigns them to suitable nodes based on resource requirements and scheduling policies. It does not act on Pod crashes, node additions, or CPU metrics directly. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)"
+  },
+  {
+    "id": 4,
+    "question": "Which resource do you use to attach a volume in a Pod?",
+    "options": [
+      "StorageVolume",
+      "PersistentVolume",
+      "StorageClass",
+      "PersistentVolumeClaim"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **PersistentVolumeClaim (PVC)**. A Pod requests storage by referencing a PersistentVolumeClaim, which is bound to a PersistentVolume. The PVC acts as the bridge between Pods and storage resources. PersistentVolume defines the actual storage, while StorageClass defines the type or provisioner used. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/storage/persistent-volumes/)"
+  },
+  {
+    "id": 5,
+    "question": "Which key-value store is used to persist Kubernetes cluster data?",
+    "options": [
+      "etcd",
+      "ZooKeeper",
+      "ControlPlaneStore",
+      "Redis"
+    ],
+    "answer": [0],
+    "explanation": "The correct answer is **etcd**. Kubernetes uses etcd, a distributed and consistent key-value store, as its backing store for all cluster data. The API server stores and retrieves the entire cluster state in etcd, making it a core component of the control plane. (Reference: Kubernetes Components Overview – https://kubernetes.io/docs/concepts/overview/components/#etcd)"
+  },
+  {
+    "id": 6,
+    "question": "What Linux namespace is shared by default by containers running within a Kubernetes Pod?",
+    "options": [
+      "Host Network",
+      "Network",
+      "Process ID",
+      "Process Name"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **Network**. Containers within the same Pod share the same network namespace by default, allowing them to communicate with each other via localhost. Each container still has its own filesystem and process namespace, but the network interface is shared. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/workloads/pods/#pod-networking)"
+  },
+  {
+    "id": 7,
+    "question": "What is a Dockerfile?",
+    "options": [
+      "A bash script that is used to automatically build a docker image.",
+      "A config file that defines which image registry a container should be pushed to.",
+      "A text file that contains all the commands a user could call on the command line to assemble an image.",
+      "An image layer created by a running container stored on the host."
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **A text file that contains all the commands a user could call on the command line to assemble an image**. A Dockerfile defines each step for building a container image, including base image, environment variables, copy instructions, and commands to run. (Reference: Docker documentation – https://docs.docker.com/engine/reference/builder/)"
+  },
+  {
+    "id": 8,
+    "question": "What does the 'nodeSelector' within a PodSpec use to place Pods on the target nodes?",
+    "options": [
+      "Annotations",
+      "IP Addresses",
+      "Hostnames",
+      "Labels"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **Labels**. The nodeSelector field in a Pod specification uses key-value label matching to determine which nodes a Pod can be scheduled on. A Pod will only run on nodes whose labels match the selector criteria. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)"
+  },
+  {
+    "id": 9,
+    "question": "What do Deployments and StatefulSets have in common?",
+    "options": [
+      "They manage Pods that are based on an identical container spec.",
+      "They support the OnDelete update strategy.",
+      "They support an ordered, graceful deployment and scaling.",
+      "They maintain a sticky identity for each of their Pods."
+    ],
+    "answer": [0],
+    "explanation": "The correct answer is **They manage Pods that are based on an identical container spec**. Both Deployments and StatefulSets manage sets of Pods defined by a shared Pod template. StatefulSets preserve identity and ordering, while Deployments provide stateless scaling. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/workloads/controllers/)"
+  },
+  {
+    "id": 10,
+    "question": "What is the practice of bringing financial accountability to the variable spend model of cloud resources?",
+    "options": [
+      "FaaS",
+      "DevOps",
+      "CloudCost",
+      "FinOps"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **FinOps**. FinOps (Financial Operations) is a cloud financial management practice that combines finance, engineering, and business teams to optimize cloud costs and drive accountability for cloud spending. (Reference: FinOps Foundation – https://www.finops.org/introduction/what-is-finops/)"
+  },
+  {
+    "id": 11,
+    "question": "What is a best practice to minimize the container image size?",
+    "options": [
+      "Use a Dockerfile.",
+      "Use multistage builds.",
+      "Build images with different tags.",
+      "Add a build.sh script."
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **Use multistage builds**. Multistage builds allow you to use multiple FROM statements in a Dockerfile to copy only the necessary artifacts into the final image, removing build-time dependencies and drastically reducing image size. (Reference: Docker Docs – https://docs.docker.com/develop/develop-images/multistage-build/)"
+  },
+  {
+    "id": 12,
+    "question": "How long should a stable API element in Kubernetes be supported (at minimum) after deprecation?",
+    "options": [
+      "9 months",
+      "24 months",
+      "12 months",
+      "6 months"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **24 months**. According to Kubernetes API deprecation policy, once a stable (GA) API is deprecated, it must be supported for at least 12 months and 3 releases — whichever is longer. Since Kubernetes releases quarterly, this equates to roughly **24 months** of support. (Reference: Kubernetes Deprecation Policy – https://kubernetes.io/docs/reference/using-api/deprecation-policy/)"
+  },
+  {
+    "id": 13,
+    "question": "Which tools enable Kubernetes HorizontalPodAutoscalers to use custom, application-generated metrics to trigger scaling events?",
+    "options": [
+      "Prometheus and the prometheus-adapter.",
+      "Graylog and graylog-autoscaler metrics.",
+      "Graylog and the kubernetes-adapter.",
+      "Grafana and Prometheus."
+    ],
+    "answer": [0],
+    "explanation": "The correct answer is **Prometheus and the prometheus-adapter**. The Prometheus Adapter exposes custom and external metrics in the Kubernetes Metrics API format, allowing the HorizontalPodAutoscaler (HPA) to scale workloads based on Prometheus data. (Reference: Prometheus Adapter for Kubernetes Metrics APIs – https://github.com/kubernetes-sigs/prometheus-adapter)"
+  },
+  {
+    "id": 14,
+    "question": "Which of the following is a valid PromQL query?",
+    "options": [
+      "SELECT * from http_requests_total WHERE job=apiserver",
+      "http_requests_total WHERE (job=\"apiserver\")",
+      "SELECT * from http_requests_total",
+      "http_requests_total{job=\"apiserver\"}"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **http_requests_total{job=\"apiserver\"}**. PromQL uses label matchers inside curly braces to filter metrics. SQL-like syntax such as SELECT or WHERE is invalid in PromQL. (Reference: Prometheus Query Language (PromQL) – https://prometheus.io/docs/prometheus/latest/querying/basics/)"
+  },
+  {
+    "id": 15,
+    "question": "Which of the following best describes horizontally scaling an application deployment?",
+    "options": [
+      "The act of adding/removing node instances to the cluster to meet demand.",
+      "The act of adding/removing applications to meet demand.",
+      "The act of adding/removing application instances of the same application to meet demand.",
+      "The act of adding/removing resources to application instances to meet demand."
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **The act of adding/removing application instances of the same application to meet demand**. Horizontal scaling increases or decreases the number of Pod replicas to handle variable workloads, while vertical scaling adjusts resources per instance. (Reference: Kubernetes documentation – https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)"
+  },
+  {
+    "id": 16,
+    "question": "How many different Kubernetes service types can you define?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **4**. Kubernetes supports four main Service types: ClusterIP (default, internal-only), NodePort (exposes service on each node’s IP at a static port), LoadBalancer (provisions an external load balancer), and ExternalName (maps to external DNS names). (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types)"
+  },
+  {
+    "id": 17,
+    "question": "What is the difference between a Deployment and a ReplicaSet?",
+    "options": [
+      "With a Deployment, you can't control the number of pod replicas.",
+      "A ReplicaSet does not guarantee a stable set of replica pods running.",
+      "A Deployment is basically the same as a ReplicaSet with annotations.",
+      "A Deployment is a higher-level concept that manages ReplicaSets."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **A Deployment is a higher-level concept that manages ReplicaSets**. Deployments manage ReplicaSets and provide declarative updates for Pods and ReplicaSets, ensuring rollback and controlled rollout capabilities. A ReplicaSet only ensures that a specified number of Pods are running. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)"
+  },
+  {
+    "id": 18,
+    "question": "The Container Runtime Interface (CRI) defines the protocol for the communication between:",
+    "options": [
+      "The kubelet and the container runtime.",
+      "The container runtime and etcd.",
+      "The kube-apiserver and the kubelet.",
+      "The container runtime and the image registry."
+    ],
+    "answer": [0],
+    "explanation": "The correct answer is **The kubelet and the container runtime**. The CRI standardizes the interface used by the kubelet to communicate with different container runtimes such as containerd or CRI-O, ensuring pluggability and runtime independence. (Reference: Kubernetes CRI documentation – https://kubernetes.io/docs/concepts/architecture/cri/)"
+  },
+  {
+    "id": 19,
+    "question": "Which authorization-mode allows granular control over the operations that different entities can perform on different objects in a Kubernetes cluster?",
+    "options": [
+      "Webhook Mode Authorization Control",
+      "Role Based Access Control",
+      "Node Authorization Access Control",
+      "Attribute Based Access Control"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **Role Based Access Control (RBAC)**. RBAC allows fine-grained permissions based on roles and bindings, defining which users or service accounts can perform specific actions (verbs) on particular Kubernetes resources. (Reference: Kubernetes RBAC documentation – https://kubernetes.io/docs/reference/access-authn-authz/rbac/)"
+  },
+  {
+    "id": 20,
+    "question": "Which of the following is a correct definition of a Helm chart?",
+    "options": [
+      "A Helm chart is a collection of YAML files bundled in a .tar.gz file and can be applied without decompressing it.",
+      "A Helm chart is a collection of JSON files and contains all the resource definitions to run an application on Kubernetes.",
+      "A Helm chart is a collection of YAML files that can be applied on Kubernetes by using the kubectl tool.",
+      "A Helm chart is similar to a package and contains all the resource definitions to run an application on Kubernetes."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **A Helm chart is similar to a package and contains all the resource definitions to run an application on Kubernetes**. Helm charts package multiple YAML manifests (templates, values, dependencies) into a single deployable unit that simplifies application installation and versioning. (Reference: Helm documentation – https://helm.sh/docs/topics/charts/)"
+  },
+  {
+    "id": 21,
+    "question": "Which of the following sentences is true about namespaces in Kubernetes?",
+    "options": [
+      "You can create a namespace within another namespace in Kubernetes.",
+      "You can create two resources of the same kind and name in a namespace.",
+      "The default namespace exists when a new cluster is created.",
+      "All the objects in the cluster are namespaced by default."
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **The default namespace exists when a new cluster is created**. Kubernetes automatically creates several namespaces at cluster initialization — 'default', 'kube-system', 'kube-public', and 'kube-node-lease'. Namespaces help divide cluster resources between multiple users. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/)"
+  },
+  {
+    "id": 22,
+    "question": "How does Horizontal Pod autoscaling work in Kubernetes?",
+    "options": [
+      "The Horizontal Pod Autoscaler controller adds more CPU or memory to the pods when the load is above the configured threshold, and reduces CPU or memory when the load is below.",
+      "The Horizontal Pod Autoscaler controller adds more pods when the load is above the configured threshold, but does not reduce the number of pods when the load is below.",
+      "The Horizontal Pod Autoscaler controller adds more pods to the specified DaemonSet when the load is above the configured threshold, and reduces the number of pods when the load is below.",
+      "The Horizontal Pod Autoscaler controller adds more pods when the load is above the configured threshold, and reduces the number of pods when the load is below."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **The Horizontal Pod Autoscaler controller adds more pods when the load is above the configured threshold, and reduces the number of pods when the load is below**. HPA scales the number of pod replicas in a Deployment, ReplicaSet, or StatefulSet based on observed metrics like CPU or custom metrics. (Reference: Kubernetes HPA documentation – https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)"
+  },
+  {
+    "id": 23,
+    "question": "What is the name of the lightweight Kubernetes distribution built for IoT and edge computing?",
+    "options": [
+      "OpenShift",
+      "k3s",
+      "RKE",
+      "k1s"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **k3s**. k3s is a lightweight, certified Kubernetes distribution designed by Rancher Labs for IoT and edge environments. It is optimized for low-resource devices and minimal operational overhead. (Reference: k3s official documentation – https://k3s.io/)"
+  },
+  {
+    "id": 24,
+    "question": "What is a Pod?",
+    "options": [
+      "A networked application within Kubernetes.",
+      "A storage volume within Kubernetes.",
+      "A single container within Kubernetes.",
+      "A group of one or more containers within Kubernetes."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **A group of one or more containers within Kubernetes**. A Pod is the smallest deployable unit in Kubernetes and represents a single instance of a running process in the cluster. Containers in a Pod share networking and storage resources. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/workloads/pods/)"
+  },
+  {
+    "id": 25,
+    "question": "What element allows Kubernetes to run Pods across the fleet of nodes?",
+    "options": [
+      "The node server.",
+      "The etcd static pods.",
+      "The API server.",
+      "The kubelet."
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **The kubelet**. The kubelet runs on each node in the cluster and ensures that containers described in PodSpecs are running and healthy. It communicates with the Kubernetes API server to receive Pod instructions and report node status. (Reference: Kubernetes documentation – https://kubernetes.io/docs/concepts/overview/components/#kubelet)"
+  },
+  {
+    "id": 26,
+    "question": "What is the Kubernetes object used for running a recurring workload?",
+    "options": [
+      "Job",
+      "Batch",
+      "DaemonSet",
+      "CronJob"
+    ],
+    "answer": [3],
+    "explanation": "The correct answer is **CronJob**. A CronJob runs Jobs on a time-based schedule (e.g., cron syntax) for recurring workloads. (Reference: Kubernetes Docs – https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/)"
+  },
+  {
+    "id": 27,
+    "question": "In the DevOps framework and culture, who builds, automates, and offers continuous delivery tools for developer teams?",
+    "options": [
+      "Application Users",
+      "Application Developers",
+      "Platform Engineers",
+      "Cluster Operators"
+    ],
+    "answer": [2],
+    "explanation": "The correct answer is **Platform Engineers**. Platform engineering teams build and operate internal platforms, automation, and delivery tooling that enable developers to ship software quickly and safely. (Reference: CNCF – What is Platform Engineering? https://www.cncf.io/blog/2023/01/11/what-is-platform-engineering/)"
+  },
+  {
+    "id": 28,
+    "question": "Which kubectl command is useful for collecting information about any type of resource that is active in a Kubernetes cluster?",
+    "options": [
+      "describe",
+      "list",
+      "expose",
+      "explain"
+    ],
+    "answer": [0],
+    "explanation": "The correct answer is **kubectl describe**. It retrieves detailed, live information about specific, active resources (Pods, Deployments, Services, etc.) in the cluster, including events and status. (Reference: kubectl Command Reference – https://kubernetes.io/docs/reference/kubectl/cheatsheet/#interacting-with-running-pods)"
+  },
+  {
+    "id": 29,
+    "question": "The cloud native architecture centered around microservices provides a strong system that ensures __________.",
+    "options": [
+      "fallback",
+      "resiliency",
+      "failover",
+      "high reachability"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **resiliency**. Cloud-native, microservices-based systems emphasize resilience through loose coupling, automation, and scalability. (Reference: CNCF Cloud Native Definition – https://github.com/cncf/toc/blob/main/DEFINITION.md)"
+  },
+  {
+    "id": 30,
+    "question": "Which of the following is the correct command to run a nginx deployment with 2 replicas?",
+    "options": [
+      "kubectl run deploy nginx --image=nginx --replicas=2",
+      "kubectl create deploy nginx --image=nginx --replicas=2",
+      "kubectl create nginx deployment --image=nginx --replicas=2",
+      "kubectl create deploy nginx --image=nginx --count=2"
+    ],
+    "answer": [1],
+    "explanation": "The correct answer is **kubectl create deploy nginx --image=nginx --replicas=2**. The `kubectl create deployment` command (short form `deploy`) creates a Deployment; `--replicas` sets the replica count. (Reference: kubectl create deployment – https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#create)"
+  }
+]
