@@ -4,7 +4,10 @@ import { loadRepeatSettings, saveRepeatSettings } from './repeat/settings';
 import { loadKeymap, saveKeymap, defaultKeymap } from './utils/keymap.js';
 
 function Settings() {
-  const [numQuestions, setNumQuestions] = useState(3);
+  const [numQuestions, setNumQuestions] = useState(() => {
+    const stored = Number.parseInt(localStorage.getItem('defaultQuestionCount') || '3', 10);
+    return Number.isFinite(stored) && stored > 0 ? stored : 3;
+  });
   const [shuffleQs, setShuffleQs] = useState(() => localStorage.getItem('shuffleQs') === 'true');
   const [shuffleOpts, setShuffleOpts] = useState(() => localStorage.getItem('shuffleOpts') === 'true');
   const [instantReveal, setInstantReveal] = useState(() => localStorage.getItem('instantReveal') === 'true');
@@ -16,13 +19,14 @@ function Settings() {
   const [keymap, setKeymap] = useState(() => loadKeymap());
 
   useEffect(() => {
+    localStorage.setItem('defaultQuestionCount', String(numQuestions));
+  }, [numQuestions]);
+  useEffect(() => {
     localStorage.setItem('shuffleQs', shuffleQs);
   }, [shuffleQs]);
-
   useEffect(() => {
     localStorage.setItem('shuffleOpts', shuffleOpts);
   }, [shuffleOpts]);
-
   useEffect(() => {
     localStorage.setItem('instantReveal', instantReveal);
   }, [instantReveal]);
@@ -41,7 +45,7 @@ function Settings() {
   useEffect(() => { saveRepeatSettings(repeatCfg); }, [repeatCfg]);
   useEffect(() => { saveKeymap(keymap); }, [keymap]);
 
-  const count = (() => {
+  const loadedQuestionCount = (() => {
     try {
       return JSON.parse(localStorage.getItem('questions') || '[]').length;
     } catch {
@@ -57,89 +61,190 @@ function Settings() {
   };
 
   return (
-    <div className="card settings">
-      <h2 style={{marginTop:0}}>Settings</h2>
-      <p className="muted" style={{marginTop:-6}}>Tune your session experience. Changes save automatically.</p>
-      <div className="grid-2" style={{marginTop:12}}>
-        <div className="card" style={{padding:'12px'}}>
-          <h3 style={{marginTop:0}}>Session</h3>
-          <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-            <label>Number of questions
+    <div className="settings-page">
+      <div className="settings-header">
+        <h2>Settings</h2>
+        <p className="muted">Tune your session experience. Changes save automatically.</p>
+      </div>
+      <div className="settings-grid">
+        <section className="settings-panel card">
+          <h3>Session</h3>
+          <div className="settings-field">
+            <label htmlFor="settings-question-count">Number of questions</label>
+            <input
+              id="settings-question-count"
+              type="number"
+              min="1"
+              value={numQuestions}
+              onChange={(e) => setNumQuestions(Number(e.target.value) || 1)}
+            />
+          </div>
+          <div className="settings-stack">
+            <label className="toggle">
               <input
-                type="number"
-                min="1"
-                value={numQuestions}
-                onChange={(e) => setNumQuestions(e.target.value)}
+                type="checkbox"
+                checked={shuffleQs}
+                onChange={(e) => { setShuffleQs(e.target.checked); toast('Shuffle questions updated'); }}
               />
+              Shuffle questions
             </label>
-            <label className="toggle"><input type="checkbox" checked={shuffleQs} onChange={(e)=>{ setShuffleQs(e.target.checked); toast('Shuffle questions updated'); }} /> Shuffle questions</label>
             <label className="toggle">
               <input
                 type="checkbox"
                 checked={shuffleOpts}
-                onChange={(e) => {
-                  setShuffleOpts(e.target.checked);
-                  toast('Shuffle options updated');
-                }}
-              />{' '}
+                onChange={(e) => { setShuffleOpts(e.target.checked); toast('Shuffle options updated'); }}
+              />
               Shuffle options
             </label>
-            <label>Feedback timing
-              <select value={feedbackTrigger} onChange={(e)=>{ setFeedbackTrigger(e.target.value); toast('Feedback timing updated'); }}>
-                <option value="onSelect">On select (single immediately; multi when all chosen)</option>
-                <option value="onNext">On Next (press to reveal, then continue)</option>
-              </select>
+          </div>
+          <div className="settings-field">
+            <label htmlFor="settings-feedback">Feedback timing</label>
+            <select
+              id="settings-feedback"
+              value={feedbackTrigger}
+              onChange={(e) => { setFeedbackTrigger(e.target.value); toast('Feedback timing updated'); }}
+            >
+              <option value="onSelect">On select (single immediately; multi when all chosen)</option>
+              <option value="onNext">On Next (press to reveal, then continue)</option>
+            </select>
+          </div>
+          <div className="settings-stack">
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={instantReveal}
+                onChange={(e) => { setInstantReveal(e.target.checked); toast('Explanation visibility updated'); }}
+              />
+              Show explanation after reveal
             </label>
-            <label className="toggle"><input type="checkbox" checked={instantReveal} onChange={(e)=>{ setInstantReveal(e.target.checked); toast('Explanation visibility updated'); }} /> Show explanation after reveal</label>
-            <label className="toggle"><input type="checkbox" checked={partialCredit} onChange={(e)=>{ setPartialCredit(e.target.checked); toast('Partial credit updated'); }} /> Partial credit (multi)</label>
-            <div className="card" style={{padding:'10px'}}>
-              <strong>Test mode options</strong>
-              <div style={{height:6}} />
-              <label className="toggle"><input type="checkbox" checked={testQuick} onChange={(e)=>{ setTestQuick(e.target.checked); toast('Test quick mode updated'); }} /> Quick mode (single‑tap answers advance)</label>
-              <label className="toggle"><input type="checkbox" checked={testNoChange} onChange={(e)=>{ setTestNoChange(e.target.checked); toast('Answer change lock updated'); }} /> Lock answers (can’t change once selected)</label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={partialCredit}
+                onChange={(e) => { setPartialCredit(e.target.checked); toast('Partial credit updated'); }}
+              />
+              Partial credit (multi)
+            </label>
+          </div>
+          <div className="settings-box">
+            <strong>Test mode options</strong>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={testQuick}
+                onChange={(e) => { setTestQuick(e.target.checked); toast('Test quick mode updated'); }}
+              />
+              Quick mode (single-tap answers advance)
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={testNoChange}
+                onChange={(e) => { setTestNoChange(e.target.checked); toast('Answer change lock updated'); }}
+              />
+              Lock answers (can&apos;t change once selected)
+            </label>
+          </div>
+        </section>
+
+        <section className="settings-panel card">
+          <h3>Data</h3>
+          <p className="muted">Loaded questions: {loadedQuestionCount}</p>
+          <button className="btn-danger" onClick={clearQuestions}>
+            Clear All
+          </button>
+        </section>
+
+        <section className="settings-panel card">
+          <h3>Repeat Adaptive</h3>
+          <div className="settings-grid-small">
+            <div className="settings-field">
+              <label htmlFor="settings-mastery">Mastery type</label>
+              <select
+                id="settings-mastery"
+                value={repeatCfg.masteryType}
+                onChange={(e) => setRepeatCfg({ ...repeatCfg, masteryType: e.target.value })}
+              >
+                <option value="consecutive">Consecutive</option>
+                <option value="streak">Streak</option>
+              </select>
+            </div>
+            <div className="settings-field">
+              <label htmlFor="settings-target">Target</label>
+              <input
+                id="settings-target"
+                type="number"
+                min="1"
+                value={repeatCfg.target}
+                onChange={(e) => setRepeatCfg({ ...repeatCfg, target: Number(e.target.value) || 1 })}
+              />
+            </div>
+            <div className="settings-field">
+              <label htmlFor="settings-cooldown">Cooldown (s)</label>
+              <input
+                id="settings-cooldown"
+                type="number"
+                min="0"
+                value={repeatCfg.cooldownSeconds}
+                onChange={(e) => setRepeatCfg({ ...repeatCfg, cooldownSeconds: Number(e.target.value) || 0 })}
+              />
+            </div>
+            <div className="settings-field">
+              <label htmlFor="settings-leech">Leech threshold</label>
+              <input
+                id="settings-leech"
+                type="number"
+                min="0"
+                value={repeatCfg.leechThreshold}
+                onChange={(e) => setRepeatCfg({ ...repeatCfg, leechThreshold: Number(e.target.value) || 0 })}
+              />
             </div>
           </div>
-        </div>
-        <div className="card" style={{padding:'12px'}}>
-          <h3 style={{marginTop:0}}>Data</h3>
-          <p className="muted">Loaded questions: <strong>{count}</strong></p>
-          <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-            {count > 0 && <button className="btn-danger" onClick={clearQuestions}>Clear All</button>}
+          <div className="settings-stack">
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={repeatCfg.strictMultiAnswer}
+                onChange={(e) => setRepeatCfg({ ...repeatCfg, strictMultiAnswer: e.target.checked })}
+              />
+              Strict multi-answer
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={repeatCfg.partialCreditMode}
+                onChange={(e) => setRepeatCfg({ ...repeatCfg, partialCreditMode: e.target.checked })}
+              />
+              Partial credit
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={repeatCfg.autoRevealExplanationOnError}
+                onChange={(e) => setRepeatCfg({ ...repeatCfg, autoRevealExplanationOnError: e.target.checked })}
+              />
+              Auto-show explanation on wrong
+            </label>
+            <label className="toggle">
+              <input
+                type="checkbox"
+                checked={repeatCfg.autoSkipOnWrong}
+                onChange={(e) => setRepeatCfg({ ...repeatCfg, autoSkipOnWrong: e.target.checked })}
+              />
+              Auto-skip on wrong
+            </label>
           </div>
-        </div>
-        <div className="card" style={{padding:'12px'}}>
-          <h3 style={{marginTop:0}}>Repeat Adaptive</h3>
-          <div className="grid-2">
-            <label>Mastery type
-              <select value={repeatCfg.masteryType} onChange={(e)=>{ setRepeatCfg({...repeatCfg, masteryType:e.target.value}); toast('Mastery type updated'); }}>
-                <option value="consecutive">Consecutive</option>
-                <option value="ratio">3 of last 4</option>
-              </select>
-            </label>
-            <label>Target
-              <input type="number" min="1" value={repeatCfg.masteryTarget} onChange={(e)=>{ setRepeatCfg({...repeatCfg, masteryTarget:parseInt(e.target.value,10)||1}); }} />
-            </label>
-            <label>Cooldown (s)
-              <input type="number" min="0" value={repeatCfg.cooldownSeconds} onChange={(e)=>{ setRepeatCfg({...repeatCfg, cooldownSeconds:parseInt(e.target.value,10)||0}); }} />
-            </label>
-            <label>Leech threshold
-              <input type="number" min="1" value={repeatCfg.leechThreshold} onChange={(e)=>{ setRepeatCfg({...repeatCfg, leechThreshold:parseInt(e.target.value,10)||1}); }} />
-            </label>
-          </div>
-          <div className="chips" style={{marginTop:8}}>
-            <label className="toggle"><input type="checkbox" checked={repeatCfg.strictMultiAnswer} onChange={(e)=>setRepeatCfg({...repeatCfg, strictMultiAnswer:e.target.checked})} /> Strict multi-answer</label>
-            <label className="toggle"><input type="checkbox" checked={repeatCfg.partialCreditMode} onChange={(e)=>setRepeatCfg({...repeatCfg, partialCreditMode:e.target.checked})} /> Partial credit</label>
-          <label className="toggle"><input type="checkbox" checked={repeatCfg.autoRevealExplanationOnError} onChange={(e)=>setRepeatCfg({...repeatCfg, autoRevealExplanationOnError:e.target.checked})} /> Auto-show explanation on wrong</label>
-          <label className="toggle"><input type="checkbox" checked={repeatCfg.autoSkipOnWrong} onChange={(e)=>setRepeatCfg({...repeatCfg, autoSkipOnWrong:e.target.checked})} /> Auto-skip on wrong</label>
-          </div>
-        </div>
-        <div className="card" style={{padding:'12px'}}>
-          <h3 style={{marginTop:0}}>Keyboard</h3>
-          <p className="muted" style={{marginTop:-6}}>Click a field then press a key.</p>
-          <div className="keymap-grid">
+        </section>
+
+        <section className="settings-panel settings-panel--wide card">
+          <h3>Keyboard</h3>
+          <p className="muted">Click a field, then press a key.</p>
+          <div className="settings-keymap">
             {keymap.options.map((k, i) => (
-              <label key={i}>Option {i + 1}
+              <label key={i} htmlFor={`settings-key-${i}`}>
+                Option {i + 1}
                 <input
+                  id={`settings-key-${i}`}
                   type="text"
                   value={k}
                   onKeyDown={(e) => {
@@ -153,8 +258,10 @@ function Settings() {
                 />
               </label>
             ))}
-            <label>Next
+            <label htmlFor="settings-key-next">
+              Next
               <input
+                id="settings-key-next"
                 type="text"
                 value={keymap.next}
                 onKeyDown={(e) => {
@@ -165,8 +272,10 @@ function Settings() {
                 onChange={() => {}}
               />
             </label>
-            <label>Prev
+            <label htmlFor="settings-key-prev">
+              Prev
               <input
+                id="settings-key-prev"
                 type="text"
                 value={keymap.prev}
                 onKeyDown={(e) => {
@@ -177,8 +286,10 @@ function Settings() {
                 onChange={() => {}}
               />
             </label>
-            <label>Alt Next
+            <label htmlFor="settings-key-nextAlt">
+              Alt Next
               <input
+                id="settings-key-nextAlt"
                 type="text"
                 value={keymap.nextAlt}
                 onKeyDown={(e) => {
@@ -189,8 +300,10 @@ function Settings() {
                 onChange={() => {}}
               />
             </label>
-            <label>Help
+            <label htmlFor="settings-key-help">
+              Help
               <input
+                id="settings-key-help"
                 type="text"
                 value={keymap.help}
                 onKeyDown={(e) => {
@@ -201,8 +314,10 @@ function Settings() {
                 onChange={() => {}}
               />
             </label>
-            <label>Close
+            <label htmlFor="settings-key-close">
+              Close
               <input
+                id="settings-key-close"
                 type="text"
                 value={keymap.close}
                 onKeyDown={(e) => {
@@ -214,8 +329,17 @@ function Settings() {
               />
             </label>
           </div>
-          <button className="btn-ghost" style={{marginTop:8}} onClick={() => { setKeymap(defaultKeymap); toast('Shortcuts reset'); }}>Reset Defaults</button>
-        </div>
+          <button
+            className="btn-ghost"
+            type="button"
+            onClick={() => {
+              setKeymap(defaultKeymap);
+              toast('Shortcuts reset');
+            }}
+          >
+            Reset Defaults
+          </button>
+        </section>
       </div>
     </div>
   );
