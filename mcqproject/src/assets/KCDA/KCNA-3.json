@@ -1,0 +1,422 @@
+  [
+    {
+      "id": 61,
+      "question": "Which of the following characteristics is associated with container orchestration?",
+      "options": [
+        "Application message distribution",
+        "Dynamic scheduling",
+        "Deploying application JAR files",
+        "Virtual Machine distribution"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **Dynamic scheduling**. Container orchestration platforms like Kubernetes dynamically schedule workloads (containers and pods) across nodes based on resource requirements and availability. (Reference: Kubernetes Scheduling – https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)"
+    },
+    {
+      "id": 62,
+      "question": "Which control plane component is responsible for updating the node Ready condition if a node becomes unreachable?",
+      "options": [
+        "The kube-proxy.",
+        "The node controller.",
+        "The kubelet.",
+        "The kube-apiserver."
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **The node controller**. The node controller is part of the kube-controller-manager and is responsible for monitoring node status and marking a node as 'NotReady' if it becomes unreachable. (Reference: Kubernetes Node Controller – https://kubernetes.io/docs/concepts/architecture/nodes/#node-controller)"
+    },
+    {
+      "id": 63,
+      "question": "Which GitOps engine can be used to orchestrate parallel jobs on Kubernetes?",
+      "options": [
+        "Jenkins X",
+        "Flagger",
+        "Flux",
+        "Argo Workflows"
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **Argo Workflows**. Argo Workflows is a Kubernetes-native workflow engine designed for orchestrating complex workflows and parallel jobs declaratively using YAML. (Reference: Argo Workflows Documentation – https://argoproj.github.io/argo-workflows/)"
+    },
+    {
+      "id": 64,
+      "question": "What is the main purpose of the Open Container Initiative (OCI)?",
+      "options": [
+        "Accelerating the adoption of containers and Kubernetes in the industry.",
+        "Creating open industry standards around container formats and runtimes.",
+        "Creating industry standards around container formats and runtimes for private purposes.",
+        "Improving the security of standards around container formats and runtimes."
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **Creating open industry standards around container formats and runtimes**. The OCI establishes open, vendor-neutral specifications for container image formats and runtime implementations. (Reference: Open Container Initiative – https://opencontainers.org/)"
+    },
+    {
+      "id": 65,
+      "question": "Which are the core features provided by a service mesh?",
+      "options": [
+        "Authentication and authorization",
+        "Distributing and replicating data",
+        "Security vulnerability scanning",
+        "Configuration management"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The correct answer is **Authentication and authorization**. A service mesh provides observability, traffic management, encryption (mTLS), and security features such as authentication and authorization between services. (Reference: Istio Security Concepts – https://istio.io/latest/docs/concepts/security/)"
+    },
+    {
+      "id": 66,
+      "question": "Which of the following options include only mandatory fields to create a Kubernetes object using a YAML file?",
+      "options": [
+        "apiVersion, template, kind, status",
+        "apiVersion, metadata, status, spec",
+        "apiVersion, template, kind, spec",
+        "apiVersion, metadata, kind, spec"
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **apiVersion, metadata, kind, spec**. Every Kubernetes manifest must include these four mandatory fields: apiVersion (API group), kind (resource type), metadata (object name and namespace), and spec (desired state). (Reference: Kubernetes Object Management – https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/)"
+    },
+    {
+      "id": 67,
+      "question": "Which of the following is the name of a container orchestration software?",
+      "options": [
+        "OpenStack",
+        "Docker",
+        "Apache Mesos",
+        "CRI-O"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "The correct answer is **Apache Mesos**. Apache Mesos is a distributed systems kernel that can be used for container orchestration. Docker is a container runtime, and CRI-O is a container runtime interface implementation for Kubernetes. (Reference: Apache Mesos Documentation – http://mesos.apache.org/)"
+    },
+    {
+      "id": 68,
+      "question": "What happens with a regular pod running in Kubernetes when a node fails?",
+      "options": [
+        "A new pod with the same UID is scheduled to another node after a while.",
+        "A new, near-identical pod but with different UID is scheduled to another node.",
+        "By default, a pod can only be scheduled to the same node when the node fails.",
+        "A new pod is scheduled on a different node only if it is configured explicitly."
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **A new, near-identical pod but with different UID is scheduled to another node**. When a node fails, the old Pod object is deleted, and the controller (like a Deployment or ReplicaSet) creates a replacement Pod with a new UID on a healthy node. (Reference: Kubernetes Pod Lifecycle – https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/)"
+    },
+    {
+      "id": 69,
+      "question": "What is the minimum number of etcd members that are required for a highly available Kubernetes cluster?",
+      "options": [
+        "Two etcd members.",
+        "Five etcd members.",
+        "Six etcd members.",
+        "Three etcd members."
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **Three etcd members**. Etcd requires an odd number of members to achieve quorum for consensus, and three is the minimum recommended for high availability. (Reference: etcd Clustering Guide – https://etcd.io/docs/v3.5/op-guide/clustering/)"
+    },
+    {
+      "id": 70,
+      "question": "What is the main purpose of the Ingress in Kubernetes?",
+      "options": [
+        "Access HTTP and HTTPS services running in the cluster based on their IP address.",
+        "Access services different from HTTP or HTTPS running in the cluster based on their IP address.",
+        "Access services different from HTTP or HTTPS running in the cluster based on their path.",
+        "Access HTTP and HTTPS services running in the cluster based on their path."
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **Access HTTP and HTTPS services running in the cluster based on their path**. Ingress exposes HTTP and HTTPS routes from outside the cluster to services within it, using host or path-based routing. (Reference: Kubernetes Ingress – https://kubernetes.io/docs/concepts/services-networking/ingress/)"
+    },
+    {
+      "id": 71,
+      "question": "How can you extend the Kubernetes API?",
+      "options": [
+        "Adding a CustomResourceDefinition or implementing an aggregation layer.",
+        "Adding a new version of a resource, for instance v4beta3.",
+        "With the command kubectl extend api, logged in as an administrator.",
+        "Adding the desired API object as a kubelet parameter."
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The correct answer is **Adding a CustomResourceDefinition or implementing an aggregation layer**. CRDs allow you to add new resource types to the Kubernetes API, while the aggregation layer lets you serve additional APIs from within the cluster. (Reference: Kubernetes API Extensions – https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/)"
+    },
+    {
+      "id": 72,
+      "question": "Which of the following workload require a headless service while deploying into the namespace?",
+      "options": [
+        "StatefulSet",
+        "CronJob",
+        "Deployment",
+        "DaemonSet"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The correct answer is **StatefulSet**. StatefulSets often use a headless Service (with `clusterIP: None`) to provide stable DNS identities for each Pod, which is necessary for maintaining ordered and unique network identities. (Reference: Kubernetes StatefulSets – https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)"
+    },
+    {
+      "id": 73,
+      "question": "What is an ephemeral container?",
+      "options": [
+        "A specialized container that runs as root for infosec applications.",
+        "A specialized container that runs temporarily in an existing Pod.",
+        "A specialized container that extends and enhances the 'main' container in a Pod.",
+        "A specialized container that run before app container in a Pod."
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **A specialized container that runs temporarily in an existing Pod**. Ephemeral containers are used for troubleshooting or debugging a running Pod without restarting it. (Reference: Ephemeral Containers – https://kubernetes.io/docs/concepts/workloads/pods/ephemeral-containers/)"
+    },
+    {
+      "id": 74,
+      "question": "In a cloud native environment, who is usually responsible for maintaining the workloads running across the different platforms?",
+      "options": [
+        "The cloud provider.",
+        "The Site Reliability Engineering (SRE) team.",
+        "The team of developers.",
+        "The Support Engineering team (SE)."
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **The Site Reliability Engineering (SRE) team**. SRE teams focus on automating operations, monitoring performance, and ensuring system reliability and scalability in production environments. (Reference: Google SRE Book – https://sre.google/books/)"
+    },
+    {
+      "id": 75,
+      "question": "Which Kubernetes-native deployment strategy supports zero-downtime updates of a workload?",
+      "options": [
+        "Canary",
+        "Recreate",
+        "BlueGreen",
+        "RollingUpdate"
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **RollingUpdate**. This strategy gradually replaces old Pods with new ones to achieve zero downtime during updates. It’s the default strategy for Deployments. (Reference: Kubernetes Deployment Strategies – https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy)"
+    },
+    {
+      "id": 76,
+      "question": "What service account does a Pod use in a given namespace when the service account is not specified?",
+      "options": [
+        "admin",
+        "sysadmin",
+        "root",
+        "default"
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **default**. When no service account is specified in a Pod definition, Kubernetes automatically assigns the default service account for the Pod’s namespace. (Reference: Kubernetes Service Accounts – https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/)"
+    },
+    {
+      "id": 77,
+      "question": "What is a cloud native application?",
+      "options": [
+        "It is a monolithic application that has been containerized and is running now on the cloud.",
+        "It is an application designed to be scalable and take advantage of services running on the cloud.",
+        "It is an application designed to run all its functions in separate containers.",
+        "It is any application that runs in a cloud provider and uses its services."
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **It is an application designed to be scalable and take advantage of services running on the cloud**. Cloud native applications are built to leverage microservices, container orchestration, and elastic infrastructure for scalability and resilience. (Reference: CNCF Cloud Native Definition – https://github.com/cncf/toc/blob/main/DEFINITION.md)"
+    },
+    {
+      "id": 78,
+      "question": "What’s the most adopted way of conflict resolution and decision-making for the open-source projects under the CNCF umbrella?",
+      "options": [
+        "Financial Analysis",
+        "Discussion and Voting",
+        "Flipism Technique",
+        "Project Founder Say"
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **Discussion and Voting**. CNCF and other open-source foundations typically use open discussions, consensus-building, and voting processes to resolve conflicts and make governance decisions. (Reference: CNCF Charter and Governance – https://github.com/cncf/foundation/blob/main/charter.md)"
+    },
+    {
+      "id": 79,
+      "question": "Which of the following options include resources cleaned by the Kubernetes garbage collection mechanism?",
+      "options": [
+        "Stale or expired CertificateSigningRequests (CSRs) and old deployments.",
+        "Nodes deleted by a cloud controller manager and obsolete logs from the kubelet.",
+        "Unused container and container images, and obsolete logs from the kubelet.",
+        "Terminated pods, completed jobs, and objects without owner references."
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **Terminated pods, completed jobs, and objects without owner references**. The Kubernetes garbage collector automatically removes unused resources and objects with no owner references to free up cluster resources. (Reference: Kubernetes Garbage Collection – https://kubernetes.io/docs/concepts/workloads/controllers/garbage-collection/)"
+    },
+    {
+      "id": 80,
+      "question": "What is the default eviction timeout when the Ready condition of a node is Unknown or False?",
+      "options": [
+        "Thirty seconds.",
+        "Thirty minutes.",
+        "One minute.",
+        "Five minutes."
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **Five minutes**. By default, the node controller waits five minutes before evicting Pods from a node that is in an Unknown or NotReady state. (Reference: Kubernetes Node Controller Behavior – https://kubernetes.io/docs/concepts/architecture/nodes/#node-controller)"
+    },
+    {
+      "id": 81,
+      "question": "What is the main purpose of a DaemonSet?",
+      "options": [
+        "A DaemonSet ensures that all (or certain) nodes run a copy of a Pod.",
+        "A DaemonSet ensures that the kubelet is constantly up and running.",
+        "A DaemonSet ensures that there are as many pods running as specified in the replicas field.",
+        "A DaemonSet ensures that a process (agent) runs on every node."
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The correct answer is **A DaemonSet ensures that all (or certain) nodes run a copy of a Pod**. DaemonSets are used to deploy system-level pods such as log collectors or monitoring agents to every node automatically. (Reference: Kubernetes DaemonSet – https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)"
+    },
+    {
+      "id": 82,
+      "question": "Why do administrators need a container orchestration tool?",
+      "options": [
+        "To manage the lifecycle of an elevated number of containers.",
+        "To assess the security risks of the container images used in production.",
+        "To learn how to transform monolithic applications into microservices.",
+        "Container orchestration tools such as Kubernetes are the future."
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The correct answer is **To manage the lifecycle of an elevated number of containers**. Container orchestration tools like Kubernetes automate deployment, scaling, networking, and management of containerized applications across clusters. (Reference: CNCF Kubernetes Overview – https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/)"
+    },
+    {
+      "id": 83,
+      "question": "What is Helm?",
+      "options": [
+        "An open source dashboard for Kubernetes.",
+        "A package manager for Kubernetes applications.",
+        "A custom scheduler for Kubernetes.",
+        "An end to end testing project for Kubernetes applications."
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **A package manager for Kubernetes applications**. Helm simplifies the deployment and management of Kubernetes applications by packaging them as 'charts' that define configurations and dependencies. (Reference: Helm Official Docs – https://helm.sh/docs/)"
+    },
+    {
+      "id": 84,
+      "question": "Which two elements are shared between containers in the same pod?",
+      "options": [
+        "Network resources and liveness probes.",
+        "Storage and container image registry.",
+        "Storage and network resources.",
+        "Network resources and Dockerfiles."
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "The correct answer is **Storage and network resources**. Containers within a pod share the same network namespace (IP address and port space) and can also share volumes for persistent or temporary data. (Reference: Pods – https://kubernetes.io/docs/concepts/workloads/pods/)"
+    },
+    {
+      "id": 85,
+      "question": "In Kubernetes, if the API version of a feature is v2beta3, it means that:",
+      "options": [
+        "The version will remain available for all future releases within a Kubernetes major version.",
+        "The API may change in incompatible ways in a later software release without notice.",
+        "The software is well tested. Enabling a feature is considered safe.",
+        "The software may contain bugs. Enabling a feature may expose bugs."
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **The software may contain bugs. Enabling a feature may expose bugs**. A 'beta' version indicates the feature is available for testing but not guaranteed to be stable or backward-compatible. (Reference: Kubernetes API Versioning – https://kubernetes.io/docs/concepts/overview/kubernetes-api/#api-versioning)"
+    },
+    {
+      "id": 86,
+      "question": "What is the API that exposes resource metrics from the metrics-server?",
+      "options": [
+        "custom.k8s.io",
+        "resources.k8s.io",
+        "metrics.k8s.io",
+        "cadvisor.k8s.io"
+      ],
+      "answer": [
+        2
+      ],
+      "explanation": "The correct answer is **metrics.k8s.io**. The metrics-server exposes resource usage data (CPU, memory) through the metrics.k8s.io API, which is used by components such as the Horizontal Pod Autoscaler (HPA). (Reference: Kubernetes Metrics Server – https://github.com/kubernetes-sigs/metrics-server)"
+    },
+    {
+      "id": 87,
+      "question": "Which of the following resources helps in managing a stateless application workload on a Kubernetes cluster?",
+      "options": [
+        "DaemonSet",
+        "StatefulSet",
+        "kubectl",
+        "Deployment"
+      ],
+      "answer": [
+        3
+      ],
+      "explanation": "The correct answer is **Deployment**. Deployments are designed for stateless workloads, enabling scaling, rolling updates, and rollback management. (Reference: Kubernetes Deployments – https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)"
+    },
+    {
+      "id": 88,
+      "question": "Which mechanism can be used to automatically adjust the amount of resources for an application?",
+      "options": [
+        "Horizontal Pod Autoscaler (HPA)",
+        "Kubernetes Event-driven Autoscaling (KEDA)",
+        "Cluster Autoscaler",
+        "Vertical Pod Autoscaler (VPA)"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The correct answer is **Horizontal Pod Autoscaler (HPA)**. HPA automatically scales the number of Pod replicas based on observed CPU/memory utilization or custom metrics. (Reference: Kubernetes Horizontal Pod Autoscaler – https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)"
+    },
+    {
+      "id": 89,
+      "question": "Which of the following is a recommended security habit in Kubernetes?",
+      "options": [
+        "Run the containers as the user with group ID 0 (root) and any user ID.",
+        "Disallow privilege escalation from within a container as the default option.",
+        "Run the containers as the user with user ID 0 (root) and any group ID.",
+        "Allow privilege escalation from within a container as the default option."
+      ],
+      "answer": [
+        1
+      ],
+      "explanation": "The correct answer is **Disallow privilege escalation from within a container as the default option**. This is a Kubernetes best practice to enhance security by preventing containers from gaining additional privileges. (Reference: Kubernetes Security Contexts – https://kubernetes.io/docs/tasks/configure-pod-container/security-context/)"
+    },
+    {
+      "id": 90,
+      "question": "What are the 3 pillars of Observability?",
+      "options": [
+        "Metrics, Logs, and Traces",
+        "Metrics, Logs, and Spans",
+        "Metrics, Data, and Traces",
+        "Resources, Logs, and Tracing"
+      ],
+      "answer": [
+        0
+      ],
+      "explanation": "The correct answer is **Metrics, Logs, and Traces**. These three pillars together provide comprehensive observability into distributed systems' performance, reliability, and behavior. (Reference: CNCF Observability Principles – https://opentelemetry.io/docs/concepts/observability-primer/)"
+    }
+  ]

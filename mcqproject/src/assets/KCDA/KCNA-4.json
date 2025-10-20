@@ -1,0 +1,422 @@
+[
+  {
+    "id": 91,
+    "question": "What edge and service proxy tool is designed to be integrated with cloud native applications?",
+    "options": [
+      "CoreDNS",
+      "CNI",
+      "gRPC",
+      "Envoy"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Envoy**. Envoy is a high-performance, open-source edge and service proxy designed for cloud-native applications, providing observability, traffic control, and security features. (Reference: Envoy Proxy – https://www.envoyproxy.io/)"
+  },
+  {
+    "id": 92,
+    "question": "What is Flux constructed with?",
+    "options": [
+      "GitLab Environment Toolkit",
+      "GitOps Toolkit",
+      "Helm Toolkit",
+      "GitHub Actions Toolkit"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **GitOps Toolkit**. Flux is built on the GitOps Toolkit, a set of Kubernetes controllers for implementing continuous delivery through GitOps principles. (Reference: Flux Documentation – https://fluxcd.io/docs/)"
+  },
+  {
+    "id": 93,
+    "question": "In Kubernetes, which abstraction defines a logical set of Pods and a policy by which to access them?",
+    "options": [
+      "Service Account",
+      "NetworkPolicy",
+      "Service",
+      "Custom Resource Definition"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **Service**. A Kubernetes Service groups a logical set of Pods and defines how they can be accessed internally or externally via policies like ClusterIP, NodePort, or LoadBalancer. (Reference: Kubernetes Services – https://kubernetes.io/docs/concepts/services-networking/service/)"
+  },
+  {
+    "id": 94,
+    "question": "Which API object is the recommended way to run a scalable, stateless application on your cluster?",
+    "options": [
+      "ReplicaSet",
+      "Deployment",
+      "DaemonSet",
+      "Pod"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Deployment**. Deployments manage stateless applications by handling ReplicaSets and enabling scaling, rolling updates, and rollbacks. (Reference: Kubernetes Deployments – https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)"
+  },
+  {
+    "id": 95,
+    "question": "Which is the correct kubectl command to display logs in real time?",
+    "options": [
+      "kubectl logs -p test-container-1",
+      "kubectl logs -c test-container-1",
+      "kubectl logs -l test-container-1",
+      "kubectl logs -f test-container-1"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **kubectl logs -f test-container-1**. The `-f` flag (short for 'follow') streams logs in real-time from a running container. (Reference: kubectl logs Command – https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#logs)"
+  },
+  {
+    "id": 96,
+    "question": "How to load and generate data required before the Pod startup?",
+    "options": [
+      "Use an init container with shared file storage.",
+      "Use a PVC volume.",
+      "Use a sidecar container with shared volume.",
+      "Use another pod with a PVC."
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Use an init container with shared file storage**. Init containers run before app containers in a Pod and are used to perform setup tasks, such as initializing configuration or generating required data. (Reference: Kubernetes Init Containers – https://kubernetes.io/docs/concepts/workloads/pods/init-containers/)"
+  },
+  {
+    "id": 97,
+    "question": "What is the core functionality of GitOps tools like Argo CD and Flux?",
+    "options": [
+      "They track production changes made by a human in a Git repository and generate a human-readable audit trail.",
+      "They replace human operations with an agent that tracks Git commands.",
+      "They automatically create pull requests when dependencies are outdated.",
+      "They continuously compare the desired state in Git with the actual production state and notify or act upon differences."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **They continuously compare the desired state in Git with the actual production state and notify or act upon differences**. GitOps tools like Argo CD and Flux maintain cluster state by reconciling Kubernetes resources against Git repositories. (Reference: CNCF GitOps Principles – https://opengitops.dev/)"
+  },
+  {
+    "id": 98,
+    "question": "Which Kubernetes resource workload ensures that all (or some) nodes run a copy of a Pod?",
+    "options": [
+      "ReplicaSet",
+      "StatefulSet",
+      "DaemonSet",
+      "Deployment"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **DaemonSet**. A DaemonSet ensures that a copy of a Pod runs on every (or specified) node in the cluster, commonly used for log collection and monitoring agents. (Reference: Kubernetes DaemonSet – https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)"
+  },
+  {
+    "id": 99,
+    "question": "We can extend the Kubernetes API with Kubernetes API Aggregation Layer and CRDs. What is CRD?",
+    "options": [
+      "Custom Resource Definition",
+      "Custom Restricted Definition",
+      "Customized RUST Definition",
+      "Custom RUST Definition"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Custom Resource Definition**. CRDs allow users to define custom Kubernetes resource types to extend the Kubernetes API without modifying the core system. (Reference: Kubernetes Custom Resources – https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)"
+  },
+  {
+    "id": 100,
+    "question": "The Kubernetes project work is carried primarily by SIGs. What does SIG stand for?",
+    "options": [
+      "Special Interest Group",
+      "Software Installation Guide",
+      "Support and Information Group",
+      "Strategy Implementation Group"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Special Interest Group**. SIGs (Special Interest Groups) are responsible for specific areas of Kubernetes development and maintenance, such as SIG-Node, SIG-Network, and SIG-Security. (Reference: Kubernetes Community SIGs – https://github.com/kubernetes/community/tree/master/sig-list)"
+  },
+  {
+    "id": 101,
+    "question": "What is the order of 4C’s in Cloud Native Security, starting with the layer that a user has the most control over?",
+    "options": [
+      "Cloud -> Container -> Cluster -> Code",
+      "Container -> Cluster -> Code -> Cloud",
+      "Cluster -> Container -> Code -> Cloud",
+      "Code -> Container -> Cluster -> Cloud"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Code -> Container -> Cluster -> Cloud**. The 4C’s of Cloud Native Security represent layers of defense-in-depth: Code (your application), Container (runtime packaging), Cluster (orchestration and infrastructure), and Cloud (underlying environment). Security must be enforced at every level, starting from code. (Reference: CNCF Cloud Native Security Whitepaper – https://github.com/cncf/tag-security)"
+  },
+  {
+    "id": 102,
+    "question": "Which group of container runtimes provides additional sandboxed isolation and elevated security?",
+    "options": [
+      "rune, cgroups",
+      "docker, containerd",
+      "runc, kata",
+      "crun, cri-o"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **runc, kata**. Kata Containers combine lightweight virtual machines with container-level speed to provide extra isolation. While runc is the OCI reference implementation, Kata Containers extend it with stronger isolation. (Reference: Kata Containers – https://katacontainers.io/)"
+  },
+  {
+    "id": 103,
+    "question": "What is the common standard for Service Meshes?",
+    "options": [
+      "Service Mesh Specification (SMS)",
+      "Service Mesh Technology (SMT)",
+      "Service Mesh Interface (SMI)",
+      "Service Mesh Function (SMF)"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **Service Mesh Interface (SMI)**. SMI is a standard interface for service meshes on Kubernetes, providing a common way to manage traffic, telemetry, and policy across implementations. (Reference: SMI Specification – https://smi-spec.io/)"
+  },
+  {
+    "id": 104,
+    "question": "Which statement about Ingress is correct?",
+    "options": [
+      "Ingress provides a simple way to track network endpoints within a cluster.",
+      "Ingress is a Service type like NodePort and ClusterIP.",
+      "Ingress is a construct that allows you to specify how a Pod is allowed to communicate.",
+      "Ingress exposes routes from outside the cluster to services in the cluster."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Ingress exposes routes from outside the cluster to services in the cluster**. Ingress defines external HTTP/HTTPS routing rules to access internal services based on host or path. (Reference: Kubernetes Ingress – https://kubernetes.io/docs/concepts/services-networking/ingress/)"
+  },
+  {
+    "id": 105,
+    "question": "A CronJob is scheduled to run by a user every one hour. What happens in the cluster when it’s time for this CronJob to run?",
+    "options": [
+      "Kubelet watches API Server for CronJob objects. When it’s time for a Job to run, it runs the Pod directly.",
+      "Kube-scheduler watches API Server for CronJob objects, and this is why it’s called kube-scheduler.",
+      "CronJob controller component creates a Pod and waits until it finishes to run.",
+      "CronJob controller component creates a Job. Then the Job controller creates a Pod and waits until it finishes to run."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **CronJob controller component creates a Job. Then the Job controller creates a Pod and waits until it finishes to run**. CronJobs manage time-based scheduling of Jobs, which then create Pods for execution. (Reference: Kubernetes CronJobs – https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/)"
+  },
+  {
+    "id": 106,
+    "question": "What best describes cloud native service discovery?",
+    "options": [
+      "It's a mechanism for applications and microservices to locate each other on a network.",
+      "It's a procedure for discovering a MAC address, associated with a given IP address.",
+      "It's used for automatically assigning IP addresses to devices connected to the network.",
+      "It's a protocol that turns human-readable domain names into IP addresses on the Internet."
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **It's a mechanism for applications and microservices to locate each other on a network**. Service discovery enables microservices within a Kubernetes cluster to dynamically find and connect with each other, often via DNS or environment variables. (Reference: Kubernetes Service Discovery – https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services)"
+  },
+  {
+    "id": 107,
+    "question": "What components are common in a service mesh?",
+    "options": [
+      "tracing and log storage",
+      "circuit breaking and Pod scheduling",
+      "data plane and runtime plane",
+      "service proxy and control plane"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **service proxy and control plane**. A service mesh consists of a data plane (sidecar proxies like Envoy) for handling communication and a control plane for managing configuration and policies. (Reference: Istio Architecture – https://istio.io/latest/docs/ops/deployment/architecture/)"
+  },
+  {
+    "id": 108,
+    "question": "Which storage operator in Kubernetes can help the system to self-scale, self-heal, etc?",
+    "options": [
+      "Rook",
+      "Kubernetes",
+      "Helm",
+      "Container Storage Interface (CSI)"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Rook**. Rook is a storage orchestrator for Kubernetes that automates deployment, scaling, and self-healing of storage systems such as Ceph. (Reference: Rook Project – https://rook.io/docs/rook/latest/)"
+  },
+  {
+    "id": 109,
+    "question": "What fields must exist in any Kubernetes object (e.g. YAML) file?",
+    "options": [
+      "apiVersion, kind, metadata",
+      "kind, namespace, data",
+      "apiVersion, metadata, namespace",
+      "kind, metadata, data"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **apiVersion, kind, metadata**. Every Kubernetes object manifest must define its API version, object kind, and metadata (such as name and namespace). (Reference: Kubernetes Object Management – https://kubernetes.io/docs/concepts/overview/working-with-objects/kubernetes-objects/)"
+  },
+  {
+    "id": 110,
+    "question": "Which of the following would fall under the responsibilities of an SRE?",
+    "options": [
+      "Developing a new application feature.",
+      "Creating a monitoring baseline for an application.",
+      "Submitting a budget for running an application in a cloud.",
+      "Writing policy on how to submit a code change."
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Creating a monitoring baseline for an application**. Site Reliability Engineers (SREs) are responsible for maintaining system reliability, performance, and observability through monitoring, automation, and incident management. (Reference: Google SRE Workbook – https://sre.google/books/)"
+  },
+  {
+    "id": 111,
+    "question": "What are the initial namespaces that Kubernetes starts with?",
+    "options": [
+      "default, kube-system, kube-public, kube-node-lease",
+      "default, system, kube-public",
+      "kube-default, kube-system, kube-main, kube-node-lease",
+      "kube-default, system, kube-main, kube-primary"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **default, kube-system, kube-public, kube-node-lease**. These are the initial namespaces created automatically by Kubernetes: 'default' for user workloads, 'kube-system' for system components, 'kube-public' for publicly readable data, and 'kube-node-lease' for node heartbeat tracking. (Reference: Kubernetes Namespaces – https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/)"
+  },
+  {
+    "id": 112,
+    "question": "What is a probe within Kubernetes?",
+    "options": [
+      "A monitoring mechanism of the Kubernetes API.",
+      "A pre-operational scope issued by the kubelet agent.",
+      "A diagnostic performed periodically by the kubelet on a container.",
+      "A logging mechanism of the Kubernetes API."
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **A diagnostic performed periodically by the kubelet on a container**. Kubernetes probes—liveness, readiness, and startup—are used to check container health and determine when containers should restart or receive traffic. (Reference: Kubernetes Probes – https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)"
+  },
+  {
+    "id": 113,
+    "question": "Which Kubernetes feature would you use to guard against split brain scenarios with your distributed application?",
+    "options": [
+      "Replication controllers",
+      "Consensus protocols",
+      "Rolling updates",
+      "StatefulSet"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **StatefulSet**. StatefulSets provide stable network identities and persistent storage per Pod, helping to manage distributed systems and prevent issues like split brain scenarios. (Reference: Kubernetes StatefulSet – https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)"
+  },
+  {
+    "id": 114,
+    "question": "What feature must a CNI support to control specific traffic flows for workloads running in Kubernetes?",
+    "options": [
+      "Border Gateway Protocol",
+      "IP Address Management",
+      "Pod Security Policy",
+      "Network Policies"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Network Policies**. CNIs that implement Kubernetes NetworkPolicies allow fine-grained control over pod-to-pod and pod-to-external traffic flows based on labels and namespaces. (Reference: Kubernetes Network Policies – https://kubernetes.io/docs/concepts/services-networking/network-policies/)"
+  },
+  {
+    "id": 115,
+    "question": "What is the main role of the Kubernetes DNS within a cluster?",
+    "options": [
+      "Acts as a DNS server for virtual machines that are running outside the cluster.",
+      "Provides a DNS as a Service, allowing users to create zones and registries for domains that they own.",
+      "Allows Pods running in dual stack to convert IPv6 calls into IPv4 calls.",
+      "Provides consistent DNS Names for Pods and Services for workloads that need to communicate with each other."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Provides consistent DNS Names for Pods and Services for workloads that need to communicate with each other**. Kubernetes DNS automatically assigns DNS names to services and pods, enabling service discovery within the cluster. (Reference: Kubernetes DNS – https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/)"
+  },
+  {
+    "id": 116,
+    "question": "What is the purpose of the kubelet component within a Kubernetes cluster?",
+    "options": [
+      "A dashboard for Kubernetes Clusters that allows management and troubleshooting of applications.",
+      "A network proxy that runs on each node in your cluster, implementing part of the Kubernetes Service concept.",
+      "A component that watches for newly created Pods with no assigned node, and selects a node for them to run on.",
+      "An agent that runs on each node in the cluster. It makes sure that containers are running in a Pod."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **An agent that runs on each node in the cluster. It makes sure that containers are running in a Pod**. The kubelet ensures that containers described in PodSpecs are running and healthy on their respective nodes. (Reference: Kubernetes Components – https://kubernetes.io/docs/concepts/overview/components/)"
+  },
+  {
+    "id": 117,
+    "question": "Scenario: You have a Kubernetes cluster hosted in a public cloud provider. When trying to create a Service of type LoadBalancer, the external-ip is stuck in the 'pending' state. Which component is responsible for managing this process?",
+    "options": [
+      "Cloud Controller Manager",
+      "Load Balancer Manager",
+      "Cloud Architecture Manager",
+      "Cloud Load Balancer Manager"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Cloud Controller Manager**. The Cloud Controller Manager integrates Kubernetes with the cloud provider APIs, managing resources like load balancers, volumes, and nodes. If LoadBalancer creation is stuck in 'pending', this component is likely misconfigured. (Reference: Kubernetes Cloud Controller Manager – https://kubernetes.io/docs/concepts/architecture/cloud-controller/)"
+  },
+  {
+    "id": 118,
+    "question": "What are the characteristics for building every cloud-native application?",
+    "options": [
+      "Resiliency, Operability, Observability, Availability",
+      "Resiliency, Containered, Observability, Agility",
+      "Kubernetes, Operability, Observability, Availability",
+      "Resiliency, Agility, Operability, Observability"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Resiliency, Agility, Operability, Observability**. These are core principles of cloud-native application design — systems must recover quickly, adapt fast, be operable at scale, and offer full visibility into performance. (Reference: CNCF Cloud Native Definition – https://github.com/cncf/toc/blob/main/DEFINITION.md)"
+  },
+  {
+    "id": 119,
+    "question": "What does CNCF stand for?",
+    "options": [
+      "Cloud Native Community Foundation",
+      "Cloud Native Computing Foundation",
+      "Cloud Neutral Computing Foundation",
+      "Cloud Neutral Community Foundation"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Cloud Native Computing Foundation**. CNCF is part of the Linux Foundation and hosts open-source projects like Kubernetes, Prometheus, and Envoy to advance cloud-native technologies. (Reference: CNCF Official Site – https://www.cncf.io/)"
+  },
+  {
+    "id": 120,
+    "question": "Kubernetes supports multiple virtual clusters backed by the same physical cluster. These virtual clusters are called:",
+    "options": [
+      "namespaces",
+      "containers",
+      "hypervisors",
+      "cgroups"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **namespaces**. Namespaces in Kubernetes allow logical partitioning of cluster resources, creating isolated environments within the same physical cluster. (Reference: Kubernetes Namespaces – https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/)"
+  }
+]
