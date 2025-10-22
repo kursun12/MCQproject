@@ -1,0 +1,380 @@
+[
+  {
+    "id": 151,
+    "question": "Which command provides information about the field replicas within the spec resource of a deployment object?",
+    "options": [
+      "kubectl get deployment.spec.replicas",
+      "kubectl explain deployment.spec.replicas",
+      "kubectl describe deployment.spec.replicas",
+      "kubectl explain deployment --spec.replicas"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **kubectl explain deployment.spec.replicas**. The `kubectl explain` command provides documentation and schema details for Kubernetes API fields, helping users understand the structure and meaning of fields like `spec.replicas`. (Reference: https://kubernetes.io/docs/reference/kubectl/cheatsheet/#interacting-with-api-resources)"
+  },
+  {
+    "id": 152,
+    "question": "Which of the following is a responsibility of the governance board of an open source project?",
+    "options": [
+      "Decide about the marketing strategy of the project.",
+      "Review the pull requests in the main branch.",
+      "Outline the project’s 'terms of engagement'.",
+      "Define the license to be used in the project."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Define the license to be used in the project**. Governance boards in open source projects typically define licensing, project direction, and community guidelines rather than day-to-day operations. (Reference: https://opensource.guide/leadership-and-governance/)"
+  },
+  {
+    "id": 153,
+    "question": "What is the role of a NetworkPolicy in Kubernetes?",
+    "options": [
+      "The ability to cryptic and obscure all traffic.",
+      "The ability to classify the Pods as isolated and non isolated.",
+      "The ability to prevent loopback or incoming host traffic.",
+      "The ability to log network security events."
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **The ability to classify the Pods as isolated and non isolated**. NetworkPolicies in Kubernetes control how Pods communicate with each other and other network endpoints, defining allowed ingress and egress traffic. (Reference: https://kubernetes.io/docs/concepts/services-networking/network-policies/)"
+  },
+  {
+    "id": 154,
+    "question": "What are the most important resources to guarantee the performance of an etcd cluster?",
+    "options": [
+      "CPU and disk capacity.",
+      "Network throughput and disk I/O.",
+      "CPU and RAM memory.",
+      "Network throughput and CPU."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Network throughput and CPU**. etcd performance depends heavily on network latency and CPU speed since it is a distributed key-value store that relies on consistent replication. (Reference: https://etcd.io/docs/v3.5/op-guide/performance/)"
+  },
+  {
+    "id": 155,
+    "question": "How do you deploy a workload to Kubernetes without additional tools?",
+    "options": [
+      "Create a Bash script and run it on a worker node.",
+      "Create a Helm Chart and install it with helm.",
+      "Create a manifest and apply it with kubectl.",
+      "Create a Python script and run it with kubectl."
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **Create a manifest and apply it with kubectl**. The most direct method to deploy workloads in Kubernetes is by creating YAML manifests (like Deployments or Pods) and applying them with `kubectl apply -f`. (Reference: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/declarative-config/)"
+  },
+  {
+    "id": 156,
+    "question": "How do you perform a command in a running container of a Pod?",
+    "options": [
+      "kubectl exec --",
+      "docker exec",
+      "kubectl run --",
+      "kubectl attach -i"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **kubectl exec --**. This command allows you to execute arbitrary commands inside a running container in a Pod, similar to 'docker exec'. Example: `kubectl exec -it <pod-name> -- /bin/sh`. (Reference: https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/)"
+  },
+  {
+    "id": 157,
+    "question": "How to create a headless service?",
+    "options": [
+      "By specifying .spec.ClusterIP: headless",
+      "By specifying .spec.clusterIP: None",
+      "By specifying .spec.ClusterIP: 0.0.0.0",
+      "By specifying .spec.ClusterIP: localhost"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **By specifying .spec.clusterIP: None**. Headless Services in Kubernetes are created by setting `clusterIP: None`, which disables load balancing and allows direct DNS resolution to individual Pods. (Reference: https://kubernetes.io/docs/concepts/services-networking/service/#headless-services)"
+  },
+  {
+    "id": 158,
+    "question": "How does dynamic storage provisioning work?",
+    "options": [
+      "A user requests dynamically provisioned storage by including an existing storage class in their PersistentVolumeClaim.",
+      "An administrator creates a storage class and includes it in their pod YAML definition file without creating a PersistentVolumeClaim.",
+      "A pod requests dynamically provisioned storage by including a storage class and the pod name in their PersistentVolumeClaim.",
+      "An administrator creates a PersistentVolume and includes the name of the PersistentVolume in their pod YAML definition file."
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **A user requests dynamically provisioned storage by including an existing storage class in their PersistentVolumeClaim**. Kubernetes automatically creates a PersistentVolume from the specified StorageClass when the PVC is applied. (Reference: https://kubernetes.io/docs/concepts/storage/dynamic-provisioning/)"
+  },
+  {
+    "id": 159,
+    "question": "Which of the following are tasks performed by a container orchestration tool?",
+    "options": [
+      "Schedule, scale, and manage the health of containers.",
+      "Create images, scale, and manage the health of containers.",
+      "Debug applications, and manage the health of containers.",
+      "Store images, scale, and manage the health of containers."
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Schedule, scale, and manage the health of containers**. Container orchestration tools like Kubernetes handle automated deployment, scaling, networking, and health monitoring of containers. (Reference: https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/)"
+  },
+  {
+    "id": 160,
+    "question": "CI/CD stands for:",
+    "options": [
+      "Continuous Information / Continuous Development",
+      "Continuous Integration / Continuous Development",
+      "Cloud Integration / Cloud Development",
+      "Continuous Integration / Continuous Deployment"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Continuous Integration / Continuous Deployment**. CI/CD is a DevOps practice where code changes are automatically built, tested, and deployed to production environments. (Reference: https://www.redhat.com/en/topics/devops/what-is-ci-cd)"
+  },
+  {
+    "id": 161,
+    "question": "Which of the following is a definition of Hybrid Cloud?",
+    "options": [
+      "An architecture that uses a combination of services running in public and private data centers, only including data centers from the same cloud provider.",
+      "A cloud native architecture that uses a combination of services running in public clouds, excluding data centers in different availability zones.",
+      "A cloud native architecture that uses a combination of services running in different public and private clouds, including on-premises data centers.",
+      "An architecture that uses a combination of services running in public and private data centers, excluding serverless functions."
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **A cloud native architecture that uses a combination of services running in different public and private clouds, including on-premises data centers**. Hybrid Cloud combines on-premises (private) infrastructure with public cloud environments for flexibility and scalability. (Reference: https://azure.microsoft.com/en-us/resources/cloud-computing-dictionary/what-is-hybrid-cloud/)"
+  },
+  {
+    "id": 162,
+    "question": "What is a Kubernetes Service Endpoint?",
+    "options": [
+      "It is the API Endpoint of our Kubernetes cluster.",
+      "It is a name of special Pod in kube-system namespace.",
+      "It is an IP address that we can access from the Internet.",
+      "It is an object that gets IP addresses of individual Pods assigned to it."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **It is an object that gets IP addresses of individual Pods assigned to it**. Endpoints map a Service to the set of Pods that implement it by storing their IPs. (Reference: https://kubernetes.io/docs/concepts/services-networking/service/#endpoints)"
+  },
+  {
+    "id": 163,
+    "question": "Why is Cloud-Native Architecture important?",
+    "options": [
+      "Cloud Native Architecture revolves around containers, microservices and pipelines.",
+      "Cloud Native Architecture removes constraints to rapid innovation.",
+      "Cloud Native Architecture is modern for application deployment and pipelines.",
+      "Cloud Native Architecture is a bleeding edge technology and service."
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Cloud Native Architecture removes constraints to rapid innovation**. Cloud-native design promotes agility, scalability, and resilience by leveraging microservices and container orchestration. (Reference: https://cncf.io/)"
+  },
+  {
+    "id": 164,
+    "question": "Which Kubernetes component is the smallest deployable unit of computing?",
+    "options": [
+      "StatefulSet",
+      "Deployment",
+      "Pod",
+      "Container"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **Pod**. A Pod is the smallest deployable unit in Kubernetes, representing a group of one or more containers that share storage, networking, and configuration. (Reference: https://kubernetes.io/docs/concepts/workloads/pods/)"
+  },
+  {
+    "id": 165,
+    "question": "Which are the two primary modes for Service discovery within a Kubernetes cluster?",
+    "options": [
+      "Environment variables and DNS",
+      "API Calls and LDAP",
+      "Labels and Radius",
+      "Selectors and DHCP"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Environment variables and DNS**. Kubernetes provides Service discovery using automatically injected environment variables and internal DNS records that map Service names to IPs. (Reference: https://kubernetes.io/docs/concepts/services-networking/service/#discovering-services)"
+  },
+  {
+    "id": 166,
+    "question": "Which of the following capabilities are you allowed to add to a container using the Restricted policy?",
+    "options": [
+      "CHOWN",
+      "SYS_CHROOT",
+      "SETUID",
+      "NET_BIND_SERVICE"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **NET_BIND_SERVICE**. Under the Kubernetes Pod Security 'restricted' policy, most Linux capabilities are disallowed, but NET_BIND_SERVICE (binding to ports below 1024) is permitted. (Reference: https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted)"
+  },
+  {
+    "id": 167,
+    "question": "What methods can you use to scale a deployment?",
+    "options": [
+      "With kubectl edit deployment exclusively.",
+      "With kubectl scale-up deployment exclusively.",
+      "With kubectl scale deployment and kubectl edit deployment.",
+      "With kubectl scale deployment exclusively."
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **With kubectl scale deployment and kubectl edit deployment**. You can scale Deployments using `kubectl scale --replicas=<num>` or by editing the manifest directly via `kubectl edit deployment`. (Reference: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment)"
+  },
+  {
+    "id": 168,
+    "question": "Which is an industry-standard container runtime with an 'emphasis' on simplicity, robustness, and portability?",
+    "options": [
+      "cri-o",
+      "lxd",
+      "containerd",
+      "kata-runtime"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **containerd**. It is a CNCF-graduated container runtime that focuses on simplicity, portability, and robustness, forming the backbone of Docker and Kubernetes. (Reference: https://containerd.io/)"
+  },
+  {
+    "id": 169,
+    "question": "What default level of protection is applied to the data in Secrets in the Kubernetes API?",
+    "options": [
+      "The values use AES Symmetric Encryption",
+      "The values are stored in plain text",
+      "The values are encoded with SHA256 hashes",
+      "The values are base64 encoded"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **The values are base64 encoded**. By default, Kubernetes Secrets are only base64-encoded, not encrypted. Encryption at rest must be explicitly configured. (Reference: https://kubernetes.io/docs/concepts/configuration/secret/)"
+  },
+  {
+    "id": 170,
+    "question": "What does vertical scaling an application deployment describe best?",
+    "options": [
+      "The act of adding/removing applications to meet demand.",
+      "The act of adding/removing node instances to the cluster to meet demand.",
+      "The act of adding/removing resources to applications to meet demand.",
+      "The act of adding/removing application instances of the same application to meet demand."
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **The act of adding/removing resources to applications to meet demand**. Vertical scaling means changing the resource limits (CPU, memory) of existing Pods, while horizontal scaling adds/removes Pods. (Reference: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)"
+  },
+  {
+    "id": 171,
+    "question": "What is Serverless computing?",
+    "options": [
+      "A computing method of providing backend services on an as-used basis.",
+      "A computing method of providing services for AI and ML operating systems.",
+      "A computing method of providing services for quantum computing operating systems.",
+      "A computing method of providing services for cloud computing operating systems."
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **A computing method of providing backend services on an as-used basis**. Serverless computing allows developers to build and run applications without managing servers. The cloud provider dynamically manages infrastructure and scales based on demand. (Reference: https://aws.amazon.com/serverless/)"
+  },
+  {
+    "id": 172,
+    "question": "What is the purpose of the CRI?",
+    "options": [
+      "To provide runtime integration control when multiple runtimes are used.",
+      "Support container replication and scaling on nodes.",
+      "Provide an interface allowing Kubernetes to support pluggable container runtimes.",
+      "Allow the definition of dynamic resource criteria across containers."
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **Provide an interface allowing Kubernetes to support pluggable container runtimes**. The Container Runtime Interface (CRI) is a standard API for Kubernetes to interact with different container runtimes like containerd or CRI-O. (Reference: https://kubernetes.io/docs/concepts/containers/runtime-class/)"
+  },
+  {
+    "id": 173,
+    "question": "In CNCF, who develops specifications for industry standards around container formats and runtimes?",
+    "options": [
+      "Open Container Initiative (OCI)",
+      "Linux Foundation Certification Group (LFCG)",
+      "Container Network Interface (CNI)",
+      "Container Runtime Interface (CRI)"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Open Container Initiative (OCI)**. OCI is an open governance structure under the Linux Foundation that defines standards for container image formats and runtimes. (Reference: https://opencontainers.org/)"
+  },
+  {
+    "id": 174,
+    "question": "Which of the following options includes valid API versions?",
+    "options": [
+      "alpha1v1, beta3v3, v2",
+      "alpha1, beta3, v2",
+      "v1alpha1, v2beta3, v2",
+      "v1alpha1, v2beta3, 2.0"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **v1alpha1, v2beta3, v2**. Kubernetes API versions follow the format `<group>/<version>` with suffixes such as alpha or beta to indicate maturity levels. (Reference: https://kubernetes.io/docs/reference/using-api/api-overview/#api-versioning)"
+  },
+  {
+    "id": 175,
+    "question": "Which of the following will view the snapshot of previously terminated ruby container logs from Pod web-1?",
+    "options": [
+      "kubectl logs -p -c ruby web-1",
+      "kubectl logs -r ruby web-1",
+      "kubectl logs -p ruby web-1",
+      "kubectl logs -p -c web-1 ruby"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **kubectl logs -p -c ruby web-1**. The `-p` flag retrieves logs from a previously terminated container, and `-c` specifies the container name. (Reference: https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#logs)"
+  },
+  {
+    "id": 176,
+    "question": "A Kubernetes ____ is an abstraction that defines a logical set of Pods and a policy by which to access them.",
+    "options": [
+      "Selector",
+      "Controller",
+      "Service",
+      "Job"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **Service**. In Kubernetes, a Service defines a logical set of Pods and a policy by which they can be accessed—typically through a stable IP and DNS name. (Reference: https://kubernetes.io/docs/concepts/services-networking/service/)"
+  },
+  {
+    "id": 177,
+    "question": "How many hosts are required to set up a highly available Kubernetes cluster when using an external etcd topology?",
+    "options": [
+      "Four hosts. Two for control plane nodes and two for etcd nodes.",
+      "Four hosts. One for a control plane node and three for etcd nodes.",
+      "Three hosts. The control plane nodes and etcd nodes share the same host.",
+      "Six hosts. Three for control plane nodes and three for etcd nodes."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Six hosts. Three for control plane nodes and three for etcd nodes.** A highly available Kubernetes setup using an external etcd cluster typically requires three control plane nodes and three separate etcd nodes to ensure quorum and fault tolerance. (Reference: https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/ha-topology/)"
+  }
+]

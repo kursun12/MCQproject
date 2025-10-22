@@ -1,0 +1,422 @@
+[
+  {
+    "id": 121,
+    "question": "What component enables end users, different parts of the Kubernetes cluster, and external components to communicate with one another?",
+    "options": [
+      "kubectl",
+      "AWS Management Console",
+      "Kubernetes API",
+      "Google Cloud SDK"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **Kubernetes API**. The Kubernetes API server (kube-apiserver) is the central management point of the cluster that handles communication between users, control plane components, and external integrations. (Reference: Kubernetes API Overview – https://kubernetes.io/docs/concepts/overview/kubernetes-api/)"
+  },
+  {
+    "id": 122,
+    "question": "Which command will list the resource types that exist within a cluster?",
+    "options": [
+      "kubectl api-resources",
+      "kubectl get namespaces",
+      "kubectl api-versions",
+      "curl https://kubectl/namespaces"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **kubectl api-resources**. This command lists all resource types available in the cluster along with their API groups, short names, and whether they are namespaced. (Reference: kubectl CLI Reference – https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#api-resources)"
+  },
+  {
+    "id": 123,
+    "question": "Which of these components is part of the Kubernetes Control Plane?",
+    "options": [
+      "coredns",
+      "cloud-controller-manager",
+      "kube-proxy",
+      "kubelet"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **cloud-controller-manager**. It’s a control plane component that allows Kubernetes to interact with the underlying cloud provider APIs, managing cloud resources like load balancers and volumes. (Reference: Kubernetes Components – https://kubernetes.io/docs/concepts/overview/components/)"
+  },
+  {
+    "id": 124,
+    "question": "Which of the following systems is NOT compatible with the CRI runtime interface standard?",
+    "options": [
+      "CRI-O",
+      "dockershim",
+      "systemd",
+      "containerd"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **dockershim**. Dockershim was a legacy integration between Docker and Kubernetes that did not fully conform to the CRI (Container Runtime Interface) standard and was deprecated in Kubernetes v1.24. (Reference: Kubernetes Dockershim Removal – https://kubernetes.io/blog/2022/05/03/dockershim-has-been-removed/)"
+  },
+  {
+    "id": 125,
+    "question": "What is a key feature of a container network?",
+    "options": [
+      "Proxying REST requests across a set of containers.",
+      "Allowing containers running on separate hosts to communicate.",
+      "Allowing containers on the same host to communicate.",
+      "Caching remote disk access."
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Allowing containers running on separate hosts to communicate**. Container networking ensures connectivity across nodes in a cluster using network overlays or CNIs like Calico and Flannel. (Reference: Kubernetes Networking – https://kubernetes.io/docs/concepts/cluster-administration/networking/)"
+  },
+  {
+    "id": 126,
+    "question": "How can you monitor the progress for an updated Deployment/DaemonSets/StatefulSets?",
+    "options": [
+      "kubectl rollout watch",
+      "kubectl rollout progress",
+      "kubectl rollout state",
+      "kubectl rollout status"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **kubectl rollout status**. This command displays the current status of a rollout, allowing you to monitor progress for Deployments, DaemonSets, and StatefulSets. (Reference: kubectl rollout documentation – https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands#rollout)"
+  },
+  {
+    "id": 127,
+    "question": "What is the default value for authorization-mode in Kubernetes API server?",
+    "options": [
+      "--authorization-mode=RBAC",
+      "--authorization-mode=AlwaysAllow",
+      "--authorization-mode=AlwaysDeny",
+      "--authorization-mode=ABAC"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **--authorization-mode=AlwaysAllow**. By default, the API server allows all requests unless explicitly configured otherwise (e.g., RBAC or ABAC). In production clusters, RBAC is typically enabled for security. (Reference: Kubernetes API Server Options – https://kubernetes.io/docs/reference/access-authn-authz/authorization/)"
+  },
+  {
+    "id": 128,
+    "question": "What is the goal of load balancing?",
+    "options": [
+      "Automatically measure request performance across instances of an application.",
+      "Automatically distribute requests across different versions of an application.",
+      "Automatically distribute instances of an application across the cluster.",
+      "Automatically distribute requests across instances of an application."
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Automatically distribute requests across instances of an application**. Load balancing ensures even traffic distribution across multiple Pods or services to optimize performance and availability. (Reference: Kubernetes Services and Load Balancing – https://kubernetes.io/docs/concepts/services-networking/service/)"
+  },
+  {
+    "id": 129,
+    "question": "How are ReplicaSets and Deployments related?",
+    "options": [
+      "Deployments manage ReplicaSets and provide declarative updates to Pods.",
+      "ReplicaSets manage stateful applications, Deployments manage stateless applications.",
+      "Deployments are runtime instances of ReplicaSets.",
+      "ReplicaSets are subsets of Jobs and CronJobs which use imperative Deployments."
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Deployments manage ReplicaSets and provide declarative updates to Pods**. Deployments maintain and update ReplicaSets automatically during scaling or rolling updates. (Reference: Kubernetes Deployments – https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)"
+  },
+  {
+    "id": 130,
+    "question": "What factors influence the Kubernetes scheduler when it places Pods on nodes?",
+    "options": [
+      "Pod memory requests, node taints, and Pod affinity.",
+      "Pod labels, node labels, and request labels.",
+      "Node taints, node level, and Pod priority.",
+      "Pod priority, container command, and node labels."
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Pod memory requests, node taints, and Pod affinity**. The Kubernetes scheduler considers available resources, taints/tolerations, affinities, and anti-affinities when assigning Pods to nodes. (Reference: Kubernetes Scheduler – https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)"
+  },
+  {
+    "id": 131,
+    "question": "What is the core metric type in Prometheus used to represent a single numerical value that can go up and down?",
+    "options": [
+      "Summary",
+      "Counter",
+      "Histogram",
+      "Gauge"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Gauge**. In Prometheus, a Gauge represents a single numerical value that can arbitrarily go up and down, such as temperature, memory usage, or active connections. (Reference: Prometheus Metric Types – https://prometheus.io/docs/concepts/metric_types/)"
+  },
+  {
+    "id": 132,
+    "question": "What is the primary mechanism to identify grouped objects in a Kubernetes cluster?",
+    "options": [
+      "Custom Resources",
+      "Labels",
+      "Label Selector",
+      "Pod"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Labels**. Labels are key-value pairs attached to objects like Pods or Deployments and are used to organize and select subsets of resources. (Reference: Labels and Selectors – https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)"
+  },
+  {
+    "id": 133,
+    "question": "What is the name of the Kubernetes resource used to expose an application?",
+    "options": [
+      "Port",
+      "Service",
+      "DNS",
+      "Deployment"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Service**. A Kubernetes Service exposes a set of Pods as a network service, allowing stable access via ClusterIP, NodePort, or LoadBalancer. (Reference: Kubernetes Services – https://kubernetes.io/docs/concepts/services-networking/service/)"
+  },
+  {
+    "id": 134,
+    "question": "What is a DaemonSet?",
+    "options": [
+      "It’s a type of workload that ensures a specific set of nodes run a copy of a Pod.",
+      "It’s a type of workload responsible for maintaining a stable set of replica Pods running in any node.",
+      "It’s a type of workload that needs to be run periodically on a given schedule.",
+      "It’s a type of workload that provides guarantees about ordering, uniqueness, and identity of a set of Pods."
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **It’s a type of workload that ensures a specific set of nodes run a copy of a Pod**. DaemonSets are used to run background processes like log collectors or monitoring agents on every node. (Reference: DaemonSet Overview – https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/)"
+  },
+  {
+    "id": 135,
+    "question": "What is the telemetry component that represents a series of related distributed events that encode the end-to-end request flow through a distributed system?",
+    "options": [
+      "Metrics",
+      "Logs",
+      "Spans",
+      "Traces"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **Traces**. In distributed tracing, traces represent the entire request path across microservices, consisting of multiple spans. (Reference: CNCF Observability and OpenTelemetry – https://opentelemetry.io/docs/concepts/signals/traces/)"
+  },
+  {
+    "id": 136,
+    "question": "In the Kubernetes platform, which component is responsible for running containers?",
+    "options": [
+      "etcd",
+      "CRI-O",
+      "cloud-controller-manager",
+      "kube-controller-manager"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **CRI-O**. CRI-O is a lightweight container runtime that implements the Kubernetes Container Runtime Interface (CRI), responsible for running containers as defined in Pod specifications. (Reference: https://kubernetes.io/docs/setup/production-environment/container-runtimes/)"
+  },
+  {
+    "id": 137,
+    "question": "Services and Pods in Kubernetes are _____ objects.",
+    "options": [
+      "JSON",
+      "YAML",
+      "Java",
+      "REST"
+    ],
+    "answer": [
+      3
+    ],
+    "explanation": "The correct answer is **REST**. Kubernetes resources like Pods and Services are exposed and managed through the Kubernetes API, which is a RESTful interface. (Reference: https://kubernetes.io/docs/concepts/overview/kubernetes-api/)"
+  },
+  {
+    "id": 138,
+    "question": "An organization needs to process large amounts of data in bursts each Monday morning in a cloud-based Kubernetes cluster. What’s the most cost-effective method?",
+    "options": [
+      "Run a group of nodes with the exact required size and use taints/tolerations.",
+      "Leverage the Kubernetes Cluster Autoscaler to automatically start and stop nodes as they’re needed.",
+      "Commit to a specific level of spending to get discounted prices.",
+      "Use PriorityClasses to give batch jobs priority over other workloads."
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Leverage the Kubernetes Cluster Autoscaler**. Autoscaling nodes up and down based on demand ensures efficient cost management while handling temporary spikes in workload. (Reference: https://kubernetes.io/docs/concepts/cluster-administration/cluster-autoscaler/)"
+  },
+  {
+    "id": 139,
+    "question": "What Kubernetes component handles network communications inside and outside of a cluster, using OS-level packet filtering if available?",
+    "options": [
+      "kube-proxy",
+      "kubelet",
+      "etcd",
+      "kube-controller-manager"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **kube-proxy**. Kube-proxy maintains network rules on nodes to handle routing and load balancing for services, often using iptables or IPVS. (Reference: https://kubernetes.io/docs/concepts/services-networking/service/#kube-proxy)"
+  },
+  {
+    "id": 140,
+    "question": "What Kubernetes control plane component exposes the programmatic interface used to create, manage, and interact with Kubernetes objects?",
+    "options": [
+      "kube-controller-manager",
+      "kube-proxy",
+      "kube-apiserver",
+      "etcd"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **kube-apiserver**. The API server serves as the front-end of the Kubernetes control plane, handling all REST requests for object management and communication between components. (Reference: https://kubernetes.io/docs/concepts/overview/components/#kube-apiserver)"
+  },
+  {
+    "id": 141,
+    "question": "Which type of Service requires manual creation of Endpoints?",
+    "options": [
+      "LoadBalancer",
+      "Services without selectors",
+      "NodePort",
+      "ClusterIP with selectors"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Services without selectors**. In Kubernetes, Services without selectors do not automatically create Endpoints — you must manually define them to link the Service to the target Pods or external resources. (Reference: https://kubernetes.io/docs/concepts/services-networking/service/#services-without-selectors)"
+  },
+  {
+    "id": 142,
+    "question": "Which of these commands is used to retrieve the documentation and field definitions for a Kubernetes resource?",
+    "options": [
+      "kubectl explain",
+      "kubectl api-resources",
+      "kubectl get --help",
+      "kubectl show"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **kubectl explain**. This command provides documentation for Kubernetes API resources and their fields directly from the cluster’s API server. (Reference: https://kubernetes.io/docs/reference/kubectl/cheatsheet/#exploring-api-resources)"
+  },
+  {
+    "id": 143,
+    "question": "Which of the following is a lightweight tool that manages traffic flows between services, enforces access policies, and aggregates telemetry data, all without requiring changes to application code?",
+    "options": [
+      "NetworkPolicy",
+      "Linkerd",
+      "kube-proxy",
+      "Nginx"
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Linkerd**. Linkerd is a lightweight, open-source service mesh that handles traffic management, observability, and security between microservices transparently. (Reference: https://linkerd.io/what-is-linkerd/)"
+  },
+  {
+    "id": 144,
+    "question": "Which Kubernetes resource uses immutable: true boolean field?",
+    "options": [
+      "Deployment",
+      "Pod",
+      "ConfigMap",
+      "ReplicaSet"
+    ],
+    "answer": [
+      2
+    ],
+    "explanation": "The correct answer is **ConfigMap**. Kubernetes ConfigMaps and Secrets support the `immutable: true` field, which prevents accidental modifications and improves performance. (Reference: https://kubernetes.io/docs/concepts/configuration/configmap/#configmap-immutability)"
+  },
+  {
+    "id": 145,
+    "question": "Which statement about the Kubernetes network model is correct?",
+    "options": [
+      "Pods can only communicate with Pods exposed via a Service.",
+      "Pods can communicate with all Pods without NAT.",
+      "The Pod IP is only visible inside a Pod.",
+      "The Service IP is used for the communication between Services."
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Pods can communicate with all Pods without NAT**. Kubernetes’ flat network model ensures that every Pod can reach every other Pod directly across Nodes, without network address translation. (Reference: https://kubernetes.io/docs/concepts/cluster-administration/networking/#the-kubernetes-network-model)"
+  },
+  {
+    "id": 146,
+    "question": "What is the resource type used to package sets of containers for scheduling in a cluster?",
+    "options": [
+      "Pod",
+      "ContainerSet",
+      "ReplicaSet",
+      "Deployment"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Pod**. A Pod is the smallest deployable unit in Kubernetes and is used to package one or more containers that share storage, networking, and specifications for how to run. (Reference: https://kubernetes.io/docs/concepts/workloads/pods/)"
+  },
+  {
+    "id": 147,
+    "question": "Can a Kubernetes Service expose multiple ports?",
+    "options": [
+      "No, you can only expose one port per each Service.",
+      "Yes, but you must specify an unambiguous name for each port.",
+      "Yes, the only requirement is to use different port numbers.",
+      "No, because the only port you can expose is port number 443."
+    ],
+    "answer": [
+      1
+    ],
+    "explanation": "The correct answer is **Yes, but you must specify an unambiguous name for each port**. Kubernetes allows Services to expose multiple ports as long as each has a unique name for reference. (Reference: https://kubernetes.io/docs/concepts/services-networking/service/#multi-port-services)"
+  },
+  {
+    "id": 148,
+    "question": "Which persona is normally responsible for defining, testing, and running an incident management process?",
+    "options": [
+      "Site Reliability Engineers",
+      "Project Managers",
+      "Application Developers",
+      "Quality Engineers"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Site Reliability Engineers (SREs)**. SREs are responsible for maintaining system reliability and availability, including handling incidents, running postmortems, and improving incident response processes. (Reference: Google SRE Book – https://sre.google/sre-book/incident-response/)"
+  },
+  {
+    "id": 149,
+    "question": "What is a Kubernetes service with no cluster IP address called?",
+    "options": [
+      "Headless Service",
+      "Nodeless Service",
+      "IPLess Service",
+      "Specless Service"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Headless Service**. A Headless Service (`clusterIP: None`) does not assign a ClusterIP and allows direct client access to individual Pod IPs for advanced discovery use cases. (Reference: https://kubernetes.io/docs/concepts/services-networking/service/#headless-services)"
+  },
+  {
+    "id": 150,
+    "question": "What is the default deployment strategy in Kubernetes?",
+    "options": [
+      "Rolling update",
+      "Blue/Green deployment",
+      "Canary deployment",
+      "Recreate deployment"
+    ],
+    "answer": [
+      0
+    ],
+    "explanation": "The correct answer is **Rolling update**. Kubernetes Deployments use the rolling update strategy by default, allowing gradual replacement of old Pods with new ones without downtime. (Reference: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#rolling-update-deployment)"
+  }
+]
