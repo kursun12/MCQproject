@@ -9,6 +9,10 @@ function uniqueSortedAnswers(rawAnswers = [], optionLength = 0) {
     ? rawAnswers.answer
     : Number.isFinite(rawAnswers?.answer)
     ? [rawAnswers.answer]
+    : Array.isArray(rawAnswers?.correct)
+    ? rawAnswers.correct
+    : Number.isFinite(rawAnswers?.correct)
+    ? [rawAnswers.correct]
     : [];
   return Array.from(new Set(answers))
     .filter((value) => Number.isInteger(value) && value >= 0 && value < optionLength)
@@ -16,16 +20,33 @@ function uniqueSortedAnswers(rawAnswers = [], optionLength = 0) {
 }
 
 export function normalizeQuestion(rawQuestion, idFactory = generateId) {
-  const options = Array.isArray(rawQuestion?.options) ? [...rawQuestion.options] : [];
-  const answers = uniqueSortedAnswers(rawQuestion, options.length);
+  const {
+    id,
+    question = '',
+    options: rawOptions,
+    explanation = '',
+    image = '',
+    answers: rawAnswers,
+    answer: rawAnswer,
+    correct: rawCorrect,
+    ...rest
+  } = rawQuestion || {};
+  delete rest.setIds;
+  const options = Array.isArray(rawOptions) ? [...rawOptions] : [];
+  const answers = uniqueSortedAnswers(
+    { answers: rawAnswers, answer: rawAnswer, correct: rawCorrect },
+    options.length,
+  );
+
   return {
-    id: rawQuestion?.id ?? idFactory(),
-    question: rawQuestion?.question ?? '',
+    ...rest,
+    id: id ?? idFactory(),
+    question,
     options,
     answers,
     answer: answers.length > 0 ? answers[0] : 0,
-    explanation: rawQuestion?.explanation || '',
-    image: rawQuestion?.image || '',
+    explanation,
+    image,
   };
 }
 

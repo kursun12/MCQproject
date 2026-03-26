@@ -41,4 +41,27 @@ describe('RepeatEngine', () => {
     const third = eng.next();
     expect(third).toBeTruthy();
   });
+
+  it('treats legacy streak mastery as consecutive answers, not ratio windowing', () => {
+    localStorage.setItem('repeatAdaptiveSettings', JSON.stringify({
+      masteryType: 'streak',
+      target: 3,
+    }));
+
+    const eng = new RepeatEngine([{ id: 'q1' }], ['q1'], { filterMastered: false });
+
+    eng.onShow('q1');
+    eng.onGrade('q1', true);
+    eng.onShow('q1');
+    eng.onGrade('q1', false);
+    eng.onShow('q1');
+    eng.onGrade('q1', true);
+    eng.onShow('q1');
+    eng.onGrade('q1', true);
+
+    expect(eng.settings.masteryType).toBe('consecutive');
+    expect(eng.stats.q1.correctStreak).toBe(2);
+    expect(eng.stats.q1.window).toEqual([1, 0, 1, 1]);
+    expect(eng.stats.q1.mastered).toBe(false);
+  });
 });

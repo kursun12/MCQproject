@@ -12,7 +12,10 @@ const sampleQuestion = {
 
 describe('importUtils', () => {
   it('normalises question shape and filters invalid answers', () => {
-    const normalized = normalizeQuestion({ ...sampleQuestion, answers: [0, 5, '2'] }, () => 'g1');
+    const normalized = normalizeQuestion(
+      { ...sampleQuestion, answers: [0, 5, '2'], tags: ['secops'], difficulty: 'hard' },
+      () => 'g1',
+    );
     expect(normalized).toMatchObject({
       id: 1,
       question: 'Q?',
@@ -21,7 +24,30 @@ describe('importUtils', () => {
       answer: 0,
       explanation: 'Because',
       image: 'img.png',
+      tags: ['secops'],
+      difficulty: 'hard',
     });
+  });
+
+  it('supports legacy correct fields while keeping extra metadata', () => {
+    const normalized = normalizeQuestion({
+      question: 'Legacy',
+      options: ['A', 'B', 'C'],
+      correct: [2, 1],
+      tags: ['legacy'],
+      difficulty: 'medium',
+      type: 'hotspot',
+    }, () => 'g1');
+
+    expect(normalized).toMatchObject({
+      id: 'g1',
+      answers: [1, 2],
+      answer: 1,
+      tags: ['legacy'],
+      difficulty: 'medium',
+      type: 'hotspot',
+    });
+    expect(normalized).not.toHaveProperty('correct');
   });
 
   it('ensures unique ids when collisions occur', () => {

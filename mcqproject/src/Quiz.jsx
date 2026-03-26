@@ -8,6 +8,7 @@ import { useCertification } from './context/CertificationContext.jsx';
 import { RepeatEngine } from './repeat/engine';
 import { loadKeymap } from './utils/keymap.js';
 import { buildQuestionPool, shuffleArray } from './utils/quizBuilder.js';
+import { getAnswerLetters, getQuestionAnswers } from './utils/question.js';
 
 function QuizSetup({ mode }) {
   const navigate = useNavigate();
@@ -656,15 +657,7 @@ const allQuestionsRef = useRef([]);
 
   const retryIncorrect = () => {
     const incorrect = questions.filter((q, i) => {
-      const corr = Array.isArray(q.correct)
-        ? q.correct
-        : Array.isArray(q.answers)
-        ? q.answers
-        : Array.isArray(q.answer)
-        ? q.answer
-        : Number.isFinite(q.answer)
-        ? [q.answer]
-        : [];
+      const corr = getQuestionAnswers(q);
       const sel = Array.isArray(answers[i]) ? answers[i] : [];
       const ok = sel.length === corr.length && corr.every((n) => sel.includes(n));
       return !ok;
@@ -1017,8 +1010,8 @@ export default Quiz;
 function exportResultsCSV(questions, answers){
   let csv='Question,YourAnswer,Correct,Explanation\n';
   questions.forEach((q,i)=>{
-    const sel=(answers[i]||[]).map(n=>String.fromCharCode(65+n)).join('');
-    const ans=(Array.isArray(q.answers)?q.answers:Array.isArray(q.answer)?q.answer:[q.answer]).map(n=>String.fromCharCode(65+n)).join('');
+    const sel = getAnswerLetters(answers[i] || []).join('');
+    const ans = getAnswerLetters(getQuestionAnswers(q)).join('');
     csv+=`"${q.question.replace(/"/g,'""')}",${sel},${ans},"${(q.explanation||'').replace(/"/g,'""')}"\n`;
   });
   const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='results.csv'; a.click();

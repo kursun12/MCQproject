@@ -166,7 +166,7 @@ function Settings() {
                 onChange={(e) => setRepeatCfg({ ...repeatCfg, masteryType: e.target.value })}
               >
                 <option value="consecutive">Consecutive</option>
-                <option value="streak">Streak</option>
+                <option value="ratio">3 of last 4</option>
               </select>
             </div>
             <div className="settings-field">
@@ -175,8 +175,8 @@ function Settings() {
                 id="settings-target"
                 type="number"
                 min="1"
-                value={repeatCfg.target}
-                onChange={(e) => setRepeatCfg({ ...repeatCfg, target: Number(e.target.value) || 1 })}
+                value={repeatCfg.masteryTarget}
+                onChange={(e) => setRepeatCfg({ ...repeatCfg, masteryTarget: Number(e.target.value) || 1 })}
               />
             </div>
             <div className="settings-field">

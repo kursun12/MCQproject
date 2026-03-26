@@ -27,12 +27,19 @@ test('click-all exploratory pass keeps UI stable', async ({ page }) => {
       ]);
     }
 
-    const elements = page.locator('button, [role="button"]');
-    const total = await elements.count();
     let clicks = 0;
-    for (let index = 0; index < total && clicks < MAX_INTERACTIONS; index += 1) {
+    for (let index = 0; clicks < MAX_INTERACTIONS; index += 1) {
+      const elements = page.locator('button, [role="button"]');
+      const total = await elements.count();
+      if (index >= total) break;
       const control = elements.nth(index);
-      const label = (await control.getAttribute('aria-label')) || (await control.innerText()) || '';
+      let label = '';
+      try {
+        if (!(await control.isVisible())) continue;
+        label = (await control.getAttribute('aria-label')) || (await control.innerText()) || '';
+      } catch {
+        continue;
+      }
       const trimmed = label.trim();
       if (!trimmed || SKIP_PATTERN.test(trimmed)) continue;
       await control.scrollIntoViewIfNeeded();

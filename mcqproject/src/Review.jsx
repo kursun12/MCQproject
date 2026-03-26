@@ -3,7 +3,7 @@ import { useCertification } from './context/CertificationContext.jsx';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from './utils/toast.js';
 import { ensureKatex, renderMDKaTeX } from './utils/katex';
-import defaultQuestions from './questions';
+import { getAnswerLetters, getAnswerTexts, getQuestionAnswers } from './utils/question.js';
 
 function loadSession() {
   try {
@@ -211,8 +211,8 @@ export default function Review() {
   const exportCSV = () => {
     let csv = 'Question,YourAnswer,Correct,Explanation,Tags\n';
     (session.questions||[]).forEach((q, i) => {
-      const sel=(results[i]?.selected||[]).map(n=>String.fromCharCode(65+n)).join('');
-      const ans=(q.correct||[]).map(n=>String.fromCharCode(65+n)).join('');
+      const sel = getAnswerLetters(results[i]?.selected || []).join('');
+      const ans = getAnswerLetters(getQuestionAnswers(q)).join('');
       const tags=(q.tags||[]).join('|');
       csv += `"${q.question?.replace(/"/g,'""')}",${sel},${ans},"${(q.explanation||'').replace(/"/g,'""')}","${tags}"\n`;
     });
@@ -367,8 +367,8 @@ export default function Review() {
           {filtered.map((q) => {
             const idx = allQuestions.findIndex((x) => x.id === q.id);
             const res = results[idx];
-            const your = (res?.selected || []).map((n) => q.options[n]).join(', ');
-            const corr = (q.correct || []).map((n) => q.options[n]).join(', ');
+            const your = getAnswerTexts(q, res?.selected || []).join(', ');
+            const corr = getAnswerTexts(q, getQuestionAnswers(q)).join(', ');
             const snippet =
               q.question.length > 120
                 ? q.question.slice(0, 120) + '…'

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import Modal from './components/Modal.jsx';
 import { toast } from './utils/toast.js';
@@ -7,6 +7,7 @@ import { moveItem, remapAnswers, normalizeQuestion, prepareImport, ensureUniqueI
 import { apiClient } from './utils/apiClient.js';
 
 function ImportQuestions() {
+  const optionalApiConfigured = !import.meta.env.DEV || Boolean(import.meta.env.VITE_API_BASE_URL);
   const location = useLocation();
   const [questions, setQuestions] = useState([]);
   const [error, setError] = useState('');
@@ -60,11 +61,15 @@ function ImportQuestions() {
   const [showImportAssign, setShowImportAssign] = useState(false);
   const [serverSets, setServerSets] = useState([]);
   const [selectedServerSet, setSelectedServerSet] = useState('');
+  const [serverSetStatus, setServerSetStatus] = useState(optionalApiConfigured ? 'idle' : 'unavailable');
+  const [serverSetMessage, setServerSetMessage] = useState(
+    optionalApiConfigured
+      ? ''
+      : 'Server import is optional. Add VITE_API_BASE_URL or run the API to import server-hosted banks during local development.',
+  );
+  const serverFetchAttemptedRef = useRef(false);
   const prepareForImport = useCallback((incoming) => prepareImport(incoming, questions), [questions]);
   const generateUniqueBuffer = useCallback((incoming) => ensureUniqueIds(questions, incoming), [questions]);
-
-
-
 
   useEffect(() => {
     try {
@@ -85,19 +90,35 @@ function ImportQuestions() {
   }, []);
 
   useEffect(() => {
+    if (!optionalApiConfigured || serverFetchAttemptedRef.current) return;
+    serverFetchAttemptedRef.current = true;
+    setServerSetStatus('loading');
     apiClient
       .get('/api/questionsets')
       .then((data) => {
-        if (Array.isArray(data)) setServerSets(data);
+        if (Array.isArray(data)) {
+          setServerSets(data);
+          setServerSetStatus('ready');
+          setServerSetMessage(
+            data.length === 0
+              ? 'The server API is available but no server-hosted question banks were found.'
+              : '',
+          );
+          return;
+        }
+        setServerSetStatus('unavailable');
+        setServerSetMessage('The optional server API returned an unexpected response.');
       })
       .catch((err) => {
-        console.warn('Unable to load server question sets', err);
+        setServerSets([]);
+        setServerSetStatus('unavailable');
+        setServerSetMessage(
+          err?.status === 404
+            ? 'Server import is unavailable at this origin. Start the optional API or configure VITE_API_BASE_URL to enable it.'
+            : 'Unable to reach the optional server import API right now.',
+        );
       });
-  }, []);
-
-;
-
-
+  }, [optionalApiConfigured]);
 
   const persistQuestions = (updater) => {
     setQuestions((prev) => {
@@ -147,7 +168,7 @@ function ImportQuestions() {
   const importFromServer = async () => {
     if (showImportAssign || !selectedServerSet) return;
     try {
-      const parsed = await apiClient.get('/api/questionsets/' + selectedServerSet);
+      const parsed = await apiClient.get('/api/questionsets?name=' + encodeURIComponent(selectedServerSet));
       if (!Array.isArray(parsed)) throw new Error('Invalid format');
       const prepared = prepareForImport(parsed);
       setImportBuffer(prepared);
@@ -156,7 +177,7 @@ function ImportQuestions() {
       setError('');
     } catch (err) {
       console.error(err);
-      setError('Failed to import from server');
+      setError('Failed to import the selected server question bank');
     }
   };
 
@@ -260,15 +281,17 @@ function ImportQuestions() {
   };
 
   const toggleQuestionInSet = (setId, qId, checked) => {
+    const targetSet = sets.find((s) => String(s.id) === String(setId));
     const newSets = sets.map((s) => {
-      if (s.id !== setId) return s;
+      if (String(s.id) !== String(setId)) return s;
       const current = new Set(s.questionIds || []);
       if (checked) current.add(qId);
       else current.delete(qId);
       return { ...s, questionIds: Array.from(current) };
     });
     persistSets(newSets);
-    toast(checked? 'Added to set' : 'Removed from set');
+    const action = checked ? 'Added to' : 'Removed from';
+    toast(targetSet ? `${action} ${targetSet.name}` : checked ? 'Added to set' : 'Removed from set');
   };
 
   const toggleNewQSet = (setId, checked) => {
@@ -342,13 +365,17 @@ function ImportQuestions() {
     setSelectedIds(new Set());
   };
   const batchAssign = (setId) => {
+    const targetSet = sets.find((s) => String(s.id) === String(setId));
     const newSets = sets.map(s => {
-      if (s.id !== setId) return s;
+      if (String(s.id) !== String(setId)) return s;
       const current = new Set(s.questionIds || []);
       selectedIds.forEach(id => current.add(id));
       return { ...s, questionIds: Array.from(current) };
     });
     persistSets(newSets);
+    if (targetSet) {
+      toast(`Assigned ${selectedIds.size} question${selectedIds.size === 1 ? '' : 's'} to ${targetSet.name}`);
+    }
   };
 
   const removeDraftOption = (idx) => {
@@ -426,18 +453,29 @@ function ImportQuestions() {
             <button className="btn-outline" onClick={() => document.querySelector('#fileJson').click()}>📁 Import JSON</button>
             <input id="fileJson" type="file" accept=".json" onChange={handleFile} style={{display:'none'}} />
             <button className="btn-outline" onClick={()=>{ setShowPaste(true); setPasteError(''); }}>📋 Paste JSON</button>
-            {serverSets.length>0 && (
+            {serverSetStatus === 'ready' && serverSets.length > 0 && (
               <>
-                <select value={selectedServerSet} onChange={(e)=>setSelectedServerSet(e.target.value)}>
+                <select
+                  aria-label="Server question bank"
+                  value={selectedServerSet}
+                  onChange={(e)=>setSelectedServerSet(e.target.value)}
+                >
                   <option value="">Select set</option>
                   {serverSets.map((s)=>(<option key={s} value={s}>{s}</option>))}
                 </select>
                 <button className="btn-outline" onClick={importFromServer} disabled={!selectedServerSet}>🌐 Import</button>
               </>
             )}
+            {serverSetStatus === 'loading' && <span className="muted">Loading server banks…</span>}
+            {serverSetStatus === 'unavailable' && serverSetMessage && (
+              <span className="muted" role="status">{serverSetMessage}</span>
+            )}
+            {serverSetStatus === 'ready' && serverSets.length === 0 && serverSetMessage && (
+              <span className="muted" role="status">{serverSetMessage}</span>
+            )}
             <input type="search" placeholder="Search questions" value={search} onChange={(e)=>setSearch(e.target.value)} />
             {sets.length>0 && (
-              <select value={filterSet} onChange={(e)=>setFilterSet(e.target.value)}>
+              <select aria-label="Filter by set" value={filterSet} onChange={(e)=>setFilterSet(e.target.value)}>
                 <option value="">All sets</option>
                 {sets.map((s)=>(<option key={s.id} value={s.id}>{s.name}</option>))}
               </select>
@@ -453,7 +491,10 @@ function ImportQuestions() {
               <>
                 <button className="btn-danger" onClick={batchDelete}>Delete selected ({selectedIds.size})</button>
                 {sets.length>0 && (
-                  <select onChange={(e)=>{ const sid=Number(e.target.value); if(!sid) return; batchAssign(sid); e.target.value=''; }}>
+                  <select
+                    aria-label="Assign selected to set"
+                    onChange={(e)=>{ const sid=e.target.value; if(!sid) return; batchAssign(sid); e.target.value=''; }}
+                  >
                     <option value="">Assign selected to…</option>
                     {sets.map(s=>(<option key={s.id} value={s.id}>{s.name}</option>))}
                   </select>
@@ -484,7 +525,10 @@ function ImportQuestions() {
                     </div>
                     <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
                       {sets.length>0 && (
-                        <select onChange={(e)=>{ const sid=Number(e.target.value); if(!sid) return; toggleQuestionInSet(sid, q.id, true); e.target.value=''; }}>
+                        <select
+                          aria-label={`Assign question ${q.id} to set`}
+                          onChange={(e)=>{ const sid=e.target.value; if(!sid) return; toggleQuestionInSet(sid, q.id, true); e.target.value=''; }}
+                        >
                           <option value="">Assign to set…</option>
                           {sets.filter((s)=>!(s.questionIds||[]).includes(q.id)).map((s)=>(<option value={s.id} key={s.id}>{s.name}</option>))}
                         </select>
