@@ -150,8 +150,9 @@ function Settings() {
         <section className="settings-panel card">
           <h3>Data</h3>
           <p className="muted">Loaded questions: {loadedQuestionCount}</p>
-          <button className="btn-danger" onClick={clearQuestions}>
-            Clear All
+          <p className="muted">Clears the current local question library and reloads the app.</p>
+          <button type="button" className="btn-danger" onClick={clearQuestions}>
+            Clear question library
           </button>
         </section>
 

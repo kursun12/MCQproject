@@ -755,21 +755,21 @@ const allQuestionsRef = useRef([]);
         )}
         {mode==='challenge' && <p>Points: {points}</p>}
         <p>Best streak: {maxStreak}</p>
-        <div className="summary-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'10px',margin:'10px 0'}}>
-          <div className="card" style={{padding:'10px'}}>
+        <div className="summary-grid">
+          <div className="card summary-card">
             <div className="muted">Score</div>
             <div style={{fontSize:'1.3rem',fontWeight:700}}>{Math.round((score/questions.length)*100)}%</div>
           </div>
-          <div className="card" style={{padding:'10px'}}>
+          <div className="card summary-card">
             <div className="muted">Correct</div>
             <div style={{fontSize:'1.3rem',fontWeight:700}}>{score} / {questions.length}</div>
           </div>
-          <div className="card" style={{padding:'10px'}}>
+          <div className="card summary-card">
             <div className="muted">Time</div>
             <div style={{fontSize:'1.3rem',fontWeight:700}}>{formatTime(totalTime)}</div>
             <div className="muted" style={{fontSize:'.85rem'}}>Avg {avgTime.toFixed(1)}s / q</div>
           </div>
-          <div className="card" style={{padding:'10px'}}>
+          <div className="card summary-card">
             <div className="muted">Streak</div>
             <div style={{fontSize:'1.3rem',fontWeight:700}}>{maxStreak}</div>
           </div>
@@ -779,17 +779,17 @@ const allQuestionsRef = useRef([]);
           {maxStreak>=5 && <span className="badge" style={{marginLeft:6}}>Streak {maxStreak}🔥</span>}
           {points>=3000 && <span className="badge" style={{marginLeft:6}}>Fast Learner</span>}
         </div>
-        <div className="card" style={{overflow:'auto', marginTop:8, position:'relative'}}>
-          <div style={{position:'sticky', top:0, background:'var(--card-bg)', padding:'8px', display:'flex', gap:'8px', zIndex:1, borderBottom:'1px solid var(--border-color)', alignItems:'center', flexWrap:'wrap'}}>
-            <button onClick={restart}>Restart</button>
-            <button onClick={retryIncorrect}>Retry Incorrect</button>
+        <div className="card results-table-wrap">
+          <div className="results-toolbar">
+            <button type="button" onClick={restart}>Restart</button>
+            <button type="button" onClick={retryIncorrect}>Retry Incorrect</button>
             <button type="button" onClick={handleOpenReview}>Open Review</button>
-            <button className="btn-ghost" onClick={() => { exportResultsCSV(questions, answers); toast('Exported results.csv'); }}>Export CSV</button>
-            <button className="btn-ghost" onClick={() => exportStateJSON(questions, answers, mode, points)}>Export State</button>
+            <button type="button" className="btn-ghost" onClick={() => { exportResultsCSV(questions, answers); toast('Exported results.csv'); }}>Export CSV</button>
+            <button type="button" className="btn-ghost" onClick={() => exportStateJSON(questions, answers, mode, points)}>Export State</button>
             <label className="toggle" style={{marginLeft:'auto'}}>
               <input type="checkbox" checked={resIncorrectOnly} onChange={(e)=>setResIncorrectOnly(e.target.checked)} /> Incorrect only
             </label>
-            <input type="search" placeholder="Search" value={resSearch} onChange={(e)=>setResSearch(e.target.value)} />
+            <input aria-label="Search result rows" className="results-search" type="search" placeholder="Search" value={resSearch} onChange={(e)=>setResSearch(e.target.value)} />
           </div>
           <table style={{width:'100%', borderCollapse:'collapse'}}>
             <thead>
@@ -900,6 +900,7 @@ const allQuestionsRef = useRef([]);
             onClick={toggleBookmark}
             className="icon-btn"
             style={{ marginLeft: '0.5rem' }}
+            aria-label={bookmarks.has(question.id) ? 'Remove bookmark from question' : 'Bookmark question'}
             title="Bookmark"
           >
             {bookmarks.has(question.id) ? '★' : '☆'}
@@ -909,6 +910,7 @@ const allQuestionsRef = useRef([]);
             onClick={addNote}
             className="icon-btn"
             style={{ marginLeft: '0.25rem' }}
+            aria-label="Add note to question"
             title="Add note"
           >
             📝
@@ -918,6 +920,7 @@ const allQuestionsRef = useRef([]);
             onClick={editQuestion}
             className="icon-btn"
             style={{ marginLeft: '0.25rem' }}
+            aria-label="Edit question"
             title="Edit question"
           >
             ✏️

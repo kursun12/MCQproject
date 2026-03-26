@@ -28,6 +28,11 @@ function mockJsonResponse(payload, status = 200) {
   };
 }
 
+function expectAnyImportButtonEnabled() {
+  const buttons = screen.getAllByRole('button', { name: /Import JSON/i });
+  expect(buttons.some((button) => !button.disabled)).toBe(true);
+}
+
 describe('ImportQuestions optional API fallback', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -46,7 +51,7 @@ describe('ImportQuestions optional API fallback', () => {
     await renderImport();
 
     expect(await screen.findByText(/Server import is optional/i)).toBeVisible();
-    expect(screen.getByRole('button', { name: /Import JSON/i })).toBeEnabled();
+    expectAnyImportButtonEnabled();
     expect(screen.getByRole('searchbox')).toBeEnabled();
     expect(fetch).not.toHaveBeenCalled();
     expect(infoSpy).not.toHaveBeenCalled();
@@ -62,7 +67,7 @@ describe('ImportQuestions optional API fallback', () => {
     await renderImport();
 
     expect(await screen.findByText(/Unable to reach the optional server import API right now/i)).toBeVisible();
-    expect(screen.getByRole('button', { name: /Import JSON/i })).toBeEnabled();
+    expectAnyImportButtonEnabled();
     expect(screen.getByRole('searchbox')).toBeEnabled();
     expect(fetch).toHaveBeenCalledWith('http://127.0.0.1:39999/api/questionsets', {
       method: 'GET',
@@ -83,7 +88,7 @@ describe('ImportQuestions optional API fallback', () => {
     await renderImport();
 
     expect(await screen.findByText(/no server-hosted question banks were found/i)).toBeVisible();
-    expect(screen.getByRole('button', { name: /Import JSON/i })).toBeEnabled();
+    expectAnyImportButtonEnabled();
     expect(screen.getByRole('searchbox')).toBeEnabled();
     expect(
       infoSpy.mock.calls.some((call) => String(call[0]).includes('[api] GET http://127.0.0.1:41001/api/questionsets')),
@@ -100,7 +105,7 @@ describe('ImportQuestions optional API fallback', () => {
     await renderImport();
 
     expect(await screen.findByText(/returned an unexpected response/i)).toBeVisible();
-    expect(screen.getByRole('button', { name: /Import JSON/i })).toBeEnabled();
+    expectAnyImportButtonEnabled();
     expect(screen.getByRole('searchbox')).toBeEnabled();
     expect(
       infoSpy.mock.calls.some((call) => String(call[0]).includes('[api] GET http://127.0.0.1:41002/api/questionsets')),

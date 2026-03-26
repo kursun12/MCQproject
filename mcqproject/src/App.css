@@ -301,29 +301,32 @@ body.dark .nav {
 }
 .chip.status.correct {
   border-color: var(--success);
-  color: var(--success);
-  background: rgba(34, 197, 94, 0.1);
+  color: #166534;
+  background: rgba(34, 197, 94, 0.12);
 }
 .chip.status.incorrect {
   border-color: var(--danger);
-  color: var(--danger);
-  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.12);
 }
 .chip.status.unanswered {
   border-color: var(--border-color);
   background: rgba(148, 163, 184, 0.1);
 }
 .chip.difficulty.easy {
-  border-color: #22c55e;
-  color: #22c55e;
+  border-color: #15803d;
+  color: #166534;
+  background: rgba(34, 197, 94, 0.10);
 }
 .chip.difficulty.medium {
-  border-color: #eab308;
-  color: #eab308;
+  border-color: #a16207;
+  color: #854d0e;
+  background: rgba(234, 179, 8, 0.12);
 }
 .chip.difficulty.hard {
-  border-color: #ef4444;
-  color: #ef4444;
+  border-color: #b91c1c;
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.12);
 }
 
 .nav a.active {
@@ -360,6 +363,139 @@ body.dark .nav {
 
 .question-item button {
   margin-right: 0.5rem;
+}
+
+.question-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.question-row__main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.question-row__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.question-row__actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.review-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.review-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.review-header h2 {
+  margin-bottom: 0.25rem;
+}
+
+.review-header p {
+  margin: 0;
+}
+
+.review-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.review-sidebar-section h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.review-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.qc-header-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+  text-align: left;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+}
+
+.qc-header-btn:hover {
+  filter: none;
+  transform: none;
+}
+
+.qc-header-btn:focus-visible {
+  border-radius: 10px;
+}
+
+.review-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.summary-card {
+  padding: 10px;
+}
+
+.results-toolbar {
+  position: sticky;
+  top: 0;
+  background: var(--card-bg);
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  z-index: 1;
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.results-search {
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+
+.results-table-wrap {
+  overflow: auto;
+  margin-top: 8px;
+  position: relative;
 }
 
 .scoreboard {
@@ -399,6 +535,44 @@ body.dark .nav {
   .top-progress {
     width: 100%;
   }
+
+  .question-row {
+    align-items: stretch;
+  }
+
+  .question-row__main {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .question-row__actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .question-row__actions > * {
+    flex: 1 1 100%;
+  }
+
+  .review-toolbar > * {
+    flex: 1 1 calc(50% - 8px);
+  }
+
+  .review-toolbar select,
+  .review-toolbar button,
+  .results-toolbar button,
+  .results-toolbar label,
+  .results-search {
+    width: 100%;
+  }
+
+  .results-toolbar > * {
+    flex: 1 1 100%;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .error-boundary {
@@ -436,6 +610,12 @@ body.dark .nav {
 
 .error-boundary button:hover {
   opacity: 0.9;
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .debug-panel {
@@ -632,7 +812,13 @@ body.dark .nav {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 
+.settings-keymap label {
+  min-width: 0;
+}
+
 .settings-keymap input {
+  width: 100%;
+  box-sizing: border-box;
   text-transform: none;
 }
 

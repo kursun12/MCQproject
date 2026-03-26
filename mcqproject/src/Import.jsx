@@ -328,6 +328,8 @@ function ImportQuestions() {
       );
     });
   }, [search, filterSet, questions, questionAssignments, assignFilter]);
+  const hasQuestions = questions.length > 0;
+  const hasActiveLibraryFilters = Boolean(search.trim() || filterSet || assignFilter !== 'all');
 
   // ----- Draft autosave for New Question modal -----
   useEffect(() => {
@@ -441,18 +443,18 @@ function ImportQuestions() {
   return (
     <div className="card">
       <h2 style={{marginTop:0}}>Questions</h2>
-      <div className="tabs">
-        <button className={`tab ${activeTab==='library'?'active':''}`} onClick={()=>setActiveTab('library')}>Library</button>
-        <button className={`tab ${activeTab==='editor'?'active':''}`} onClick={()=>setActiveTab('editor')}>Editor</button>
-        <button className={`tab ${activeTab==='sets'?'active':''}`} onClick={()=>setActiveTab('sets')}>Sets</button>
+      <div className="tabs" role="tablist" aria-label="Question tools">
+        <button type="button" role="tab" aria-selected={activeTab==='library'} className={`tab ${activeTab==='library'?'active':''}`} onClick={()=>setActiveTab('library')}>Library</button>
+        <button type="button" role="tab" aria-selected={activeTab==='editor'} className={`tab ${activeTab==='editor'?'active':''}`} onClick={()=>setActiveTab('editor')}>Editor</button>
+        <button type="button" role="tab" aria-selected={activeTab==='sets'} className={`tab ${activeTab==='sets'?'active':''}`} onClick={()=>setActiveTab('sets')}>Sets</button>
       </div>
 
       {activeTab==='library' && (
         <div>
           <div className="toolbar">
-            <button className="btn-outline" onClick={() => document.querySelector('#fileJson').click()}>📁 Import JSON</button>
+            <button type="button" className="btn-outline" onClick={() => document.querySelector('#fileJson').click()}>📁 Import JSON</button>
             <input id="fileJson" type="file" accept=".json" onChange={handleFile} style={{display:'none'}} />
-            <button className="btn-outline" onClick={()=>{ setShowPaste(true); setPasteError(''); }}>📋 Paste JSON</button>
+            <button type="button" className="btn-outline" onClick={()=>{ setShowPaste(true); setPasteError(''); }}>📋 Paste JSON</button>
             {serverSetStatus === 'ready' && serverSets.length > 0 && (
               <>
                 <select
@@ -463,7 +465,7 @@ function ImportQuestions() {
                   <option value="">Select set</option>
                   {serverSets.map((s)=>(<option key={s} value={s}>{s}</option>))}
                 </select>
-                <button className="btn-outline" onClick={importFromServer} disabled={!selectedServerSet}>🌐 Import</button>
+                <button type="button" className="btn-outline" onClick={importFromServer} disabled={!selectedServerSet}>🌐 Import</button>
               </>
             )}
             {serverSetStatus === 'loading' && <span className="muted">Loading server banks…</span>}
@@ -473,23 +475,23 @@ function ImportQuestions() {
             {serverSetStatus === 'ready' && serverSets.length === 0 && serverSetMessage && (
               <span className="muted" role="status">{serverSetMessage}</span>
             )}
-            <input type="search" placeholder="Search questions" value={search} onChange={(e)=>setSearch(e.target.value)} />
+            <input aria-label="Search questions" type="search" placeholder="Search questions" value={search} onChange={(e)=>setSearch(e.target.value)} />
             {sets.length>0 && (
               <select aria-label="Filter by set" value={filterSet} onChange={(e)=>setFilterSet(e.target.value)}>
                 <option value="">All sets</option>
                 {sets.map((s)=>(<option key={s.id} value={s.id}>{s.name}</option>))}
               </select>
             )}
-            <select value={assignFilter} onChange={(e)=>setAssignFilter(e.target.value)} title="Assignment filter">
+            <select aria-label="Assignment filter" value={assignFilter} onChange={(e)=>setAssignFilter(e.target.value)} title="Assignment filter">
               <option value="all">All (assigned + unassigned)</option>
               <option value="assigned">Assigned only</option>
               <option value="unassigned">Unassigned only</option>
             </select>
             <span className="chip">Total: {questions.length}</span>
-            <button onClick={()=>{ setShowNew(true); }}>+ New</button>
+            <button type="button" onClick={()=>{ setShowNew(true); }}>+ New</button>
             {selectedIds.size>0 && (
               <>
-                <button className="btn-danger" onClick={batchDelete}>Delete selected ({selectedIds.size})</button>
+                <button type="button" className="btn-danger" onClick={batchDelete}>Delete selected ({selectedIds.size})</button>
                 {sets.length>0 && (
                   <select
                     aria-label="Assign selected to set"
@@ -499,21 +501,26 @@ function ImportQuestions() {
                     {sets.map(s=>(<option key={s.id} value={s.id}>{s.name}</option>))}
                   </select>
                 )}
-                <button className="btn-ghost" onClick={clearSelection}>Clear selection</button>
+                <button type="button" className="btn-ghost" onClick={clearSelection}>Clear selection</button>
               </>
             )}
             {selectedIds.size===0 && filteredQuestions.length>0 && (
-              <button className="btn-ghost" onClick={selectAllFiltered}>Select all (filtered)</button>
+              <button type="button" className="btn-ghost" onClick={selectAllFiltered}>Select all (filtered)</button>
             )}
           </div>
           {error && <p className="error">{error}</p>}
           {filteredQuestions.length > 0 ? (
             <ul className="question-list">
               {filteredQuestions.map((q) => (
-                <li key={q.id} className="question-item" style={{display:'flex',gap:'8px',alignItems:'flex-start'}}>
-                  <input type="checkbox" checked={selectedIds.has(q.id)} onChange={(e)=>toggleSelect(q.id, e.target.checked)} />
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'8px',width:'100%'}}>
-                    <div style={{flex:1}}>
+                <li key={q.id} className="question-item question-row">
+                  <input
+                    type="checkbox"
+                    aria-label={`Select question ${q.id}`}
+                    checked={selectedIds.has(q.id)}
+                    onChange={(e)=>toggleSelect(q.id, e.target.checked)}
+                  />
+                  <div className="question-row__main">
+                    <div className="question-row__content">
                       <p style={{margin:'4px 0'}}>{q.question}</p>
                       {sets.length > 0 && (
                         <div className="badges">
@@ -523,7 +530,7 @@ function ImportQuestions() {
                         </div>
                       )}
                     </div>
-                    <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
+                    <div className="question-row__actions">
                       {sets.length>0 && (
                         <select
                           aria-label={`Assign question ${q.id} to set`}
@@ -533,15 +540,43 @@ function ImportQuestions() {
                           {sets.filter((s)=>!(s.questionIds||[]).includes(q.id)).map((s)=>(<option value={s.id} key={s.id}>{s.name}</option>))}
                         </select>
                       )}
-                      <button className="btn-ghost" onClick={() => startEdit(q)}>Edit</button>
-                      <button className="btn-danger" onClick={() => deleteQuestion(q.id)}>Delete</button>
+                      <button type="button" className="btn-ghost" onClick={() => startEdit(q)}>Edit</button>
+                      <button type="button" className="btn-danger" onClick={() => deleteQuestion(q.id)}>Delete</button>
                     </div>
                   </div>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="muted">No questions match your filters.</p>
+            <div className="empty-state">
+              {hasQuestions ? (
+                <>
+                  <p className="muted">No questions match the current filters.</p>
+                  {hasActiveLibraryFilters && (
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      onClick={() => {
+                        setSearch('');
+                        setFilterSet('');
+                        setAssignFilter('all');
+                      }}
+                    >
+                      Reset filters
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <p className="muted">No questions are stored in this library yet.</p>
+                  <div className="chips">
+                    <button type="button" className="btn-outline" onClick={() => document.querySelector('#fileJson').click()}>Import JSON</button>
+                    <button type="button" className="btn-ghost" onClick={()=>{ setShowPaste(true); setPasteError(''); }}>Paste JSON</button>
+                    <button type="button" onClick={()=>setShowNew(true)}>Create question</button>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -559,13 +594,13 @@ function ImportQuestions() {
                   <div style={{display:'flex',gap:8}}>
                     {editingId? (
                       <>
-                        <button disabled={!valid} onClick={saveEdit}>Save</button>
-                        <button className="btn-ghost" onClick={cancelEdit}>Cancel</button>
+                        <button type="button" disabled={!valid} onClick={saveEdit}>Save</button>
+                        <button type="button" className="btn-ghost" onClick={cancelEdit}>Cancel</button>
                       </>
                     ) : (
                       <>
-                        <button disabled={!valid} onClick={addQuestion}>Add</button>
-                        {restoreDraftAvailable && <button className="btn-ghost" onClick={restoreDraft}>Restore draft</button>}
+                        <button type="button" disabled={!valid} onClick={addQuestion}>Add</button>
+                        {restoreDraftAvailable && <button type="button" className="btn-ghost" onClick={restoreDraft}>Restore draft</button>}
                       </>
                     )}
                   </div>
@@ -682,17 +717,17 @@ function ImportQuestions() {
                     }}
                   />
                 </label>
-                <button className="btn-ghost" onClick={() => (editingId? removeDraftOption(idx) : removeNewQOption(idx))}>✖</button>
+                <button type="button" className="btn-ghost" onClick={() => (editingId? removeDraftOption(idx) : removeNewQOption(idx))}>✖</button>
               </div>
             ))}
-            <button className="btn-outline" onClick={() => (editingId? setDraft({ ...draft, options: [...draft.options, ''] }) : setNewQ({ ...newQ, options: [...newQ.options, ''] }))}>+ Option</button>
+            <button type="button" className="btn-outline" onClick={() => (editingId? setDraft({ ...draft, options: [...draft.options, ''] }) : setNewQ({ ...newQ, options: [...newQ.options, ''] }))}>+ Option</button>
             <div style={{marginTop:10}}>
               {sets.length>0 && <p className="muted" style={{marginBottom:6}}>Assign to set(s)</p>}
               <div className="chips">
                 {sets.map((s)=>{
                   const assigned = editingId? (s.questionIds||[]).includes(editingId) : (newQ.setIds||[]).includes(s.id);
                   return (
-                    <button key={s.id} className={`chip ${assigned? 'accent':''}`} onClick={()=>{
+                    <button type="button" key={s.id} className={`chip ${assigned? 'accent':''}`} onClick={()=>{
                       if (editingId) toggleQuestionInSet(s.id, editingId, !assigned);
                       else toggleNewQSet(s.id, !assigned);
                     }}>{s.name}</button>
@@ -708,7 +743,7 @@ function ImportQuestions() {
         <div>
           <div className="toolbar">
             <input type="text" placeholder="New set name" value={newSetName} onChange={(e)=>setNewSetName(e.target.value)} />
-            <button onClick={addSet}>+ Add Set</button>
+            <button type="button" onClick={addSet}>+ Add Set</button>
           </div>
           {sets.length ? (
             <ul className="set-list">
@@ -719,7 +754,7 @@ function ImportQuestions() {
                     <span className="chip">{(s.questionIds||[]).length} items</span>
                   </div>
                   <div style={{display:'flex',gap:'8px'}}>
-                    <button className="btn-danger" onClick={()=>deleteSet(s.id)}>Delete</button>
+                    <button type="button" className="btn-danger" onClick={()=>deleteSet(s.id)}>Delete</button>
                   </div>
                 </li>
               ))}

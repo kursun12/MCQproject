@@ -8,6 +8,7 @@ function LandingPage() {
   const comingSoon = Boolean(certification?.comingSoon);
   const navigate = useNavigate();
   const [selectedSet, setSelectedSet] = useState(null);
+  const [hardCount, setHardCount] = useState('');
   const countOptions = [10, 20, 25, 30];
   const certificationQuestions = certification?.questions || [];
   const qCount = certificationQuestions.length;
@@ -32,8 +33,8 @@ function LandingPage() {
         {!comingSoon && qCount === 0 && (<p className="muted" style={{ marginTop: 8 }}>No questions stored for {certificationLabel} yet. Import your own questions or check back soon.</p>)}
         {session && session.questions?.length>0 && (
           <div style={{marginTop:12}}>
-            <Link to={`/quiz?mode=${encodeURIComponent(session.mode||'practice')}&resume=1`}>
-              <button>Continue last session</button>
+            <Link className="link-button" to={`/quiz?mode=${encodeURIComponent(session.mode||'practice')}&resume=1`}>
+              Continue last session
             </Link>
           </div>
         )}
@@ -100,6 +101,11 @@ function LandingPage() {
               </button>
             )}
           </div>
+          {!selectedSet && (
+            <p className="muted" style={{ marginTop: 8, marginBottom: 0 }}>
+              Choose a set to reveal quick-start counts.
+            </p>
+          )}
           {selectedSet && (
             <div className="chips" style={{marginTop:8}}>
               {countOptions
@@ -127,9 +133,25 @@ function LandingPage() {
       )}
       <div className="card" style={{marginTop:12,padding:'12px'}}>
         <div className="section-title"><strong>Hard questions</strong><span className="muted">Focus on what you struggle with</span></div>
-        <div style={{display:'flex',gap:8,alignItems:'center'}}>
-          <input id="hardCount" type="number" min="1" placeholder="Count (optional)" />
-          <button onClick={()=>{ const v=document.getElementById('hardCount').value; navigate(`/quiz?mode=practice&hard=true&count=${encodeURIComponent(v||'')}`); }}>Start Hard</button>
+        <p className="muted" style={{marginTop:0, marginBottom:8}}>Start a practice session using the questions you miss most often.</p>
+        <div style={{display:'flex',gap:8,alignItems:'center', flexWrap:'wrap'}}>
+          <label htmlFor="hardCount" className="sr-only">Hard question count</label>
+          <input
+            id="hardCount"
+            type="number"
+            min="1"
+            placeholder="Count (optional)"
+            aria-label="Hard question count"
+            value={hardCount}
+            onChange={(e) => setHardCount(e.target.value)}
+          />
+          <button
+            type="button"
+            onClick={() => navigate(`/quiz?mode=practice&hard=true&count=${encodeURIComponent(hardCount || '')}`)}
+            disabled={qCount === 0}
+          >
+            Start hard practice
+          </button>
         </div>
       </div>
       <div className="card" style={{marginTop:12,padding:'12px'}}>

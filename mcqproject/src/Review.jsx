@@ -121,6 +121,17 @@ export default function Review() {
     });
     return arr;
   }, [allQuestions, bookmarks, onlyBookmarked, tag, setFilter, difficulty, query, sortBy]);
+  const hasReviewData = allQuestions.length > 0;
+  const hasActiveFilters = Boolean(query.trim() || tag || setFilter || difficulty || onlyBookmarked !== initialBookmarked);
+
+  const clearFilters = () => {
+    setQuery('');
+    setTag('');
+    setSetFilter('');
+    setDifficulty('');
+    setSortBy('date');
+    setOnlyBookmarked(initialBookmarked);
+  };
 
   const toggleBookmark = (id) => {
     const idNum = Number(id);
@@ -241,129 +252,157 @@ export default function Review() {
   const totalWrong = Object.values(progressBySet).reduce((a, b) => a + b.wrong, 0);
 
   return (
-    <div className="bookmarks-layout">
-      <aside className="bm-sidebar card">
-        <input
-          placeholder="Search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+    <div className="review-page">
+      <div className="review-header">
         <div>
-          <h4>Tags</h4>
-          <div className="chips">
-            {tags.map((t) => (
-              <button
-                key={t}
-                className={`chip ${tag === t ? 'accent' : ''}`}
-                onClick={() => setTag(t)}
-              >
-                {t || 'All'}
-              </button>
-            ))}
-          </div>
+          <h2>Review</h2>
+          <p className="muted">
+            Search completed sessions, retry mistakes, and manage bookmarked questions.
+          </p>
         </div>
-        <div>
-          <h4>Sets</h4>
-          <div className="chips">
-            {sets.map((s) => (
-              <button
-                key={s}
-                className={`chip ${setFilter === s ? 'accent' : ''}`}
-                onClick={() => setSetFilter(s)}
-              >
-                {s || 'All'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <h4>Difficulty</h4>
-          <div className="chips">
-            {difficulties.map((d) => (
-              <button
-                key={d}
-                className={`chip ${difficulty === d ? 'accent' : ''}`}
-                onClick={() => setDifficulty(d)}
-              >
-                {d || 'All'}
-              </button>
-            ))}
-          </div>
-        </div>
-        <label className="toggle">
+        {hasActiveFilters && (
+          <button type="button" className="btn-ghost" onClick={clearFilters}>
+            Reset review filters
+          </button>
+        )}
+      </div>
+      <div className="bookmarks-layout">
+        <aside className="bm-sidebar card">
           <input
-            type="checkbox"
-            checked={onlyBookmarked}
-            onChange={(e) => setOnlyBookmarked(e.target.checked)}
+            aria-label="Search review questions"
+            placeholder="Search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
           />
-          Bookmarked
-        </label>
-        <button
-          className="btn-ghost"
-          onClick={() => setCompact((c) => !c)}
-        >
-          {compact ? 'Detailed' : 'Compact'} View
-        </button>
-      </aside>
-      <section className="bm-main">
-        <div
-          className="main-toolbar"
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '8px',
-          }}
-        >
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="date">By Date</option>
-            <option value="set">By Set</option>
-            <option value="difficulty">By Difficulty</option>
-          </select>
-          <button className="btn primary" onClick={retryIncorrect}>
-            Retry Incorrect Only
-          </button>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={exportCSV}
-            title="Export CSV"
-          >
-            ⬇️
-          </button>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={exportJSON}
-            title="Export JSON"
-          >
-            ⬇️
-          </button>
-        </div>
-        <div className="card progress-card">
-          <div>
-            {totalSets} sets bookmarked, {totalWrong} incorrect left to retry
+          <div className="review-sidebar-section">
+            <h3>Tags</h3>
+            <div className="chips">
+              {tags.map((t) => (
+                <button
+                  type="button"
+                  key={t}
+                  className={`chip ${tag === t ? 'accent' : ''}`}
+                  onClick={() => setTag(t)}
+                >
+                  {t || 'All'}
+                </button>
+              ))}
+            </div>
           </div>
-          {Object.entries(progressBySet).map(([s, data]) => {
-            const pct = ((data.total - data.wrong) / data.total) * 100;
-            return (
-              <div key={s} className="progress-row">
-                <span>{s}</span>
-                <div className="progress">
-                  <div
-                    className="progress-bar"
-                    style={{ width: pct + '%' }}
-                  ></div>
+          <div className="review-sidebar-section">
+            <h3>Sets</h3>
+            <div className="chips">
+              {sets.map((s) => (
+                <button
+                  type="button"
+                  key={s}
+                  className={`chip ${setFilter === s ? 'accent' : ''}`}
+                  onClick={() => setSetFilter(s)}
+                >
+                  {s || 'All'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="review-sidebar-section">
+            <h3>Difficulty</h3>
+            <div className="chips">
+              {difficulties.map((d) => (
+                <button
+                  type="button"
+                  key={d}
+                  className={`chip ${difficulty === d ? 'accent' : ''}`}
+                  onClick={() => setDifficulty(d)}
+                >
+                  {d || 'All'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="toggle">
+            <input
+              type="checkbox"
+              checked={onlyBookmarked}
+              onChange={(e) => setOnlyBookmarked(e.target.checked)}
+            />
+            Only bookmarked questions
+          </label>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => setCompact((c) => !c)}
+          >
+            {compact ? 'Use detailed cards' : 'Use compact cards'}
+          </button>
+        </aside>
+        <section className="bm-main">
+          <div className="review-toolbar">
+            <label className="sr-only" htmlFor="review-sort">Sort review questions</label>
+            <select id="review-sort" aria-label="Sort review questions" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="date">By Date</option>
+              <option value="set">By Set</option>
+              <option value="difficulty">By Difficulty</option>
+            </select>
+            <button type="button" className="btn primary" onClick={retryIncorrect}>
+              Retry Incorrect Only
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={exportCSV}
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              className="btn-ghost"
+              onClick={exportJSON}
+            >
+              Export JSON
+            </button>
+          </div>
+          <div className="card progress-card">
+            <div>
+              {totalSets} sets bookmarked, {totalWrong} incorrect left to retry
+            </div>
+            {totalSets === 0 ? (
+              <p className="muted" style={{ marginBottom: 0 }}>
+                Bookmark questions to see progress by set.
+              </p>
+            ) : Object.entries(progressBySet).map(([s, data]) => {
+              const pct = ((data.total - data.wrong) / data.total) * 100;
+              return (
+                <div key={s} className="progress-row">
+                  <span>{s}</span>
+                  <div className="progress">
+                    <div
+                      className="progress-bar"
+                      style={{ width: pct + '%' }}
+                    ></div>
+                  </div>
+                  <span>
+                    {data.total - data.wrong}/{data.total}
+                  </span>
                 </div>
-                <span>
-                  {data.total - data.wrong}/{data.total}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-        <div className="question-grid">
+              );
+            })}
+          </div>
+          {!hasReviewData ? (
+            <div className="card empty-state empty-state--center">
+              <p className="muted">No completed session is available yet.</p>
+              <button type="button" onClick={() => navigate('/quiz?mode=practice')}>
+                Start a practice quiz
+              </button>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="card empty-state">
+              <p className="muted">No review questions match the current filters.</p>
+              <button type="button" className="btn-ghost" onClick={clearFilters}>
+                Reset filters
+              </button>
+            </div>
+          ) : (
+            <div className="question-grid">
           {filtered.map((q) => {
             const idx = allQuestions.findIndex((x) => x.id === q.id);
             const res = results[idx];
@@ -384,10 +423,12 @@ export default function Review() {
                 key={q.id}
                 className={`question-card ${compact ? '' : 'card'}`}
               >
-                <div
-                  className="qc-header"
+                <button
+                  type="button"
+                  className="qc-header qc-header-btn"
                   onClick={() => toggleExpand(q.id)}
-                  style={{ cursor: 'pointer' }}
+                  aria-expanded={isExpanded}
+                  aria-label={`Toggle review details for question ${idx + 1}`}
                 >
                   <div className="qc-top">
                     <strong>Q{idx + 1}</strong>
@@ -411,12 +452,13 @@ export default function Review() {
                       __html: renderMDKaTeX(snippet),
                     }}
                   ></div>
-                </div>
-                <div className="qc-actions">
+                </button>
+                <div className="qc-actions review-actions">
                   <button
                     type="button"
                     className="icon-btn"
                     onClick={() => retryOne(q)}
+                    aria-label={`Retry question ${idx + 1}`}
                     title="Retry"
                   >
                     🔄
@@ -425,7 +467,8 @@ export default function Review() {
                     type="button"
                     className="icon-btn"
                     onClick={() => toggleBookmark(q.id)}
-                    title="Unbookmark"
+                    aria-label={bookmarks.has(q.id) ? `Remove bookmark from question ${idx + 1}` : `Bookmark question ${idx + 1}`}
+                    title={bookmarks.has(q.id) ? 'Remove bookmark' : 'Add bookmark'}
                   >
                     {bookmarks.has(q.id) ? '⭐' : '☆'}
                   </button>
@@ -433,6 +476,7 @@ export default function Review() {
                     type="button"
                     className="icon-btn"
                     onClick={() => exportQuestion(q)}
+                    aria-label={`Export question ${idx + 1}`}
                     title="Export"
                   >
                     ⬇️
@@ -470,8 +514,10 @@ export default function Review() {
               </div>
             );
           })}
-        </div>
-      </section>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
